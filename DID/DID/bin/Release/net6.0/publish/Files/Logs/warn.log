@@ -1,0 +1,16 @@
+2022-08-19 09:10:49,736 [19] WARN  Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Failed to determine the https port for redirect.
+2022-08-19 11:50:39,571 [1] WARN  Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository - Using an in-memory repository. Keys will not be persisted to storage.
+2022-08-19 11:50:39,577 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+2022-08-19 11:50:39,590 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - No XML encryptor configured. Key {8ea7258d-c66f-4195-8b48-ff05f6383415} may be persisted to storage in unencrypted form.
+2022-08-19 11:50:39,685 [7] WARN  Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Failed to determine the https port for redirect.
+2022-08-19 14:15:08,537 [1] WARN  Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository - Using an in-memory repository. Keys will not be persisted to storage.
+2022-08-19 14:15:08,545 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+2022-08-19 14:15:08,561 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - No XML encryptor configured. Key {954273f9-220a-466f-9173-0439f905f07f} may be persisted to storage in unencrypted form.
+2022-08-19 14:15:08,739 [7] WARN  Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Failed to determine the https port for redirect.
+2022-08-19 17:02:24,183 [1] WARN  Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository - Using an in-memory repository. Keys will not be persisted to storage.
+2022-08-19 17:02:24,189 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+2022-08-19 17:02:24,203 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - No XML encryptor configured. Key {07cbc180-ea8f-4fa0-89ee-2ee5c2181f13} may be persisted to storage in unencrypted form.
+2022-08-19 17:04:47,864 [1] WARN  Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository - Using an in-memory repository. Keys will not be persisted to storage.
+2022-08-19 17:04:47,870 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits.
+2022-08-19 17:04:47,884 [1] WARN  Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager - No XML encryptor configured. Key {7d9cd7d7-609f-46a9-a994-67c2f4cb368c} may be persisted to storage in unencrypted form.
+2022-08-19 17:04:58,012 [7] WARN  Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware - Failed to determine the https port for redirect.

@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "JMBcA+FGuVc88rQGQWYllQ0KXmrA4bZFCnTTYk+NDo4=",
+  "Source": "DID",
+  "BasePath": "_content/DID",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

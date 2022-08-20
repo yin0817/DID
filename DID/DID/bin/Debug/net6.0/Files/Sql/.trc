@@ -1,0 +1,60 @@
+2022/08/17 10:21:58.227:DECLARE @0 Int = '1'
+
+select UserAuthInfoId from DIDUSer where Uid =@0
+2022/08/17 10:21:58.387:DECLARE @0 Int = '1'
+
+select RefUid from DIDUser where Uid = @0
+2022/08/17 10:21:58.571:DECLARE @0 NVarChar[4000] = 'ece85fb0-2140-4bb3-87f0-2a5dd9546e54'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = '13117451250'
+DECLARE @3 NVarChar[4000] = '430723199508171111'
+DECLARE @4 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @5 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @6 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @7 DateTime = '2022/8/17 10:21:57'
+DECLARE @8 Int = '1'
+
+INSERT INTO [UserAuthInfo] ([UserAuthInfoId],[Name],[PhoneNum],[IdCard],[PortraitImage],[NationalImage],[HandHeldImage],[CreateDate],[CreatorId]) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)
+2022/08/17 10:21:58.609:DECLARE @0 NVarChar[4000] = '0742902f-b5a9-4d9c-b8e5-8d14cd3a6b5d'
+DECLARE @1 NVarChar[4000] = 'ece85fb0-2140-4bb3-87f0-2a5dd9546e54'
+DECLARE @2 NVarChar[4000] = '2'
+DECLARE @3 NVarChar[4000] = 'Images/AuthImges/1/e7d67286-e675-40ea-b5a5-21c215eac9e0.jpg'
+DECLARE @4 NVarChar[4000] = 'Images/AuthImges/1/21735a94-c0e7-473c-af39-37f772d80f16.jpg'
+DECLARE @5 NVarChar = ''
+DECLARE @6 NVarChar = ''
+DECLARE @7 DateTime = '2022/8/17 10:21:58'
+DECLARE @8 Int = '0'
+DECLARE @9 DateTime = '0001/1/1 0:00:00'
+DECLARE @10 Int = '0'
+
+INSERT INTO [Auth] ([AuthId],[UserAuthInfoId],[AuditUid],[PortraitImage],[NationalImage],[HandHeldImage],[Remark],[CreateDate],[AuditType],[AuditDate],[AuditStep]) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)
+2022/08/17 10:23:30.711:DECLARE @0 Int = '1'
+
+select UserAuthInfoId from DIDUSer where Uid =@0
+2022/08/17 10:23:30.723:DECLARE @0 Int = '1'
+
+select RefUid from DIDUser where Uid = @0
+2022/08/17 10:23:30.849:DECLARE @0 NVarChar[4000] = 'd565b3ae-73e2-4ab1-98d5-5a025e2b675d'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = '13117451250'
+DECLARE @3 NVarChar[4000] = '430723199508171111'
+DECLARE @4 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @5 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @6 NVarChar[4000] = 'Images/AuthImges/1/aee2101e-5f77-489e-a6ea-eabd56081066.jpg'
+DECLARE @7 DateTime = '2022/8/17 10:23:30'
+DECLARE @8 Int = '1'
+
+INSERT INTO [UserAuthInfo] ([UserAuthInfoId],[Name],[PhoneNum],[IdCard],[PortraitImage],[NationalImage],[HandHeldImage],[CreateDate],[CreatorId]) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)
+2022/08/17 10:23:30.856:DECLARE @0 NVarChar[4000] = '7ea55716-2041-4a4e-bebe-0ebd4ba86753'
+DECLARE @1 NVarChar[4000] = 'd565b3ae-73e2-4ab1-98d5-5a025e2b675d'
+DECLARE @2 NVarChar[4000] = '2'
+DECLARE @3 NVarChar[4000] = 'Images/AuthImges/1/4f4abc0b-8f06-43b8-af6b-cda279590ce5.jpg'
+DECLARE @4 NVarChar[4000] = 'Images/AuthImges/1/f9ee2887-c751-4166-98c5-4db0303a8209.jpg'
+DECLARE @5 NVarChar = ''
+DECLARE @6 NVarChar = ''
+DECLARE @7 DateTime = '2022/8/17 10:23:30'
+DECLARE @8 Int = '0'
+DECLARE @9 DateTime = '0001/1/1 0:00:00'
+DECLARE @10 Int = '0'
+
+INSERT INTO [Auth] ([AuthId],[UserAuthInfoId],[AuditUid],[PortraitImage],[NationalImage],[HandHeldImage],[Remark],[CreateDate],[AuditType],[AuditDate],[AuditStep]) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)

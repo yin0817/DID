@@ -1,0 +1,20 @@
+2022-08-19 09:07:39,718 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-19 09:07:39,727 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Production
+2022-08-19 09:07:39,727 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\bin\Release\net6.0\publish\
+2022-08-19 09:31:37,023 [30] INFO  Microsoft.Hosting.Lifetime - Application is shutting down...
+2022-08-19 11:50:39,624 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-19 11:50:39,624 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Production
+2022-08-19 11:50:39,624 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\bin\Release\net6.0\publish\
+2022-08-19 12:22:37,789 [12] INFO  Microsoft.Hosting.Lifetime - Application is shutting down...
+2022-08-19 14:15:08,605 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-19 14:15:08,605 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Production
+2022-08-19 14:15:08,605 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\bin\Release\net6.0\publish\
+2022-08-19 14:36:04,581 [91] INFO  Microsoft.Hosting.Lifetime - Application is shutting down...
+2022-08-19 17:02:24,226 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-19 17:02:24,226 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Production
+2022-08-19 17:02:24,226 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\bin\Release\net6.0\publish\
+2022-08-19 17:04:01,245 [13] INFO  Microsoft.Hosting.Lifetime - Application is shutting down...
+2022-08-19 17:04:47,907 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-19 17:04:47,907 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Production
+2022-08-19 17:04:47,907 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\bin\Release\net6.0\publish\
+2022-08-19 17:29:59,509 [19] INFO  Microsoft.Hosting.Lifetime - Application is shutting down...

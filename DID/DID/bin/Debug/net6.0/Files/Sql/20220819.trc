@@ -1,0 +1,132 @@
+2022/08/19 09:13:04.678:DECLARE @0 NVarChar[4000] = '1'
+
+SELECT [Uid] AS [Uid], [AuthType] AS [AuthType], [CreditScore] AS [CreditScore], [UserAuthInfoId] AS [UserAuthInfoId], [UserNode] AS [UserNode], [RefUid] AS [RefUid], [Mail] AS [Mail] FROM [DIDUser] WHERE [Uid] = @0
+2022/08/19 10:14:44.213:DECLARE @0 NVarChar[4000] = '1'
+
+SELECT [Uid] AS [Uid], [AuthType] AS [AuthType], [CreditScore] AS [CreditScore], [UserAuthInfoId] AS [UserAuthInfoId], [UserNode] AS [UserNode], [RefUid] AS [RefUid], [Mail] AS [Mail] FROM [DIDUser] WHERE [Uid] = @0
+2022/08/19 11:01:30.002:DECLARE @0 NVarChar[4000] = '钱包地址2'
+DECLARE @1 NVarChar[4000] = '网络类型2'
+DECLARE @2 NVarChar[4000] = '签名2'
+
+select Uid from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:08:45.264:DECLARE @0 NVarChar[4000] = '钱包地址2'
+DECLARE @1 NVarChar[4000] = '网络类型2'
+DECLARE @2 NVarChar[4000] = '签名2'
+
+select Uid from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:13:17.217:
+select IDENT_CURRENT('DIDUser') + 1
+2022/08/19 11:13:17.373:DECLARE @0 Int = '21'
+DECLARE @1 Int = '0'
+DECLARE @2 Int = '0'
+DECLARE @3 NVarChar = ''
+DECLARE @4 Int = '0'
+DECLARE @5 NVarChar[4000] = '2'
+DECLARE @6 NVarChar[4000] = '1111'
+
+INSERT INTO [DIDUser] ([Uid],[AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5,@6)
+2022/08/19 11:17:13.186:
+select IDENT_CURRENT('DIDUser') + 1
+2022/08/19 11:17:13.217:DECLARE @0 Int = '21'
+DECLARE @1 Int = '0'
+DECLARE @2 Int = '0'
+DECLARE @3 NVarChar = ''
+DECLARE @4 Int = '0'
+DECLARE @5 NVarChar[4000] = '2'
+DECLARE @6 NVarChar[4000] = '1111'
+
+INSERT INTO [DIDUser] ([Uid],[AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5,@6)
+2022/08/19 11:18:55.261:
+select IDENT_CURRENT('DIDUser') + 1
+2022/08/19 11:18:55.269:DECLARE @0 Int = '21'
+DECLARE @1 Int = '0'
+DECLARE @2 Int = '0'
+DECLARE @3 NVarChar = ''
+DECLARE @4 Int = '0'
+DECLARE @5 NVarChar[4000] = '2'
+DECLARE @6 NVarChar[4000] = '1111'
+
+INSERT INTO [DIDUser] ([Uid],[AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5,@6)
+2022/08/19 11:44:44.850:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 11:44:45.096:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:44:45.147:DECLARE @0 Int = '0'
+DECLARE @1 Int = '0'
+DECLARE @2 Int = '0'
+DECLARE @3 NVarChar = ''
+DECLARE @4 Int = '0'
+DECLARE @5 NVarChar[4000] = 'string'
+DECLARE @6 NVarChar[4000] = 'string'
+
+INSERT INTO [DIDUser] ([Uid],[AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5,@6)
+2022/08/19 11:45:45.554:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 11:45:45.689:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:45:45.740:DECLARE @0 Int = '0'
+DECLARE @1 Int = '0'
+DECLARE @2 NVarChar = ''
+DECLARE @3 Int = '0'
+DECLARE @4 NVarChar[4000] = 'string'
+DECLARE @5 NVarChar[4000] = 'string'
+
+INSERT INTO [DIDUser] ([AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5);SELECT SCOPE_IDENTITY();
+2022/08/19 11:46:42.760:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 11:46:47.108:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:46:57.432:DECLARE @0 Int = '0'
+DECLARE @1 Int = '0'
+DECLARE @2 NVarChar = ''
+DECLARE @3 Int = '0'
+DECLARE @4 NVarChar[4000] = 'string'
+DECLARE @5 NVarChar[4000] = 'string'
+
+INSERT INTO [DIDUser] ([AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5);SELECT SCOPE_IDENTITY();
+2022/08/19 11:49:35.388:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 11:49:39.275:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
+2022/08/19 11:49:41.564:DECLARE @0 Int = '0'
+DECLARE @1 Int = '0'
+DECLARE @2 NVarChar = ''
+DECLARE @3 Int = '0'
+DECLARE @4 Int = '2'
+DECLARE @5 NVarChar[4000] = 'string'
+
+INSERT INTO [DIDUser] ([AuthType],[CreditScore],[UserAuthInfoId],[UserNode],[RefUid],[Mail]) VALUES (@0,@1,@2,@3,@4,@5);SELECT SCOPE_IDENTITY();
+2022/08/19 11:49:43.110:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 11:49:47.562:DECLARE @0 NVarChar[4000] = '649f3c55-8855-4599-9056-7ee5997eecf5'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+DECLARE @3 NVarChar[4000] = 'string'
+DECLARE @4 Int = '23'
+
+INSERT INTO [Wallet] ([WalletId],[WalletAddress],[Otype],[Sign],[Uid]) VALUES (@0,@1,@2,@3,@4)
+2022/08/19 14:44:32.760:DECLARE @0 NVarChar[4000] = '625022186@qq.com'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 16:54:32.087:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select Uid from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
