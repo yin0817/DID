@@ -1,0 +1,6 @@
+2022/08/18 16:01:55.707:DECLARE @0 NVarChar[4000] = '1'
+
+select * from CreditScoreHistory where Uid=@0;
+2022/08/18 16:01:56.006:DECLARE @0 NVarChar[4000] = '1'
+
+select CreditScore from DIDUser where Uid = @0

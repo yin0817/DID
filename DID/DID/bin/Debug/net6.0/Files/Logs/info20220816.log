@@ -1,0 +1,170 @@
+2022-08-16 17:05:40,983 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 17:05:40,997 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 17:05:41,005 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 17:05:41,007 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 17:05:41,008 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 17:09:48,180 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 17:09:48,194 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 17:09:48,201 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 17:09:48,214 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 17:09:48,216 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 17:36:02,471 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 17:36:02,486 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 17:36:02,494 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 17:36:02,496 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 17:36:02,497 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 18:22:19,233 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 18:22:19,248 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 18:22:19,255 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 18:22:19,256 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 18:22:19,258 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:16:49,062 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:16:49,078 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:16:49,088 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:16:49,090 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:16:49,092 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:18:58,457 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:18:58,475 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:18:58,487 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:18:58,489 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:18:58,490 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:27:20,163 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:27:20,178 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:27:20,188 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:27:20,190 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:27:20,191 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:28:44,696 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:28:44,708 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:28:44,716 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:28:44,718 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:28:44,719 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:31:09,337 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:31:09,352 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:31:09,363 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:31:09,365 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:31:09,366 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:37:49,450 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:37:49,463 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:37:49,472 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:37:49,474 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:37:49,475 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:43:01,680 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:43:01,699 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:43:01,706 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:43:01,708 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:43:01,710 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:46:09,966 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:46:09,982 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:46:09,990 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:46:09,991 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:46:09,993 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:49:32,967 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:49:32,982 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:49:32,990 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:49:32,992 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:49:32,994 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:54:49,099 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:54:49,114 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:54:49,122 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:54:49,124 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:54:49,125 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 19:59:24,363 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 19:59:24,378 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 19:59:24,387 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 19:59:24,388 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 19:59:24,390 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:00:07,003 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:00:07,020 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:00:07,027 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:00:07,029 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:00:07,030 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:01:59,157 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:01:59,171 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:01:59,178 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:01:59,181 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:01:59,182 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:02:15,337 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:02:15,350 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:02:15,358 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:02:15,360 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:02:15,362 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:02:40,112 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:02:40,126 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:02:40,134 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:02:40,136 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:02:40,138 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:04:18,129 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:04:18,170 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:04:18,180 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:04:18,182 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:04:18,184 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:08:28,558 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:08:28,572 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:08:28,579 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:08:28,581 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:08:28,582 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:24:17,532 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:24:17,546 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:24:17,554 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:24:17,556 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:24:17,557 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:30:24,109 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:30:24,127 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:30:24,136 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:30:24,138 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:30:24,139 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:37:27,075 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:37:27,089 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:37:27,096 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:37:27,098 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:37:27,099 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:38:27,883 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:38:27,907 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:38:27,916 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:38:27,919 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:38:27,921 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:40:21,711 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:40:21,724 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:40:21,731 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:40:21,733 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:40:21,734 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:44:38,962 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:44:38,975 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:44:38,982 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:44:38,984 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:44:38,985 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:45:58,677 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:45:58,692 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:45:58,699 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:45:58,701 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:45:58,702 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:58:16,495 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:58:16,508 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:58:16,515 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:58:16,517 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:58:16,518 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 20:59:49,107 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 20:59:49,144 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 20:59:49,151 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 20:59:49,162 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 20:59:49,163 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 21:02:47,949 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 21:02:47,966 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 21:02:47,975 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 21:02:47,977 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 21:02:47,979 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 21:06:20,456 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 21:06:20,469 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 21:06:20,476 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 21:06:20,478 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 21:06:20,479 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 21:11:41,959 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 21:11:42,005 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 21:11:42,015 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 21:11:42,017 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 21:11:42,018 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
+2022-08-16 21:13:36,893 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
+2022-08-16 21:13:36,906 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
+2022-08-16 21:13:36,913 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
+2022-08-16 21:13:36,915 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
+2022-08-16 21:13:36,916 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\

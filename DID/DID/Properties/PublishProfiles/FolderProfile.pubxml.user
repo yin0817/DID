@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>E:\DID\DID\DID\bin\Release\net6.0\publish\</_PublishTargetUrl>
+    <History>True|2022-08-19T09:04:32.8444761Z;False|2022-08-19T17:04:12.6481050+08:00;True|2022-08-19T11:50:24.1025520+08:00;True|2022-08-17T11:24:16.3261022+08:00;True|2022-08-15T11:20:41.8322316+08:00;False|2022-08-15T11:20:36.2647156+08:00;False|2022-08-15T11:07:30.9364369+08:00;False|2022-08-15T11:07:11.8565935+08:00;True|2022-08-15T11:01:23.8565364+08:00;True|2022-08-15T10:53:00.3403779+08:00;True|2022-08-15T09:03:52.8350148+08:00;</History>
+  </PropertyGroup>
+</Project>

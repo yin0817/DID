@@ -1,0 +1,14 @@
+2022/08/19 09:10:50.214:DECLARE @0 NVarChar[4000] = '1'
+
+SELECT [Uid] AS [Uid], [AuthType] AS [AuthType], [CreditScore] AS [CreditScore], [UserAuthInfoId] AS [UserAuthInfoId], [UserNode] AS [UserNode], [RefUid] AS [RefUid], [Mail] AS [Mail] FROM [DIDUser] WHERE [Uid] = @0
+2022/08/19 09:11:25.050:DECLARE @0 NVarChar[4000] = '1'
+
+SELECT [Uid] AS [Uid], [AuthType] AS [AuthType], [CreditScore] AS [CreditScore], [UserAuthInfoId] AS [UserAuthInfoId], [UserNode] AS [UserNode], [RefUid] AS [RefUid], [Mail] AS [Mail] FROM [DIDUser] WHERE [Uid] = @0
+2022/08/19 14:15:09.558:DECLARE @0 NVarChar[4000] = 'string'
+
+select Uid from DIDUser where Mail = @0
+2022/08/19 14:15:09.732:DECLARE @0 NVarChar[4000] = 'string'
+DECLARE @1 NVarChar[4000] = 'string'
+DECLARE @2 NVarChar[4000] = 'string'
+
+select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2
