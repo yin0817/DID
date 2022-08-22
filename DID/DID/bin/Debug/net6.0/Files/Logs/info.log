@@ -1,5 +1,0 @@
-2022-08-20 09:02:29,424 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: https://localhost:7141
-2022-08-20 09:02:29,437 [1] INFO  Microsoft.Hosting.Lifetime - Now listening on: http://localhost:5141
-2022-08-20 09:02:29,443 [1] INFO  Microsoft.Hosting.Lifetime - Application started. Press Ctrl+C to shut down.
-2022-08-20 09:02:29,444 [1] INFO  Microsoft.Hosting.Lifetime - Hosting environment: Development
-2022-08-20 09:02:29,446 [1] INFO  Microsoft.Hosting.Lifetime - Content root path: E:\DID\DID\DID\
