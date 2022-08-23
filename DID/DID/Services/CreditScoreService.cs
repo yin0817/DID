@@ -41,11 +41,10 @@ namespace DID.Services
         }
 
         /// <summary>
-        /// 信用分操作(加分、 减分)
+        ///// 信用分操作(加分、 减分)
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         public async Task<Response> CreditScore(CreditScoreHistory item)
         {
             item.CreditScoreHistoryId = Guid.NewGuid().ToString();

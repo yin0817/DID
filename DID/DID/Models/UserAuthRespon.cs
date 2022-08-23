@@ -84,7 +84,7 @@ namespace DID.Models
         /// <summary>
         /// 审批记录
         /// </summary>
-        public List<Auth> Auths
+        public List<AuthInfo>? Auths
         {
             get; set;
         }

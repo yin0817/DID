@@ -73,9 +73,9 @@ namespace DID.Controllers
         {
            if (!CommonHelp.IsMail(login.Mail))
                 return InvokeResult.Fail<string>("邮箱格式错误!");
-            var code = _cache.Get(login.Mail)?.ToString();
-            if (code != login.Code)
-                return InvokeResult.Fail<string>("验证码错误!");
+            //var code = _cache.Get(login.Mail)?.ToString();
+            //if (code != login.Code)
+            //    return InvokeResult.Fail<string>("验证码错误!");
             return await _service.Login(login);
         }
 

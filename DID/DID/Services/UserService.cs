@@ -86,7 +86,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", uid);
 
-            userRespon.Uid = user.Uid;
+            userRespon.Uid = uid;
             userRespon.RefUid = await db.SingleOrDefaultAsync<int>("selet Uid from DIDUser where DIDUserId = @0", user.RefUid);
             userRespon.CreditScore = user.CreditScore;
             userRespon.Mail = user.Mail;
@@ -114,7 +114,12 @@ namespace DID.Services
             using var db = new NDatabase();
             var sql = new Sql("update DIDUser set ");
             if (!string.IsNullOrEmpty(user.RefDIDUserId))
-                sql.Append("RefUid = @0, ",user.RefDIDUserId);
+            {
+                var refUid = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", user.RefUid);
+                if (string.IsNullOrEmpty(refUid))
+                    return InvokeResult.Fail("邀请码错误!");
+                sql.Append("RefUid = @0, ", user.RefDIDUserId);
+            }
             if (!string.IsNullOrEmpty(user.Telegram))
                 sql.Append("Telegram = @0, ", user.Telegram);
             if(!string.IsNullOrEmpty(user.Country))
@@ -136,7 +141,7 @@ namespace DID.Services
         {
             //1.验证用户账号密码是否正确
             using var db = new NDatabase();
-            var user = await db.SingleOrDefaultAsync<DIDUser>("select * form DIDUser where Mail = @0", login.Mail);
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0", login.Mail);
 
             if(null == user)
                 return InvokeResult.Fail<string>("邮箱未注册!");
@@ -198,8 +203,15 @@ namespace DID.Services
             var userId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", login.Mail);
             var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
                                                         login.WalletAddress, login.Otype, login.Sign);
-            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(walletId))
+            if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(walletId))
                 return InvokeResult.Fail("请勿重复注册!");
+
+            if (!string.IsNullOrEmpty(login.RefUid))
+            {
+                var refUid = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", login.RefUid);
+                if (string.IsNullOrEmpty(refUid))
+                    return InvokeResult.Fail("邀请码错误!");
+            }
 
             db.BeginTransaction();
             userId = Guid.NewGuid().ToString();
@@ -210,7 +222,7 @@ namespace DID.Services
                 AuthType = AuthTypeEnum.未审核,
                 CreditScore = 0,
                 Mail = login.Mail,
-                RefUid = login.RefUid,
+                RefUid = login.RefUid ?? login.RefUid,
                 UserNode = 0,//啥也不是
                 RegDate = DateTime.Now             
             };

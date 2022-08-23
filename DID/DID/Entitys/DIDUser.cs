@@ -9,7 +9,8 @@ namespace DID.Entitys
     /// <summary>
     /// 用户信息表
     /// </summary>
-    [PrimaryKey("DIDUserId")]
+    //[PrimaryKey("DIDUserId", AutoIncrement = false)]
+    [PrimaryKey("Uid")]
     public class DIDUser
     {
         /// <summary>
@@ -27,7 +28,7 @@ namespace DID.Entitys
             get; set;
         }
         /// <summary>
-        /// 密码（英文、数字 至少6位）
+        /// 密码（英文、数字 至少6 - 18位）
         /// </summary>
         public string PassWord
         {
@@ -87,7 +88,7 @@ namespace DID.Entitys
         /// <summary>
         /// 推荐人
         /// </summary>
-        public string RefUid
+        public string? RefUid
         {
             get; set;
         }
@@ -108,7 +109,7 @@ namespace DID.Entitys
         /// <summary>
         /// 上次登录时间
         /// </summary>
-        public DateTime LoginDate
+        public DateTime? LoginDate
         {
             get; set;
         }

@@ -29,7 +29,7 @@
         /// <summary>
         /// 推荐人
         /// </summary>
-        public string RefUid
+        public string? RefUid
         {
             get; set;
         }
@@ -43,7 +43,7 @@
         /// <summary>
         /// 验证码
         /// </summary>
-        public string Code
+        public string? Code
         {
             get; set;
         }

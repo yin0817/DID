@@ -117,5 +117,28 @@ namespace DID.Controllers
         {
             return await _service.AuditInfo(userAuthInfoId, uId, auditType);
         }
+        /// <summary>
+        /// 获取用户审核失败信息
+        /// </summary>
+        /// <param name="uId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getauthfail")]
+        public async Task<Response<AuthFailRespon>> GetAuthFail(int uId)
+        {
+            return await _service.GetAuthFail(uId);
+        }
+
+        /// <summary>
+        /// 获取用户审核成功信息
+        /// </summary>
+        /// <param name="uId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getauthsuccess")]
+        public async Task<Response<AuthSuccessRespon>> GetAuthSuccess(int uId)
+        {
+            return await _service.GetAuthSuccess(uId);
+        }
     }
 }
