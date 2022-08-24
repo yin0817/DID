@@ -29,7 +29,7 @@
         /// <summary>
         /// 推荐人
         /// </summary>
-        public string? RefUid
+        public string? RefUserId
         {
             get; set;
         }

@@ -19,9 +19,9 @@ namespace DID.Services
         /// <summary>
         /// 获取用户信息
         /// </summary>
-        /// <param name="uid"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        Task<Response<UserInfoRespon>> GetUserInfo(int uid);
+        Task<Response<UserInfoRespon>> GetUserInfo(string userId);
 
         /// <summary>
         /// 更新用户信息（邀请人 电报群 国家地区）
@@ -78,22 +78,23 @@ namespace DID.Services
         /// <summary>
         /// 获取用户信息
         /// </summary>
-        /// <param name="uid"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<Response<UserInfoRespon>> GetUserInfo(int uid)
+        public async Task<Response<UserInfoRespon>> GetUserInfo(string userId)
         {
             var userRespon = new UserInfoRespon();
             using var db = new NDatabase();
-            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", uid);
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
 
-            userRespon.Uid = uid;
-            userRespon.RefUid = await db.SingleOrDefaultAsync<int>("selet Uid from DIDUser where DIDUserId = @0", user.RefUid);
+            userRespon.Uid = user.Uid;
+            if(!string.IsNullOrEmpty(user.RefUserId))
+                userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
             userRespon.CreditScore = user.CreditScore;
             userRespon.Mail = user.Mail;
             userRespon.Country = user.Country;
             userRespon.Area = user.Area;
             userRespon.Telegram = user.Telegram;
-
+            userRespon.AuthType = user.AuthType;
             if (user.AuthType == AuthTypeEnum.审核成功)
             {
                 var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
@@ -113,12 +114,12 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var sql = new Sql("update DIDUser set ");
-            if (!string.IsNullOrEmpty(user.RefDIDUserId))
+            if (!string.IsNullOrEmpty(user.RefUserId))
             {
-                var refUid = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", user.RefUid);
-                if (string.IsNullOrEmpty(refUid))
+                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", user.RefUserId);
+                if (string.IsNullOrEmpty(refUserId) || user.UserId == refUserId)//不能修改为自己
                     return InvokeResult.Fail("邀请码错误!");
-                sql.Append("RefUid = @0, ", user.RefDIDUserId);
+                sql.Append("RefUserId = @0, ", user.RefUserId);
             }
             if (!string.IsNullOrEmpty(user.Telegram))
                 sql.Append("Telegram = @0, ", user.Telegram);
@@ -126,7 +127,7 @@ namespace DID.Services
                 sql.Append("Country = @0, ", user.Country);
             if (!string.IsNullOrEmpty(user.Area))
                 sql.Append("Area = @0, ", user.Country);
-            sql.Append("Uid = @0 where Uid = @0 ", user.Uid);
+            sql.Append("DIDUserId = @0 where DIDUserId = @0 ", user.UserId);
 
             await db.ExecuteAsync(sql);
             return InvokeResult.Success("更新成功!");
@@ -149,10 +150,10 @@ namespace DID.Services
             if (user.PassWord != login.Password)
                 return InvokeResult.Fail<string>("密码错误!");
 
-            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2", 
-                                                        login.WalletAddress, login.Otype, login.Sign );
+            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and DIDUserId = @3", 
+                                                        login.WalletAddress, login.Otype, login.Sign, user.DIDUserId);
             if (string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail<string>("登录失败!");
+                return InvokeResult.Fail<string>("钱包错误!");
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
@@ -206,10 +207,10 @@ namespace DID.Services
             if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(walletId))
                 return InvokeResult.Fail("请勿重复注册!");
 
-            if (!string.IsNullOrEmpty(login.RefUid))
+            if (!string.IsNullOrEmpty(login.RefUserId))
             {
-                var refUid = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", login.RefUid);
-                if (string.IsNullOrEmpty(refUid))
+                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", login.RefUserId);
+                if (string.IsNullOrEmpty(refUserId))
                     return InvokeResult.Fail("邀请码错误!");
             }
 
@@ -222,7 +223,7 @@ namespace DID.Services
                 AuthType = AuthTypeEnum.未审核,
                 CreditScore = 0,
                 Mail = login.Mail,
-                RefUid = login.RefUid ?? login.RefUid,
+                RefUserId = login.RefUserId ?? login.RefUserId,
                 UserNode = 0,//啥也不是
                 RegDate = DateTime.Now             
             };

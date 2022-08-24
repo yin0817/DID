@@ -35,13 +35,15 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("uploadimage")]
-        public async Task<Response> UploadImage([FromForm] Upload upload)
+        public async Task<Response> UploadImage()
         {
             var files = Request.Form.Files;
             if (files.Count == 0) return InvokeResult.Fail("请上传文件!");
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("文件类型错误!");
-
-            return await _service.UploadImage(files[0],upload);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail("用户未找到!");
+            return await _service.UploadImage(files[0], userId);
         }
 
         /// <summary>
@@ -55,8 +57,12 @@ namespace DID.Controllers
         {
             if(!CommonHelp.IsPhoneNum(info.PhoneNum))
                 return InvokeResult.Fail("手机号错误!");
-            if(!CommonHelp.IsIDcard(info.IdCard))
+            if(!CommonHelp.IsCard(info.IdCard))
                 return InvokeResult.Fail("证件号错误!");
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail("用户未找到!");
+            info.CreatorId = userId;
             info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;
             info.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage;
             info.HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage;
@@ -70,37 +76,43 @@ namespace DID.Controllers
         /// <summary>
         /// 获取未审核信息
         /// </summary>
-        /// <param name="uId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getunauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(int uId)
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo()
         {
-            return await _service.GetUnauditedInfo(uId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+            return await _service.GetUnauditedInfo(userId);
         }
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
-        /// <param name="uId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(int uId)
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo()
         {
-            return await _service.GetAuditedInfo(uId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+            return await _service.GetAuditedInfo(userId);
         }
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
-        /// <param name="uId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getbackinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(int uId)
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo()
         {
-            return await _service.GetBackInfo(uId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+            return await _service.GetBackInfo(userId);
         }
 
 
@@ -108,37 +120,43 @@ namespace DID.Controllers
         /// 审核
         /// </summary>
         /// <param name="userAuthInfoId">审核记录编号</param>
-        /// <param name="uId">用户编号</param>
         /// <param name="auditType">审核类型</param>
         /// <returns></returns>
         [HttpGet]
         [Route("auditinfo")]
-        public async Task<Response> AuditInfo(string userAuthInfoId, int uId, AuditTypeEnum auditType)
+        public async Task<Response> AuditInfo(string userAuthInfoId, AuditTypeEnum auditType)
         {
-            return await _service.AuditInfo(userAuthInfoId, uId, auditType);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail("用户未找到!");
+            return await _service.AuditInfo(userAuthInfoId, userId, auditType);
         }
         /// <summary>
         /// 获取用户审核失败信息
         /// </summary>
-        /// <param name="uId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauthfail")]
-        public async Task<Response<AuthFailRespon>> GetAuthFail(int uId)
+        public async Task<Response<AuthFailRespon>> GetAuthFail()
         {
-            return await _service.GetAuthFail(uId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<AuthFailRespon>("用户未找到!");
+            return await _service.GetAuthFail(userId);
         }
 
         /// <summary>
         /// 获取用户审核成功信息
         /// </summary>
-        /// <param name="uId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauthsuccess")]
-        public async Task<Response<AuthSuccessRespon>> GetAuthSuccess(int uId)
+        public async Task<Response<AuthSuccessRespon>> GetAuthSuccess()
         {
-            return await _service.GetAuthSuccess(uId);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<AuthSuccessRespon>("用户未找到!");
+            return await _service.GetAuthSuccess(userId);
         }
     }
 }

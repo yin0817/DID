@@ -15,14 +15,14 @@ namespace DID.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        Task<Response> CreditScore(CreditScoreHistory item);
+        Task<Response> CreditScore(CreditScoreReq req);
 
         /// <summary>
         /// 获取信用分记录和当前信用分
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<Response<GetCreditScoreRespon>> GetCreditScore(int userId);
+        Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId);
     }
     /// <summary>
     /// 审核认证服务
@@ -45,16 +45,32 @@ namespace DID.Services
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public async Task<Response> CreditScore(CreditScoreHistory item)
+        public async Task<Response> CreditScore(CreditScoreReq req)
         {
-            item.CreditScoreHistoryId = Guid.NewGuid().ToString();
-            item.CreateDate = DateTime.Now;
             using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", req.Uid);
+            if(null == user)
+                return InvokeResult.Fail("用户未找到!");
+
+            var item = new CreditScoreHistory
+            {
+                CreditScoreHistoryId = Guid.NewGuid().ToString(),
+                Fraction = req.Fraction,
+                Type = req.Type,
+                Remarks = req.Remarks,
+                CreateDate = DateTime.Now,
+                DIDUserId = user.DIDUserId
+            };
+            
             db.BeginTransaction();
-            if(item.Type == TypeEnum.加分)
-                await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore + @1  where Uid = @0", item.Uid, item.Fraction);
+            if (item.Type == TypeEnum.加分)
+                await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore + @1  where DIDUserId = @0", user.DIDUserId, item.Fraction);
             else
-                await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore - @1  where Uid = @0", item.Uid, item.Fraction);
+            {
+                if(user.CreditScore < req.Fraction)
+                    return InvokeResult.Fail("信用分不足!");
+                await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore - @1  where DIDUserId = @0", user.DIDUserId, item.Fraction);
+            }
             var insert = await db.InsertAsync(item);
             db.CompleteTransaction();
             return InvokeResult.Success("记录插入成功!");
@@ -66,11 +82,11 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(int userId)
+        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where Uid=@0;", userId);
-            var fraction = await db.SingleOrDefaultAsync<int>("select CreditScore from DIDUser where Uid = @0", userId);
+            var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where DIDUserId=@0;", userId);
+            var fraction = await db.SingleOrDefaultAsync<int>("select CreditScore from DIDUser where DIDUserId = @0", userId);
 
             return InvokeResult.Success(new GetCreditScoreRespon { CreditScore = fraction, Items = list });
         }

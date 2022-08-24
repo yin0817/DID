@@ -10,13 +10,20 @@ namespace DID.Models
         /// <summary>
         /// 用户编号
         /// </summary>
-        public int Uid
+        public int? Uid
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string? UserId
         {
             get; set;
         }
 
         /// <summary>
-        /// 身份认证状态 0 未认证 1 已认证
+        /// 身份认证状态 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
         public AuthTypeEnum? AuthType
         {
@@ -49,7 +56,7 @@ namespace DID.Models
         /// <summary>
         /// 邀请码
         /// </summary>
-        public string? RefDIDUserId
+        public string? RefUserId
         {
             get; set;
         }

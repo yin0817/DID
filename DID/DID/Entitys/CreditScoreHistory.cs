@@ -22,7 +22,7 @@ namespace DID.Entitys
         /// <summary>
         /// 用户编号
         /// </summary>
-        public int Uid
+        public string DIDUserId
         {
             get; set;
         }

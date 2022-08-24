@@ -57,7 +57,7 @@ namespace DID.Entitys
         //}
 
         /// <summary>
-        /// 身份认证状态 0 未认证 1 已认证
+        /// 身份认证状态 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
         public AuthTypeEnum AuthType
         {
@@ -88,7 +88,7 @@ namespace DID.Entitys
         /// <summary>
         /// 推荐人
         /// </summary>
-        public string? RefUid
+        public string? RefUserId
         {
             get; set;
         }

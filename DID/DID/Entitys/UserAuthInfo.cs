@@ -70,14 +70,14 @@ namespace DID.Entitys
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateDate
+        public DateTime? CreateDate
         {
             get; set;
         }
         /// <summary>
         /// 创建用户编号
         /// </summary>
-        public int CreatorId
+        public string? CreatorId
         {
             get; set;
         }

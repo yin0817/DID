@@ -25,8 +25,16 @@ namespace DID.Helps
         /// <returns></returns>
         public static bool IsIDcard(string str_idcard)
         {
-            //return System.Text.RegularExpressions.Regex.IsMatch(str_idcard, @"(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)");
-            return System.Text.RegularExpressions.Regex.IsMatch(str_idcard, @"^[1-8]{2}[0-9]{4}[0-9]{4}((0[1-9]{1})|(1[0-2]{1}))((0[1-9]{1})|(1[0-9]{1})|(2[0-9]{1})|(3[0-1]{1}))[0-9]{3}[0-9xX]{1}$");
+            return System.Text.RegularExpressions.Regex.IsMatch(str_idcard, @"(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)");
+        }
+        /// <summary>
+        /// 证件号验证
+        /// </summary>
+        /// <param name="str_idcard"></param>
+        /// <returns></returns>
+        public static bool IsCard(string str_idcard)
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(str_idcard, @"(^\d{7,18}$)|(^\d{17}(\d|X|x)$)");
         }
         /// <summary>
         /// 邮件验证

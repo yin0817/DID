@@ -33,9 +33,9 @@ namespace DID.Entitys
             get; set;
         }
         /// <summary>
-        /// 用户编号
+        /// 审核用户编号
         /// </summary>
-        public int AuditUid
+        public string AuditUserId
         {
             get; set;
         }

@@ -44,9 +44,12 @@ namespace DID.Controllers
         /// <param name="uid"></param>
         [HttpGet]
         [Route("getuserinfo")]
-        public async Task<Response<UserInfoRespon>> GetUserInfo(int uid)
+        public async Task<Response<UserInfoRespon>> GetUserInfo(/*int uid*/)
         {
-            return await _service.GetUserInfo(uid);
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<UserInfoRespon>("用户未找到!");
+            return await _service.GetUserInfo(userId);
         }
 
         /// <summary>
@@ -58,6 +61,10 @@ namespace DID.Controllers
         [Route("setuserinfo")]
         public async Task<Response> SetUserInfo(UserInfoRespon user)
         {
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Fail<UserInfoRespon>("用户未找到!");
+            user.UserId = userId;
             return await _service.SetUserInfo(user);
         }
 
