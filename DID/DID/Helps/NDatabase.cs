@@ -7,7 +7,7 @@ namespace DID.Helps
     public class NDatabase : Database
     {
         private static object locker = new();
-        public NDatabase() : base(ConfigHelp.ReadAppSettings("ConnectionString"), DatabaseType.SqlServer2012, SqlClientFactory.Instance)
+        public NDatabase() : base(AppSettings.GetValue("ConnectionString"), DatabaseType.SqlServer2012, SqlClientFactory.Instance)
         {
 
         }

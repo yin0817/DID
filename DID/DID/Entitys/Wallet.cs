@@ -44,6 +44,13 @@ namespace DID.Entitys
         {
             get; set;
         }
+        /// <summary>
+        /// 绑定时间
+        /// </summary>
+        public DateTime CreateDate
+        {
+            get; set;
+        }
     }
 }
 

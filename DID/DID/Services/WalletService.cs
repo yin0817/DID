@@ -1,0 +1,35 @@
+﻿using DID.Entitys;
+using DID.Helps;
+using Microsoft.Extensions.Caching.Memory;
+
+namespace DID.Controllers
+{
+    /// <summary>
+    /// 钱包接口
+    /// </summary>
+    public interface IWalletService
+    {
+
+    }
+    /// <summary>
+    /// 钱包服务
+    /// </summary>
+    public class WalletService : IWalletService
+    {
+        private readonly ILogger<WalletService> _logger;
+
+        private readonly IMemoryCache _cache;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="cache"></param>
+        public WalletService(ILogger<WalletService> logger, IMemoryCache cache)
+        {
+            _logger = logger;
+            _cache = cache;
+        }
+        
+    }
+}

@@ -41,7 +41,6 @@ namespace DID.Controllers
         /// 获取用户信息
         /// </summary>
         /// <returns></returns>
-        /// <param name="uid"></param>
         [HttpGet]
         [Route("getuserinfo")]
         public async Task<Response<UserInfoRespon>> GetUserInfo(/*int uid*/)
@@ -110,7 +109,7 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="mail"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [Route("getcode")]
         [AllowAnonymous]
         public async Task<Response> GetCode(string mail)
@@ -118,6 +117,24 @@ namespace DID.Controllers
             if (!CommonHelp.IsMail(mail))
                 return InvokeResult.Fail<string>("邮箱格式错误!");
             return await _service.GetCode(mail);
+        }
+
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("changepwd")]
+        [AllowAnonymous]
+        public async Task<Response> ChangePassword(string mail, string newPassWord, string code)
+        {
+            var usercode = _cache.Get(mail)?.ToString();
+            if (usercode != code)
+                return InvokeResult.Fail<string>("验证码错误!");
+            return await _service.ChangePassword(mail, newPassWord);
         }
     }
 }

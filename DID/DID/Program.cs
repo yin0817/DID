@@ -27,8 +27,7 @@ builder.Services.AddLogging(cfg =>
 {
     cfg.AddLog4Net("Config/log4net.config");
 });
-builder.Services.AddSingleton( new ConfigHelp(configuration));
-
+builder.Services.AddSingleton(new AppSettings(configuration));
 //Autofac注入
 builder.Host
 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
@@ -95,6 +94,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddMemoryCache();
 
+builder.Services.AddCors(c =>
+{
+    if (AppSettings.GetValue<bool>("Cors", "EnableAllIPs"))
+    {
+        //允许任意跨域请求
+        c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
+            policy =>
+            {
+                policy
+                    .SetIsOriginAllowed(host => true)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
+    }
+    else
+    {
+        c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
+            policy =>
+            {
+                policy
+                    .WithOrigins(AppSettings.GetValue("Cors", "IPs").Split(','))
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+    }
+});
+
 //builder.Services.AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);//请求参数为空判断
 
 var app = builder.Build();
@@ -108,20 +135,22 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
+//静态文件
+var upload = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images/AuthImges/");
+if (!Directory.Exists(upload)) Directory.CreateDirectory(upload);
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(upload), //用于定位资源的文件系统
+    RequestPath = new PathString("/Images/AuthImges") //请求地址
+});
 
+// CORS跨域
+app.UseCors(AppSettings.GetValue("Cors", "PolicyName"));
 //添加jwt验证
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-var upload = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images/AuthImges/");
-if(!Directory.Exists(upload)) Directory.CreateDirectory(upload);
-app.UseStaticFiles(new StaticFileOptions()
-{
-    FileProvider = new PhysicalFileProvider(upload), //用于定位资源的文件系统
-    RequestPath = new PathString("/Images/AuthImges") //请求地址
-}); ;
 
 //异常
 app.UseExceptionHandler(builder =>

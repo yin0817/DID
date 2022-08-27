@@ -50,6 +50,14 @@ namespace DID.Services
         /// <param name="mail"></param>
         /// <returns></returns>
         Task<Response> GetCode(string mail);
+
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <returns></returns>
+        Task<Response> ChangePassword(string mail, string newPassWord);
     }
     /// <summary>
     /// 审核认证服务
@@ -150,10 +158,26 @@ namespace DID.Services
             if (user.PassWord != login.Password)
                 return InvokeResult.Fail<string>("密码错误!");
 
-            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and DIDUserId = @3", 
-                                                        login.WalletAddress, login.Otype, login.Sign, user.DIDUserId);
-            if (string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail<string>("钱包错误!");
+            if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))
+            {
+                var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
+                                                            login.WalletAddress, login.Otype, login.Sign);
+                if (null == wallet)//绑定钱包到用户
+                {
+                    var item = new Wallet
+                    {
+                        WalletId = Guid.NewGuid().ToString(),
+                        Otype = login.Otype,
+                        Sign = login.Sign,
+                        WalletAddress = login.WalletAddress,
+                        DIDUserId = user.DIDUserId,
+                        CreateDate = DateTime.Now
+                    };
+                    await db.InsertAsync(item);
+                }
+                else if (wallet.DIDUserId != user.DIDUserId)
+                    return InvokeResult.Fail<string>("钱包地址错误!");
+            }
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
@@ -229,14 +253,19 @@ namespace DID.Services
             };
             await db.InsertAsync(user);
             //uId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where Mail = @0", login.Mail);//获取主键
-            var wallet = new Wallet {
-                WalletId = Guid.NewGuid().ToString(),
-                Otype = login.Otype,
-                Sign = login.Sign,
-                WalletAddress = login.WalletAddress,
-                DIDUserId = userId
-            };
-            await db.InsertAsync(wallet);
+            if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))//有钱包时
+            {
+                var wallet = new Wallet
+                {
+                    WalletId = Guid.NewGuid().ToString(),
+                    Otype = login.Otype,
+                    Sign = login.Sign,
+                    WalletAddress = login.WalletAddress,
+                    DIDUserId = userId,
+                    CreateDate = DateTime.Now
+                };
+                await db.InsertAsync(wallet);
+            }
             db.CompleteTransaction();
 
             return InvokeResult.Success("用户注册成功!");
@@ -260,6 +289,19 @@ namespace DID.Services
             //todo 发送邮件
             //return InvokeResult.Success("验证码发送成功!");
             return InvokeResult.Success(code);
+        }
+
+        /// <summary>
+        /// 修改密码
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <returns></returns>
+        public async Task<Response> ChangePassword(string mail, string newPassWord)
+        {
+            using var db = new NDatabase();
+            await db.ExecuteAsync("update DIDUser set PassWord = @0 where Mail = @1", newPassWord, mail);
+            return InvokeResult.Success("修改成功!");
         }
     }
 }

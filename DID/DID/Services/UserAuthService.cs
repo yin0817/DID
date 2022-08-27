@@ -184,6 +184,22 @@ namespace DID.Services
                 authinfo.PortraitImage = item.PortraitImage;
                 authinfo.NationalImage = item.NationalImage;
                 authinfo.HandHeldImage = item.HandHeldImage;
+                //基本信息处理
+                if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.二审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
@@ -221,6 +237,22 @@ namespace DID.Services
                 authinfo.PortraitImage = item.PortraitImage;
                 authinfo.NationalImage = item.NationalImage;
                 authinfo.HandHeldImage = item.HandHeldImage;
+                //基本信息处理
+                if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.二审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
@@ -245,7 +277,7 @@ namespace DID.Services
         /// <summary>
         /// 获取打回信息
         /// </summary>
-        /// <param name="uId"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId)
         {
@@ -258,6 +290,22 @@ namespace DID.Services
                 authinfo.PortraitImage = item.PortraitImage;
                 authinfo.NationalImage = item.NationalImage;
                 authinfo.HandHeldImage = item.HandHeldImage;
+                //基本信息处理
+                if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.二审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
+                else if (item.AuditStep == AuditStepEnum.初审)
+                {
+                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
@@ -299,7 +347,7 @@ namespace DID.Services
         /// 图片上传
         /// </summary>
         /// <param name="file"></param>
-        /// <param name="upload"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public async Task<Response> UploadImage(IFormFile file, string userId)
@@ -404,7 +452,7 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var item = new AuthSuccessRespon();
-            var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", userId);
+            var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 2", userId);
             if (authinfo == null) InvokeResult.Success("认证信息未找到!");
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
@@ -421,7 +469,7 @@ namespace DID.Services
                     UId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", auth.AuditUserId),
                     AuditStep = auth.AuditStep,
                     AuthDate = auth.AuditDate,
-                    Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
+                    Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 3", auth.AuditUserId),
                     AuditType = auth.AuditType,
                     Remark = auth.Remark
                 });
