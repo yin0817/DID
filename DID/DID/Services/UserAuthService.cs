@@ -399,7 +399,7 @@ namespace DID.Services
             //    return InvokeResult.Fail("请勿重复提交!");
             var str = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from DIDUser where DIDUserId = @0", info.CreatorId);
             if (str != AuthTypeEnum.未审核)
-                return InvokeResult.Fail("请勿重复提交!");
+                return InvokeResult.Fail("4");//请勿重复提交!
 
             var auth = new Auth
             {
@@ -453,7 +453,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var item = new AuthSuccessRespon();
             var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 2", userId);
-            if (authinfo == null) InvokeResult.Success("认证信息未找到!");
+            if (authinfo == null) InvokeResult.Success("1");//认证信息未找到!
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
             item.IdCard = authinfo.IdCard;
@@ -488,7 +488,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var item = new AuthFailRespon();
             var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", userId);
-            if (authinfo == null) InvokeResult.Success("认证信息未找到!");
+            if (authinfo == null) InvokeResult.Success("1");//认证信息未找到!
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
             item.IdCard = authinfo.IdCard;
@@ -496,7 +496,7 @@ namespace DID.Services
             item.PortraitImage = authinfo.PortraitImage;
             item.HandHeldImage = authinfo.HandHeldImage;
             var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep Desc", authinfo.UserAuthInfoId);
-            if (auths == null) InvokeResult.Success("认证信息未找到!");
+            if (auths == null) InvokeResult.Success("1");//认证信息未找到!
             item.Remark = auths[0].Remark;
             item.AuditType = auths[0].AuditType;
             return InvokeResult.Success(item);

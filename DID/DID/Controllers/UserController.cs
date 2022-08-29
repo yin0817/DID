@@ -47,12 +47,12 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<UserInfoRespon>("用户未找到!");
+                return InvokeResult.Error<UserInfoRespon>(401);
             return await _service.GetUserInfo(userId);
         }
 
         /// <summary>
-        /// 更新用户信息（邀请人 电报群 国家地区）
+        /// 更新用户信息（邀请人 电报群 国家地区） 1 邀请码错误!
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
@@ -62,13 +62,13 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<UserInfoRespon>("用户未找到!");
+                return InvokeResult.Error<UserInfoRespon>(401);
             user.UserId = userId;
             return await _service.SetUserInfo(user);
         }
 
         /// <summary>
-        /// 登录
+        /// 登录 1 邮箱格式错误! 2 邮箱未注册! 3 密码错误! 4 钱包地址错误! 5 登录错误!
         /// </summary>
         /// <param name="login"></param>
         /// <returns></returns>
@@ -77,8 +77,8 @@ namespace DID.Controllers
         [AllowAnonymous]
         public async Task<Response<string>> Login(LoginReq login)
         {
-           if (!CommonHelp.IsMail(login.Mail))
-                return InvokeResult.Fail<string>("邮箱格式错误!");
+           if (!string.IsNullOrEmpty(login.Mail) && !CommonHelp.IsMail(login.Mail))
+                return InvokeResult.Fail<string>("1");
             //var code = _cache.Get(login.Mail)?.ToString();
             //if (code != login.Code)
             //    return InvokeResult.Fail<string>("验证码错误!");
@@ -86,7 +86,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 注册
+        /// 注册 1 邮箱格式错误! 2 验证码错误! 3 请勿重复注册! 4 邀请码错误!
         /// </summary>
         /// <param name="login"></param>
         /// <returns></returns>
@@ -96,16 +96,16 @@ namespace DID.Controllers
         public async Task<Response> Register(LoginReq login)
         {
             if (!CommonHelp.IsMail(login.Mail))
-                return InvokeResult.Fail<string>("邮箱格式错误!");
+                return InvokeResult.Fail<string>("1");//邮箱格式错误!
             var code = _cache.Get(login.Mail)?.ToString();
             if (code != login.Code)
-                return InvokeResult.Fail<string>("验证码错误!");
+                return InvokeResult.Fail<string>("2");//验证码错误!
             return await _service.Register(login);
         }
 
 
         /// <summary>
-        /// 获取验证码
+        /// 获取验证码 1 邮箱格式错误!
         /// </summary>
         /// <param name="mail"></param>
         /// <returns></returns>
@@ -115,12 +115,12 @@ namespace DID.Controllers
         public async Task<Response> GetCode(string mail)
         {
             if (!CommonHelp.IsMail(mail))
-                return InvokeResult.Fail<string>("邮箱格式错误!");
+                return InvokeResult.Fail<string>("1");//邮箱格式错误!
             return await _service.GetCode(mail);
         }
 
         /// <summary>
-        /// 修改密码
+        /// 修改密码 1 验证码错误!
         /// </summary>
         /// <param name="mail"></param>
         /// <param name="newPassWord"></param>
@@ -133,8 +133,22 @@ namespace DID.Controllers
         {
             var usercode = _cache.Get(mail)?.ToString();
             if (usercode != code)
-                return InvokeResult.Fail<string>("验证码错误!");
+                return InvokeResult.Fail<string>("1"); //验证码错误!
             return await _service.ChangePassword(mail, newPassWord);
+        }
+
+        /// <summary>
+        /// 获取邀请码
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getrefuserid")]
+        public async Task<Response<string>> GetRefUserId()
+        {
+            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return InvokeResult.Error<string>(401);
+            return InvokeResult.Success<string>(userId);
         }
     }
 }

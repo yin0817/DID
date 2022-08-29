@@ -29,7 +29,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 信用分操作(加分、 减分)
+        /// 信用分操作(加分、 减分) 1 参数不合法! 2 用户未找到! 3 信用分不足!
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
@@ -38,7 +38,7 @@ namespace DID.Controllers
         public async Task<Response> CreditScore(CreditScoreReq req)
         {
             if (req.Fraction <= 0)
-                return InvokeResult.Fail("参数不合法!");
+                return InvokeResult.Fail("1"); //参数不合法!
             return await _service.CreditScore(req);
         }
 
@@ -53,7 +53,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if(string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<GetCreditScoreRespon>("用户未找到!");
+                return InvokeResult.Error<GetCreditScoreRespon>(401);
             return await _service.GetCreditScore(userId);
         }
 

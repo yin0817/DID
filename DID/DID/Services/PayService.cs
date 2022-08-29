@@ -70,7 +70,7 @@ namespace DID.Controllers
         {
             var usercode = _cache.Get(mail)?.ToString();
             if (usercode != code)
-                return InvokeResult.Fail<string>("验证码错误!");
+                return InvokeResult.Fail<string>("1");//验证码错误!
             using var db = new NDatabase();
             req.PaymentId = Guid.NewGuid().ToString();
             req.CreateDate = DateTime.Now;

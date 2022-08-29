@@ -94,6 +94,17 @@ namespace DID.Helps
         }
 
         /// <summary>
+        /// 返回失败及失败原因
+        /// </summary>
+        /// <param name="code">错误码</param>
+        /// <param name="message">失败原因</param>
+        /// <returns></returns>
+        public static Response<T> Error<T>(int code, string message = "FAIL")
+        {
+            return Create<T>((int)code, message);
+        }
+
+        /// <summary>
         /// 返回成功及成功描述
         /// </summary>
         /// <param name="message">失败原因</param>

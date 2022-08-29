@@ -1,59 +1,63 @@
-﻿namespace DID.Models
+﻿using NPoco;
+
+namespace DID.Entitys
 {
     /// <summary>
-    /// 登录参数
+    /// 社区选择表 
     /// </summary>
-    public class LoginReq
+    [PrimaryKey("ComSelectId", AutoIncrement = false)]
+    public class ComSelect
     {
-        /// <summary>
-        /// 钱包地址
-        /// </summary>
-        public string? WalletAddress
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 网络类型
-        /// </summary>
-        public string? Otype
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 签名
-        /// </summary>
-        public string? Sign
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 推荐人
-        /// </summary>
-        public string? RefUserId
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 邮箱
-        /// </summary>
-        public string? Mail
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 验证码
-        /// </summary>
-        public string? Code
-        {
-            get; set;
-        }
 
         /// <summary>
-        /// 密码（英文、数字 至少6位）
+        /// 编号
         /// </summary>
-        public string? Password
+        public string ComSelectId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string DIDUserId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 国家
+        /// </summary>
+        public string Country
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 省
+        /// </summary>
+        public string Province
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 市
+        /// </summary>
+        public string City
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 区
+        /// </summary>
+        public string Area
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime CreateDate
         {
             get; set;
         }
     }
 }
+

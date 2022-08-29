@@ -126,7 +126,7 @@ namespace DID.Services
             {
                 var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", user.RefUserId);
                 if (string.IsNullOrEmpty(refUserId) || user.UserId == refUserId)//不能修改为自己
-                    return InvokeResult.Fail("邀请码错误!");
+                    return InvokeResult.Fail("1"); //邀请码错误!
                 sql.Append("RefUserId = @0, ", user.RefUserId);
             }
             if (!string.IsNullOrEmpty(user.Telegram))
@@ -150,34 +150,46 @@ namespace DID.Services
         {
             //1.验证用户账号密码是否正确
             using var db = new NDatabase();
-            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0", login.Mail);
+           var user = new DIDUser();
+            if (!string.IsNullOrEmpty(login.Mail) && !string.IsNullOrEmpty(login.Password))//邮箱密码登录
+            {
+                user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0", login.Mail);
 
-            if(null == user)
-                return InvokeResult.Fail<string>("邮箱未注册!");
+                if (null == user)
+                    return InvokeResult.Fail<string>("2");//邮箱未注册!
 
-            if (user.PassWord != login.Password)
-                return InvokeResult.Fail<string>("密码错误!");
+                if (user.PassWord != login.Password)
+                    return InvokeResult.Fail<string>("3");//密码错误!
+            }
 
-            if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))
+            if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))//钱包登录
             {
                 var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
                                                             login.WalletAddress, login.Otype, login.Sign);
-                if (null == wallet)//绑定钱包到用户
+                if(null != wallet && string.IsNullOrEmpty(user.DIDUserId))
+                    user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", wallet.DIDUserId);
+
+                if (!string.IsNullOrEmpty(user.DIDUserId))
                 {
-                    var item = new Wallet
+                    if (null == wallet)//绑定钱包到用户
                     {
-                        WalletId = Guid.NewGuid().ToString(),
-                        Otype = login.Otype,
-                        Sign = login.Sign,
-                        WalletAddress = login.WalletAddress,
-                        DIDUserId = user.DIDUserId,
-                        CreateDate = DateTime.Now
-                    };
-                    await db.InsertAsync(item);
+                        var item = new Wallet
+                        {
+                            WalletId = Guid.NewGuid().ToString(),
+                            Otype = login.Otype,
+                            Sign = login.Sign,
+                            WalletAddress = login.WalletAddress,
+                            DIDUserId = user.DIDUserId,
+                            CreateDate = DateTime.Now
+                        };
+                        await db.InsertAsync(item);
+                    }
+                    else if (wallet.DIDUserId != user.DIDUserId)
+                        return InvokeResult.Fail<string>("4");//钱包地址错误!
                 }
-                else if (wallet.DIDUserId != user.DIDUserId)
-                    return InvokeResult.Fail<string>("钱包地址错误!");
             }
+            if(string.IsNullOrEmpty(user.DIDUserId))
+                return InvokeResult.Fail<string>("5");//登录错误!
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
@@ -210,10 +222,8 @@ namespace DID.Services
             //生成字符串token
             var TokenStr = new JwtSecurityTokenHandler().WriteToken(Token);
 
-
             return InvokeResult.Success<string>(TokenStr);
         }
-
 
         /// <summary>
         /// 注册
@@ -229,13 +239,13 @@ namespace DID.Services
             var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
                                                         login.WalletAddress, login.Otype, login.Sign);
             if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail("请勿重复注册!");
+                return InvokeResult.Fail("3");//
 
             if (!string.IsNullOrEmpty(login.RefUserId))
             {
                 var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", login.RefUserId);
                 if (string.IsNullOrEmpty(refUserId))
-                    return InvokeResult.Fail("邀请码错误!");
+                    return InvokeResult.Fail("4"); //邀请码错误!
             }
 
             db.BeginTransaction();

@@ -29,7 +29,7 @@ namespace DID.Controllers
             _service = service;
         }
         /// <summary>
-        /// 认证图片上传
+        /// 认证图片上传 1 请上传文件! 2 文件类型错误!
         /// </summary>
         /// <param name="upload"></param>
         /// <returns></returns>
@@ -38,16 +38,16 @@ namespace DID.Controllers
         public async Task<Response> UploadImage()
         {
             var files = Request.Form.Files;
-            if (files.Count == 0) return InvokeResult.Fail("请上传文件!");
-            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("文件类型错误!");
+            if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
+            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail("用户未找到!");
+                return InvokeResult.Error(401);
             return await _service.UploadImage(files[0], userId);
         }
 
         /// <summary>
-        /// 提交审核信息
+        /// 提交审核信息 1 手机号错误! 2 证件号错误! 3 请上传认证图片! 4 请勿重复提交!
         /// </summary>
         /// <param name="info">姓名 手机号 证件号 创建用户编号</param>
         /// <returns></returns>
@@ -55,13 +55,14 @@ namespace DID.Controllers
         [Route("upload")]
         public async Task<Response> UploadUserInfo(UserAuthInfo info)
         {
-            if(!CommonHelp.IsPhoneNum(info.PhoneNum))
-                return InvokeResult.Fail("手机号错误!");
-            if(!CommonHelp.IsCard(info.IdCard))
-                return InvokeResult.Fail("证件号错误!");
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail("用户未找到!");
+                return InvokeResult.Error(401);
+            if (!CommonHelp.IsPhoneNum(info.PhoneNum))
+                return InvokeResult.Fail("1");//手机号错误!
+            if (!CommonHelp.IsCard(info.IdCard))
+                return InvokeResult.Fail("2");//证件号错误!
+
             info.CreatorId = userId;
             info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;
             info.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage;
@@ -69,7 +70,7 @@ namespace DID.Controllers
             if (!System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.PortraitImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.HandHeldImage)))
-                return InvokeResult.Fail("请上传认证图片!");
+                return InvokeResult.Fail("3");//请上传认证图片!
             return await _service.UploadUserInfo(info);
         }
 
@@ -83,7 +84,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+                return InvokeResult.Error<List<UserAuthRespon>>(401);
             return await _service.GetUnauditedInfo(userId);
         }
 
@@ -97,7 +98,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+                return InvokeResult.Error<List<UserAuthRespon>>(401);
             return await _service.GetAuditedInfo(userId);
         }
 
@@ -111,7 +112,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<List<UserAuthRespon>>("用户未找到!");
+                return InvokeResult.Error<List<UserAuthRespon>>(401);
             return await _service.GetBackInfo(userId);
         }
 
@@ -128,11 +129,11 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail("用户未找到!");
+                return InvokeResult.Error(401);
             return await _service.AuditInfo(userAuthInfoId, userId, auditType);
         }
         /// <summary>
-        /// 获取用户审核失败信息
+        /// 获取用户审核失败信息 1 认证信息未找到!
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -141,12 +142,12 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<AuthFailRespon>("用户未找到!");
+                return InvokeResult.Error<AuthFailRespon>(401);
             return await _service.GetAuthFail(userId);
         }
 
         /// <summary>
-        /// 获取用户审核成功信息
+        /// 获取用户审核成功信息 1 认证信息未找到!
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -155,7 +156,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<AuthSuccessRespon>("用户未找到!");
+                return InvokeResult.Error<AuthSuccessRespon>(401);
             return await _service.GetAuthSuccess(userId);
         }
     }

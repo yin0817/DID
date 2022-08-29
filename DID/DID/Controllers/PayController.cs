@@ -26,7 +26,7 @@ namespace DID.Controllers
             _service = service;
         }
         /// <summary>
-        /// 添加支付信息
+        /// 添加支付信息 1 验证码错误!
         /// </summary>
         /// <param name="req"></param>
         /// <param name="mail"></param>
@@ -38,7 +38,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail("用户未找到!");
+                return InvokeResult.Error(401);
             req.DIDUserId = userId;
             return await _service.AddPayment(req, mail, code);
         }
@@ -75,7 +75,7 @@ namespace DID.Controllers
         {
             var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
             if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Fail<List<Payment>>("用户未找到!");
+                return InvokeResult.Error<List<Payment>>(401);
             return await _service.GetPayment(userId);
         }
     }

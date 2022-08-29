@@ -89,6 +89,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             //验证私钥
             IssuerSigningKey = new SymmetricSecurityKey(secretByte)
+            //注意这是缓冲过期时间，总的有效时间等于这个时间加上jwt的过期时间，如果不配置，默认是5分钟
+            //ClockSkew = TimeSpan.FromSeconds(4)
         };
     });
 

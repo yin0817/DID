@@ -50,7 +50,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", req.Uid);
             if(null == user)
-                return InvokeResult.Fail("用户未找到!");
+                return InvokeResult.Fail("2");//用户未找到!
 
             var item = new CreditScoreHistory
             {
@@ -68,7 +68,7 @@ namespace DID.Services
             else
             {
                 if(user.CreditScore < req.Fraction)
-                    return InvokeResult.Fail("信用分不足!");
+                    return InvokeResult.Fail("3");//信用分不足!
                 await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore - @1  where DIDUserId = @0", user.DIDUserId, item.Fraction);
             }
             var insert = await db.InsertAsync(item);
