@@ -45,7 +45,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 获取用户社区选择
+        /// 获取选择社区位置
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -64,7 +64,6 @@ namespace DID.Controllers
         /// <returns> </returns>
         [HttpGet]
         [Route("getcomaddr")]
-        [AllowAnonymous]
         public async Task<Response<ComAddrRespon>> GetComAddr()
         {
             return await _service.GetComAddr();
