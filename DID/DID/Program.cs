@@ -27,7 +27,11 @@ builder.Services.AddLogging(cfg =>
 {
     cfg.AddLog4Net("Config/log4net.config");
 });
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton(new AppSettings(configuration));
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+
 //Autofac注入
 builder.Host
 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
@@ -138,12 +142,12 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 
 //静态文件
-var upload = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images/AuthImges/");
+var upload = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Images/");
 if (!Directory.Exists(upload)) Directory.CreateDirectory(upload);
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(upload), //用于定位资源的文件系统
-    RequestPath = new PathString("/Images/AuthImges") //请求地址
+    RequestPath = new PathString("/Images") //请求地址
 });
 
 // CORS跨域

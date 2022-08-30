@@ -15,15 +15,19 @@ namespace DID.Controllers
 
         private readonly IPayService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public PayController(ILogger<PayController> logger, IPayService service)
+        /// <param name="currentUser"></param>
+        public PayController(ILogger<PayController> logger, IPayService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
         /// <summary>
         /// 添加支付信息 1 验证码错误!
@@ -36,10 +40,7 @@ namespace DID.Controllers
         [Route("addpayment")]
         public async Task<Response> AddPayment(Payment req, string mail, string code)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error(401);
-            req.DIDUserId = userId;
+            req.DIDUserId = _currentUser.UserId;
             return await _service.AddPayment(req, mail, code);
         }
 
@@ -73,10 +74,7 @@ namespace DID.Controllers
         [Route("getpayment")]
         public async Task<Response<List<Payment>>> GetPayment()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<Payment>>(401);
-            return await _service.GetPayment(userId);
+            return await _service.GetPayment(_currentUser.UserId);
         }
     }
 }

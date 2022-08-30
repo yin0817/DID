@@ -51,8 +51,9 @@ namespace DID.Services
         /// <param name="userAuthInfoId"></param>
         /// <param name="userId"></param>
         /// <param name="auditType"></param>
+        /// <param name="remark"></param>
         /// <returns></returns>
-        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType);
+        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string remark);
         /// <summary>
         /// 获取用户审核成功信息
         /// </summary>
@@ -88,14 +89,16 @@ namespace DID.Services
         /// <param name="userAuthInfoId"></param>
         /// <param name="userId"></param>
         /// <param name="auditType"></param>
+        /// <param name="remark"></param>
         /// <returns></returns>
-        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType)
+        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string remark)
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleByIdAsync<UserAuthInfo>(userAuthInfoId);
             var auth = await db.SingleOrDefaultAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and AuditUserId = @1;", userAuthInfoId, userId);
 
             auth.AuditType = auditType;
+            auth.Remark = remark;
             auth.AuditDate = DateTime.Now;
 
             db.BeginTransaction();

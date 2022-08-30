@@ -1,38 +1,38 @@
-﻿using NPoco;
+﻿using DID.Entitys;
+using NPoco;
 
-namespace DID.Entitys
+namespace DID.Models
 {
     /// <summary>
-    /// 社区审核表
+    /// 用户社区列表
     /// </summary>
-    [PrimaryKey("ComAuthAuthId", AutoIncrement = false)]
-    public class UserCommunity
+    public class ComRespon
     {
         /// <summary>
-        /// 编号
+        /// 社区名称
         /// </summary>
-        public string UserCommunityId
+        public string Name
         {
             get; set;
         }
         /// <summary>
-        /// 用户编号
+        /// 照片
         /// </summary>
-        public string DIDUserId
+        public string Image
         {
             get; set;
         }
         /// <summary>
-        /// 社区编号
+        /// 描述
         /// </summary>
-        public string CommunityId
+        public string Describe
         {
             get; set;
         }
         /// <summary>
-        /// 加入日期
+        /// 电报群
         /// </summary>
-        public DateTime CreateDate
+        public string Telegram
         {
             get; set;
         }

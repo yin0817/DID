@@ -16,15 +16,19 @@ namespace DID.Controllers
 
         private readonly IProjectService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public ProjectController(ILogger<ProjectController> logger, IProjectService service)
+        /// <param name="currentUser"></param>
+        public ProjectController(ILogger<ProjectController> logger, IProjectService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -35,10 +39,7 @@ namespace DID.Controllers
         [Route("getprojects")]
         public async Task<Response<List<UserProjectRespon>>> GetProjects()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<UserProjectRespon>>(401);
-            return await _service.GetProjects(userId);
+            return await _service.GetProjects(_currentUser.UserId);
         }
 
         /// <summary>
@@ -50,10 +51,7 @@ namespace DID.Controllers
         [Route("unbind")]
         public async Task<Response> Unbind( string projectId)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<UserProjectRespon>>(401);
-            return await _service.Unbind(userId, projectId);
+            return await _service.Unbind(_currentUser.UserId, projectId);
         }
     }
 }

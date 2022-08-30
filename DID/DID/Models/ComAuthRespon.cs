@@ -1,24 +1,23 @@
-﻿using NPoco;
+﻿using DID.Entitys;
 
-namespace DID.Entitys
+namespace DID.Models
 {
     /// <summary>
-    /// 社区申请表
+    /// 社区审核信息
     /// </summary>
-    [PrimaryKey("CommunityId", AutoIncrement = false)]
-    public class Community
+    public class ComAuthRespon
     {
         /// <summary>
-        /// 编号
+        /// 社区编号
         /// </summary>
-        public string? CommunityId
+        public string CommunityId
         {
-            get; set; 
+            get; set;
         }
         /// <summary>
         /// 申请人
         /// </summary>
-        public string? DIDUserId
+        public string DIDUser
         {
             get; set;
         }
@@ -46,14 +45,21 @@ namespace DID.Entitys
         /// <summary>
         /// 推荐人社区
         /// </summary>
-        public string? RefCommunityId
+        public string RefCommunityName
         {
             get; set;
         }
         /// <summary>
         /// 推荐人编号 
         /// </summary>
-        public string? RefDIDUserId
+        public int RefUId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 推荐人姓名
+        /// </summary>
+        public string RefName
         {
             get; set;
         }
@@ -88,14 +94,7 @@ namespace DID.Entitys
         /// <summary>
         /// 详细地址
         /// </summary>
-        public string? Address
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 审核状态 0 未审核 1 审核中 2 审核成功 3 审核失败
-        /// </summary>
-        public AuthTypeEnum AuthType
+        public string Address
         {
             get; set;
         }
@@ -123,21 +122,21 @@ namespace DID.Entitys
         /// <summary>
         /// 图片
         /// </summary>
-        public string? Image
+        public string Image
         {
             get; set;
         }
         /// <summary>
         /// 简介
         /// </summary>
-        public string? Describe
+        public string Describe
         {
             get; set;
         }
         /// <summary>
         /// 电报群
         /// </summary>
-        public string? Telegram
+        public string Telegram
         {
             get; set;
         }
@@ -152,6 +151,13 @@ namespace DID.Entitys
         /// Discord
         /// </summary>
         public string? Discord
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 审批记录
+        /// </summary>
+        public List<AuthInfo>? Auths
         {
             get; set;
         }

@@ -17,15 +17,19 @@ namespace DID.Controllers
 
         private readonly ICreditScoreService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public CreditScoreController(ILogger<CreditScoreController> logger, ICreditScoreService service)
+        /// <param name="currentUser"></param>
+        public CreditScoreController(ILogger<CreditScoreController> logger, ICreditScoreService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -51,10 +55,7 @@ namespace DID.Controllers
         [Route("getcreditscore")]
         public async Task<Response<GetCreditScoreRespon>> GetCreditScore(/*string userId*/)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if(string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<GetCreditScoreRespon>(401);
-            return await _service.GetCreditScore(userId);
+            return await _service.GetCreditScore(_currentUser.UserId);
         }
 
     }

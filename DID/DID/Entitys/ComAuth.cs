@@ -46,7 +46,7 @@ namespace DID.Entitys
         /// <summary>
         /// 审核时间
         /// </summary>
-        public DateTime AuditDate
+        public DateTime? AuditDate
         {
             get; set;
         }

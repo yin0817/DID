@@ -217,7 +217,7 @@ namespace DID.Services
                     claims: claims,                                         //存放的用户信息
                     notBefore: DateTime.Now,                             //发布时间
                     expires: DateTime.Now.AddDays(30),                      //有效期设置为30天
-                    signingCredentials                                      //数字签名
+                    signingCredentials                                      //数字签名 
                 );
             //生成字符串token
             var TokenStr = new JwtSecurityTokenHandler().WriteToken(Token);

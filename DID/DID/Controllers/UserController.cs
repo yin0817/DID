@@ -24,17 +24,21 @@ namespace DID.Controllers
 
         private readonly IMemoryCache _cache;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
         /// <param name="cache"></param>
-        public UserController(ILogger<UserController> logger, IUserService service, IMemoryCache cache)
+        /// <param name="currentUser"></param>
+        public UserController(ILogger<UserController> logger, IUserService service, IMemoryCache cache, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
             _cache = cache;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -45,10 +49,7 @@ namespace DID.Controllers
         [Route("getuserinfo")]
         public async Task<Response<UserInfoRespon>> GetUserInfo(/*int uid*/)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<UserInfoRespon>(401);
-            return await _service.GetUserInfo(userId);
+            return await _service.GetUserInfo(_currentUser.UserId);
         }
 
         /// <summary>
@@ -60,10 +61,7 @@ namespace DID.Controllers
         [Route("setuserinfo")]
         public async Task<Response> SetUserInfo(UserInfoRespon user)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<UserInfoRespon>(401);
-            user.UserId = userId;
+            user.UserId = _currentUser.UserId;
             return await _service.SetUserInfo(user);
         }
 
@@ -145,10 +143,7 @@ namespace DID.Controllers
         [Route("getrefuserid")]
         public async Task<Response<string>> GetRefUserId()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<string>(401);
-            return InvokeResult.Success<string>(userId);
+            return InvokeResult.Success<string>(_currentUser.UserId);
         }
     }
 }

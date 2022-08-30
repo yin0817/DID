@@ -17,15 +17,19 @@ namespace DID.Controllers
 
         private readonly ICommunityService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public CommunityController(ILogger<CommunityController> logger, ICommunityService service)
+        /// <param name="currentUser"></param>
+        public CommunityController(ILogger<CommunityController> logger, ICommunityService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -37,10 +41,7 @@ namespace DID.Controllers
         [Route("setcomselect")]
         public async Task<Response> SetComSelect(ComSelectReq req)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<ComSelect>(401);
-            req.UserId = userId;
+            req.UserId = _currentUser.UserId;
             return await _service.SetComSelect(req);
         }
 
@@ -52,10 +53,7 @@ namespace DID.Controllers
         [Route("getcomselect")]
         public async Task<Response<ComSelect>> GetComSelect()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<ComSelect>(401);
-            return await _service.GetComSelect(userId);
+            return await _service.GetComSelect(_currentUser.UserId);
         }
 
         /// <summary>
@@ -67,6 +65,131 @@ namespace DID.Controllers
         public async Task<Response<ComAddrRespon>> GetComAddr()
         {
             return await _service.GetComAddr();
+        }
+
+        /// <summary>
+        /// 获取当前位置社区数量
+        /// </summary>
+        /// <param name="country"></param>
+        /// <param name="province"></param>
+        /// <param name="city"></param>
+        /// <param name="area"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getcomnum")]
+        public async Task<Response<int>> GetComNum(string country, string province, string city, string area)
+        {
+            return await _service.GetComNum(country, province, city, area);
+        }
+
+        /// <summary>
+        /// 获取当前位置社区信息
+        /// </summary>
+        /// <param name="country"></param>
+        /// <param name="province"></param>
+        /// <param name="city"></param>
+        /// <param name="area"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getcomlist")]
+        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area)
+        {
+            return await _service.GetComList(country, province, city, area);
+        }
+
+        /// <summary>
+        /// 获取打回信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getbackcom")]
+        public async Task<Response<List<ComAuthRespon>>> GetBackCom()
+        {
+            return await _service.GetBackCom(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取未审核信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getunauditedcom")]
+        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom()
+        {
+            return await _service.GetUnauditedCom(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取已审核审核信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getauditedcom")]
+        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom()
+        {
+            return await _service.GetAuditedCom(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 社区申请审核
+        /// </summary>
+        /// <returns> </returns>
+        [HttpGet]
+        [Route("auditcommunity")]
+        public async Task<Response> AuditCommunity(string communityId, AuditTypeEnum auditType, string remark)
+        {
+            return await _service.AuditCommunity(communityId, _currentUser.UserId, auditType, remark);
+        }
+
+        /// <summary>
+        /// 查询社区信息
+        /// </summary>
+        /// <returns> </returns>
+        [HttpGet]
+        [Route("getcommunityinfo")]
+        public async Task<Response<Community>> GetCommunityInfo()
+        {
+            return await _service.GetCommunityInfo(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 添加社区信息
+        /// </summary>
+        /// <returns> </returns>
+        [HttpPut]
+        [Route("addcommunityinfo")]
+        public async Task<Response> AddCommunityInfo(Community item)
+        {
+            item.DIDUserId = _currentUser.UserId;
+            return await _service.AddCommunityInfo(item);
+        }
+
+        /// <summary>
+        /// 社区申请
+        /// </summary>
+        /// <returns> </returns>
+        [HttpPost]
+        [Route("applycommunity")]
+        public async Task<Response> ApplyCommunity(Community item)
+        {
+            item.DIDUserId = _currentUser.UserId;
+            return await _service.ApplyCommunity(item);
+        }
+
+        /// <summary>
+        /// 社区图片上传 1 请上传文件! 2 文件类型错误!
+        /// </summary>
+        /// <param name="upload"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("uploadimage")]
+        public async Task<Response> UploadImage()
+        {
+            var files = Request.Form.Files;
+            if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
+            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
+
+            return await _service.UploadImage(files[0]);
         }
     }
 }

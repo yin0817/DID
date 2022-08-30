@@ -16,15 +16,19 @@ namespace DID.Controllers
 
         private readonly IWalletService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public WalletController(ILogger<WalletController> logger, IWalletService service)
+        /// <param name="currentUser"></param>
+        public WalletController(ILogger<WalletController> logger, IWalletService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
 
         /// <summary>
@@ -36,10 +40,7 @@ namespace DID.Controllers
         [Route("setwallet")]
         public async Task<Response> SetWallet(Wallet req)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error(401);
-            req.DIDUserId = userId;
+            req.DIDUserId = _currentUser.UserId;
             return await _service.SetWallet(req);
         }
 
@@ -51,10 +52,7 @@ namespace DID.Controllers
         [Route("getwallets")]
         public async Task<Response<List<Wallet>>> GetWallets()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<Wallet>>(401);
-            return await _service.GetWallets(userId);
+            return await _service.GetWallets(_currentUser.UserId);
         }
     }
 }

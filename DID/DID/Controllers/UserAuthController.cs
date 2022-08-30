@@ -18,15 +18,19 @@ namespace DID.Controllers
 
         private readonly IUserAuthService _service;
 
+        private readonly ICurrentUser _currentUser;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public UserAuthController(ILogger<UserAuthController> logger, IUserAuthService service)
+        /// <param name="currentUser"></param>
+        public UserAuthController(ILogger<UserAuthController> logger, IUserAuthService service, ICurrentUser currentUser)
         {
             _logger = logger;
             _service = service;
+            _currentUser = currentUser;
         }
         /// <summary>
         /// 认证图片上传 1 请上传文件! 2 文件类型错误!
@@ -40,10 +44,7 @@ namespace DID.Controllers
             var files = Request.Form.Files;
             if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error(401);
-            return await _service.UploadImage(files[0], userId);
+            return await _service.UploadImage(files[0], _currentUser.UserId);
         }
 
         /// <summary>
@@ -55,15 +56,12 @@ namespace DID.Controllers
         [Route("upload")]
         public async Task<Response> UploadUserInfo(UserAuthInfo info)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error(401);
             if (!CommonHelp.IsPhoneNum(info.PhoneNum))
                 return InvokeResult.Fail("1");//手机号错误!
             if (!CommonHelp.IsCard(info.IdCard))
                 return InvokeResult.Fail("2");//证件号错误!
 
-            info.CreatorId = userId;
+            info.CreatorId = _currentUser.UserId;
             info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;
             info.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage;
             info.HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage;
@@ -82,10 +80,7 @@ namespace DID.Controllers
         [Route("getunauditedinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<UserAuthRespon>>(401);
-            return await _service.GetUnauditedInfo(userId);
+            return await _service.GetUnauditedInfo(_currentUser.UserId);
         }
 
         /// <summary>
@@ -96,10 +91,7 @@ namespace DID.Controllers
         [Route("getauditedinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<UserAuthRespon>>(401);
-            return await _service.GetAuditedInfo(userId);
+            return await _service.GetAuditedInfo(_currentUser.UserId);
         }
 
         /// <summary>
@@ -110,10 +102,7 @@ namespace DID.Controllers
         [Route("getbackinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetBackInfo()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<List<UserAuthRespon>>(401);
-            return await _service.GetBackInfo(userId);
+            return await _service.GetBackInfo(_currentUser.UserId);
         }
 
 
@@ -125,12 +114,9 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("auditinfo")]
-        public async Task<Response> AuditInfo(string userAuthInfoId, AuditTypeEnum auditType)
+        public async Task<Response> AuditInfo(string userAuthInfoId, AuditTypeEnum auditType, string remark)
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error(401);
-            return await _service.AuditInfo(userAuthInfoId, userId, auditType);
+            return await _service.AuditInfo(userAuthInfoId, _currentUser.UserId, auditType, remark);
         }
         /// <summary>
         /// 获取用户审核失败信息 1 认证信息未找到!
@@ -140,10 +126,7 @@ namespace DID.Controllers
         [Route("getauthfail")]
         public async Task<Response<AuthFailRespon>> GetAuthFail()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<AuthFailRespon>(401);
-            return await _service.GetAuthFail(userId);
+            return await _service.GetAuthFail(_currentUser.UserId);
         }
 
         /// <summary>
@@ -154,10 +137,7 @@ namespace DID.Controllers
         [Route("getauthsuccess")]
         public async Task<Response<AuthSuccessRespon>> GetAuthSuccess()
         {
-            var userId = HttpContext.User.Claims.FirstOrDefault(a => a.Type == "UserId")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return InvokeResult.Error<AuthSuccessRespon>(401);
-            return await _service.GetAuthSuccess(userId);
+            return await _service.GetAuthSuccess(_currentUser.UserId);
         }
     }
 }
