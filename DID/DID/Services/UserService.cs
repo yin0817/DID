@@ -54,10 +54,24 @@ namespace DID.Services
         /// <summary>
         /// 修改密码
         /// </summary>
-        /// <param name="mail"></param>
+        /// <param name="userId"></param>
         /// <param name="newPassWord"></param>
         /// <returns></returns>
-        Task<Response> ChangePassword(string mail, string newPassWord);
+        Task<Response> ChangePassword(string userId, string newPassWord);
+
+        /// <summary>
+        /// 用户注销
+        /// </summary>
+        /// <returns></returns>
+        Task<Response> Logout(string userId);
+
+        /// <summary>
+        /// 获取团队信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="IsAuth"></param>
+        /// <returns></returns>
+        Task<Response<TeamInfo>> GetUserTeam(string userId, bool IsAuth);
     }
     /// <summary>
     /// 审核认证服务
@@ -304,14 +318,72 @@ namespace DID.Services
         /// <summary>
         /// 修改密码
         /// </summary>
-        /// <param name="mail"></param>
+        /// <param name="userId"></param>
         /// <param name="newPassWord"></param>
         /// <returns></returns>
-        public async Task<Response> ChangePassword(string mail, string newPassWord)
+        public async Task<Response> ChangePassword(string userId, string newPassWord)
         {
             using var db = new NDatabase();
-            await db.ExecuteAsync("update DIDUser set PassWord = @0 where Mail = @1", newPassWord, mail);
+            await db.ExecuteAsync("update DIDUser set PassWord = @0 where DIDUserId = @1", newPassWord, userId);
             return InvokeResult.Success("修改成功!");
+        }
+
+        /// <summary>
+        /// 用户注销
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> Logout(string userId)
+        {
+            using var db = new NDatabase();
+            //todo:判断注销条件
+            db.BeginTransaction();
+            await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);
+            var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId);
+            await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1", refUserId, userId);//更新邀请人为当前用户的上级
+            db.CompleteTransaction();
+            return InvokeResult.Success("注销成功!");
+        }
+
+        /// <summary>
+        /// 获取团队信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="IsAuth"></param>
+        /// <returns></returns>
+        public async Task<Response<TeamInfo>> GetUserTeam(string userId,bool IsAuth)
+        {
+            using var db = new NDatabase();
+            var model = new TeamInfo();
+            model.TeamNumber = await db.FirstOrDefaultAsync<int>(";with temp as \n" +
+                        "(select DIDUserId from DIDUser where DIDUserId = @0\n" +
+                        "union all \n" +
+                        "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId) \n" +
+                        "select Count(*) from temp", userId);
+
+            //默认展示6级
+            var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
+                                                    "(select *,0 Level from DIDUser where DIDUserId = @0\n" +
+                                                    "union all \n" +
+                                                    "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6) \n" +
+                                                    "select * from temp ", userId);
+
+            //todo:dao审核通过可以看所有数据
+
+            //根据标签过滤数据
+            if(IsAuth)
+                list = list.Where(a => a.AuthType == AuthTypeEnum.审核成功).ToList();
+
+            var users = list.Select(a => new TeamUser()
+                            {
+                                Grade = a.UserNode.ToString(),
+                                UID = a.Uid,
+                                RegDate = a.RegDate,
+                                Name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", a.UserAuthInfoId)
+                            }).ToList();
+            
+            model.Users = users;
+
+            return InvokeResult.Success(model);
         }
     }
 }

@@ -132,7 +132,7 @@ namespace DID.Controllers
             var usercode = _cache.Get(mail)?.ToString();
             if (usercode != code)
                 return InvokeResult.Fail<string>("1"); //验证码错误!
-            return await _service.ChangePassword(mail, newPassWord);
+            return await _service.ChangePassword(_currentUser.UserId, newPassWord);
         }
 
         /// <summary>
@@ -144,6 +144,29 @@ namespace DID.Controllers
         public async Task<Response<string>> GetRefUserId()
         {
             return InvokeResult.Success<string>(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 用户注销
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("logout")]
+        public async Task<Response> Logout()
+        {
+            return await _service.Logout(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取团队信息
+        /// </summary>
+        /// <param name="IsAuth"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getuserteam")]
+        public async Task<Response<TeamInfo>> GetUserTeam(bool IsAuth = false)
+        {
+            return await _service.GetUserTeam(_currentUser.UserId, IsAuth);
         }
     }
 }
