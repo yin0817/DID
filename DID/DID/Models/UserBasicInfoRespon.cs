@@ -3,9 +3,9 @@
 namespace DID.Models
 {
     /// <summary>
-    /// 用户信息
+    /// 用户基本信息
     /// </summary>
-    public class UserInfoRespon
+    public class UserBasicInfoRespon
     {
         /// <summary>
         /// 用户编号
@@ -14,27 +14,7 @@ namespace DID.Models
         {
             get; set;
         }
-        /// <summary>
-        /// 用户编号
-        /// </summary>
-        public string? UserId
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 身份认证状态 0 未审核 1 审核中 2 审核成功 3 审核失败
-        /// </summary>
-        public AuthTypeEnum? AuthType
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 信用分
-        /// </summary>
-        public int? CreditScore
-        {
-            get; set;
-        }
+
         /// <summary>
         /// 邮箱
         /// </summary>
@@ -42,20 +22,7 @@ namespace DID.Models
         {
             get; set;
         }
-        /// <summary>
-        /// 邀请人编号
-        /// </summary>
-        public int? RefUid
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 邀请码
-        /// </summary>
-        public string? RefUserId
-        {
-            get; set;
-        }
+
         /// <summary>
         /// 电报群
         /// </summary>
@@ -63,6 +30,7 @@ namespace DID.Models
         {
             get; set;
         }
+
         /// <summary>
         /// 国家
         /// </summary>
@@ -70,20 +38,7 @@ namespace DID.Models
         {
             get; set;
         }
-        /// <summary>
-        /// 省
-        /// </summary>
-        public string? Province
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 市
-        /// </summary>
-        public string? City
-        {
-            get; set;
-        }
+
         /// <summary>
         /// 地区
         /// </summary>

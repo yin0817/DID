@@ -49,7 +49,6 @@ namespace DID.Controllers
         /// <summary>
         /// 获取信用分记录和当前信用分
         /// </summary>
-        /// <param name="userId"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcreditscore")]

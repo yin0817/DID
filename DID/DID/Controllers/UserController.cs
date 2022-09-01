@@ -136,6 +136,22 @@ namespace DID.Controllers
         }
 
         /// <summary>
+        /// 修改密码 1 邮箱已注册!
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("changemail")]
+        [AllowAnonymous]
+        public async Task<Response> ChangeMail(string mail)
+        {
+            return await _service.ChangeMail(_currentUser.UserId, mail);
+        }
+
+
+        /// <summary>
         /// 获取邀请码
         /// </summary>
         /// <returns></returns>

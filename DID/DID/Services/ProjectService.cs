@@ -89,5 +89,18 @@ namespace DID.Controllers
             await db.ExecuteAsync("insert into UserProject set UserProjectId = @0,DIDUserId = @1,ProjectId = @2", Guid.NewGuid().ToString(), userId, projectId);
             return InvokeResult.Success("绑定成功!");
         }
+
+        /// <summary>
+        /// 项目用户信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="projectId"></param>
+        /// <returns></returns>
+        public async Task<Response> AddUserProject(string userId, string projectId)
+        {
+            using var db = new NDatabase();
+            await db.ExecuteAsync("insert into UserProject set UserProjectId = @0,DIDUserId = @1,ProjectId = @2", Guid.NewGuid().ToString(), userId, projectId);
+            return InvokeResult.Success("绑定成功!");
+        }
     }
 }

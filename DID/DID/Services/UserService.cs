@@ -60,6 +60,14 @@ namespace DID.Services
         Task<Response> ChangePassword(string userId, string newPassWord);
 
         /// <summary>
+        /// 修改邮箱
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newMail"></param>
+        /// <returns></returns>
+        Task<Response> ChangeMail(string userId, string newMail);
+
+        /// <summary>
         /// 用户注销
         /// </summary>
         /// <returns></returns>
@@ -325,6 +333,22 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             await db.ExecuteAsync("update DIDUser set PassWord = @0 where DIDUserId = @1", newPassWord, userId);
+            return InvokeResult.Success("修改成功!");
+        }
+
+        /// <summary>
+        /// 修改邮箱
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newMail"></param>
+        /// <returns></returns>
+        public async Task<Response> ChangeMail(string userId, string newMail)
+        {
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", newMail);
+            if(!string.IsNullOrEmpty(user))
+                return InvokeResult.Success("邮箱已注册!");
+            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", newMail, userId);
             return InvokeResult.Success("修改成功!");
         }
 
