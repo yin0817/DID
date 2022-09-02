@@ -136,5 +136,21 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 是否注销
+        /// </summary>
+        public IsEnum IsLogout
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 注销编号
+        /// </summary>
+        public string UserLogoutId
+        {
+            get; set;
+        }
     }
 }

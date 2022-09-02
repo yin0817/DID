@@ -33,7 +33,7 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 #region log4net
 builder.Services.AddLogging(cfg =>
 {
-cfg.AddLog4Net("Config/log4net.config");
+    cfg.AddLog4Net("Config/log4net.config");
 }); 
 #endregion
 

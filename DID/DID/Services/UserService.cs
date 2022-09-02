@@ -63,9 +63,9 @@ namespace DID.Services
         /// 修改邮箱
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="newMail"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response> ChangeMail(string userId, string newMail);
+        Task<Response> ChangeMail(string userId, ChangeMailReq req);
 
         /// <summary>
         /// 用户注销
@@ -340,32 +340,56 @@ namespace DID.Services
         /// 修改邮箱
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="newMail"></param>
+        /// <param name="item"></param>
         /// <returns></returns>
-        public async Task<Response> ChangeMail(string userId, string newMail)
+        public async Task<Response> ChangeMail(string userId, ChangeMailReq item)
         {
             using var db = new NDatabase();
-            var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", newMail);
+            var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet WalletAddress = @0 and Otype = @1 and Sign = @2", item.WalletAddress, item.Otype, item.Sign);
+            if(null == wallet || wallet.DIDUserId == userId)
+                return InvokeResult.Fail("1");//钱包验证错误!
+            var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", item.Mail);
             if(!string.IsNullOrEmpty(user))
-                return InvokeResult.Success("邮箱已注册!");
-            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", newMail, userId);
+                return InvokeResult.Fail("2");//邮箱已注册!
+            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", item.Mail, userId);
             return InvokeResult.Success("修改成功!");
         }
 
+        //两小时没人审核 自动到Dao审核
+        private readonly System.Timers.Timer t = new(30000);//实例化Timer类，设置间隔时间为10000毫秒；
         /// <summary>
         /// 用户注销
         /// </summary>
         /// <returns></returns>
         public async Task<Response> Logout(string userId)
         {
-            using var db = new NDatabase();
             //todo:判断注销条件
+            using var db = new NDatabase();
             db.BeginTransaction();
-            await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);
-            var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId);
-            await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1", refUserId, userId);//更新邀请人为当前用户的上级
+            var item = new UserLogout() { 
+                DIDUserId = userId,
+                UserLogoutId = Guid.NewGuid().ToString(),
+                SubmitDate = DateTime.Now,
+                IsCancel = IsEnum.否
+            };
+            await db.InsertAsync(item);
+            await db.ExecuteAsync("update DIDUser set UserLogoutId = @0 where DIDUserId = @1", item.UserLogoutId, userId);
+            t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
+            {
+                t.Stop(); //先关闭定时器
+                item.LogoutDate = DateTime.Now;
+                await db.UpdateAsync(item);
+                await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);
+                var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId);
+                if(!string.IsNullOrEmpty(refUserId))
+                    await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1", refUserId, userId);//更新邀请人为当前用户的上级
+            });//到达时间的时候执行事件；
+            t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+            t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
+            t.Start(); //启动定时器
+
             db.CompleteTransaction();
-            return InvokeResult.Success("注销成功!");
+            return InvokeResult.Success("提交注销成功!");
         }
 
         /// <summary>

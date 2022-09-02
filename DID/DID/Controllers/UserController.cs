@@ -136,18 +136,19 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 修改密码 1 邮箱已注册!
+        /// 修改密码 1 钱包验证错误! 2 邮箱已注册! 3 验证码错误!
         /// </summary>
-        /// <param name="mail"></param>
-        /// <param name="newPassWord"></param>
-        /// <param name="code"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("changemail")]
         [AllowAnonymous]
-        public async Task<Response> ChangeMail(string mail)
+        public async Task<Response> ChangeMail(ChangeMailReq req)
         {
-            return await _service.ChangeMail(_currentUser.UserId, mail);
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                return InvokeResult.Fail<string>("3"); //验证码错误!
+            return await _service.ChangeMail(_currentUser.UserId, req);
         }
 
 
@@ -184,5 +185,7 @@ namespace DID.Controllers
         {
             return await _service.GetUserTeam(_currentUser.UserId, IsAuth);
         }
+
+        
     }
 }
