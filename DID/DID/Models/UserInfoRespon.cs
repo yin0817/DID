@@ -17,7 +17,7 @@ namespace DID.Models
         /// <summary>
         /// 用户编号
         /// </summary>
-        public string? UserId
+        public string UserId
         {
             get; set;
         }
@@ -109,6 +109,34 @@ namespace DID.Models
         /// 证件号
         /// </summary>
         public string? IdCard
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户节点
+        /// </summary>
+        public int? UserNode
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户社区编号
+        /// </summary>
+        public string? CommunityId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户社区编号
+        /// </summary>
+        public string? ApplyCommunityId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 0 未审核 1 审核中 2 审核成功 3 审核失败
+        /// </summary>
+        public AuditTypeEnum? ComAuditType
         {
             get; set;
         }

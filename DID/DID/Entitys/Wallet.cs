@@ -51,6 +51,28 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 是否注销
+        /// </summary>
+        public IsEnum IsLogout
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否删除
+        /// </summary>
+        public IsEnum IsDelete
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 删除时间
+        /// </summary>
+        public DateTime DeleteDate
+        {
+            get; set;
+        }
     }
 }
 

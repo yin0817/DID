@@ -48,7 +48,7 @@ namespace DID.Services
         public async Task<Response> CreditScore(CreditScoreReq req)
         {
             using var db = new NDatabase();
-            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", req.Uid);
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0 and IsLogout = 0", req.Uid);
             if(null == user)
                 return InvokeResult.Fail("2");//用户未找到!
 

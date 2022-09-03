@@ -157,9 +157,29 @@ namespace DID.Services
                 sql.Append("Country = @0, ", user.Country);
             if (!string.IsNullOrEmpty(user.Area))
                 sql.Append("Area = @0, ", user.Country);
-            sql.Append("DIDUserId = @0 where DIDUserId = @0 ", user.UserId);
+            sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", user.UserId);
+
+            
+            db.BeginTransaction();
+            //加入推荐人社区
+            if (!string.IsNullOrEmpty(user.RefUserId))
+            {
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
+                if (!string.IsNullOrEmpty(communityId))
+                {
+                    var userCom = new UserCommunity()
+                    {
+                        CommunityId = Guid.NewGuid().ToString(),
+                        CreateDate = DateTime.Now,
+                        DIDUserId = user.UserId,
+                        UserCommunityId = communityId
+                    };
+                    await db.InsertAsync(userCom);
+                }
+            }
 
             await db.ExecuteAsync(sql);
+            db.CompleteTransaction();
             return InvokeResult.Success("更新成功!");
         }
 
@@ -172,10 +192,10 @@ namespace DID.Services
         {
             //1.验证用户账号密码是否正确
             using var db = new NDatabase();
-           var user = new DIDUser();
+            var user = new DIDUser();
             if (!string.IsNullOrEmpty(login.Mail) && !string.IsNullOrEmpty(login.Password))//邮箱密码登录
             {
-                user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0", login.Mail);
+                user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0 and IsLogout = 0", login.Mail);
 
                 if (null == user)
                     return InvokeResult.Fail<string>("2");//邮箱未注册!
@@ -186,10 +206,10 @@ namespace DID.Services
 
             if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))//钱包登录
             {
-                var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
+                var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
                                                             login.WalletAddress, login.Otype, login.Sign);
                 if(null != wallet && string.IsNullOrEmpty(user.DIDUserId))
-                    user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", wallet.DIDUserId);
+                    user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0 and IsLogout = 0", wallet.DIDUserId);
 
                 if (!string.IsNullOrEmpty(user.DIDUserId))
                 {
@@ -202,7 +222,8 @@ namespace DID.Services
                             Sign = login.Sign,
                             WalletAddress = login.WalletAddress,
                             DIDUserId = user.DIDUserId,
-                            CreateDate = DateTime.Now
+                            CreateDate = DateTime.Now,
+                            IsLogout = IsEnum.否
                         };
                         await db.InsertAsync(item);
                     }
@@ -257,15 +278,15 @@ namespace DID.Services
             using var db = new NDatabase();
 
             //var Uid = await db.SingleOrDefaultAsync<int>("select IDENT_CURRENT('DIDUser') + 1");//用户自增id
-            var userId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", login.Mail);
-            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2",
+            var userId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0 and IsLogout = 0", login.Mail);
+            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
                                                         login.WalletAddress, login.Otype, login.Sign);
             if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail("3");//
+                return InvokeResult.Fail("3");//请勿重复注册!
 
             if (!string.IsNullOrEmpty(login.RefUserId))
             {
-                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", login.RefUserId);
+                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", login.RefUserId);
                 if (string.IsNullOrEmpty(refUserId))
                     return InvokeResult.Fail("4"); //邀请码错误!
             }
@@ -281,9 +302,28 @@ namespace DID.Services
                 Mail = login.Mail,
                 RefUserId = login.RefUserId ?? login.RefUserId,
                 UserNode = 0,//啥也不是
-                RegDate = DateTime.Now             
+                RegDate = DateTime.Now,
+                IsLogout = IsEnum.否
             };
             await db.InsertAsync(user);
+
+            //加入推荐人社区
+            if (!string.IsNullOrEmpty(login.RefUserId))
+            {
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", login.RefUserId);
+                if (!string.IsNullOrEmpty(communityId))
+                {
+                    var userCom = new UserCommunity()
+                    {
+                        CommunityId = Guid.NewGuid().ToString(),
+                        CreateDate = DateTime.Now,
+                        DIDUserId = user.DIDUserId,
+                        UserCommunityId = communityId
+                    };
+                    await db.InsertAsync(userCom);
+                }
+            }
+
             //uId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where Mail = @0", login.Mail);//获取主键
             if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))//有钱包时
             {
@@ -294,7 +334,8 @@ namespace DID.Services
                     Sign = login.Sign,
                     WalletAddress = login.WalletAddress,
                     DIDUserId = userId,
-                    CreateDate = DateTime.Now
+                    CreateDate = DateTime.Now,
+                    IsLogout = IsEnum.否
                 };
                 await db.InsertAsync(wallet);
             }
@@ -345,13 +386,13 @@ namespace DID.Services
         public async Task<Response> ChangeMail(string userId, ChangeMailReq item)
         {
             using var db = new NDatabase();
-            var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet WalletAddress = @0 and Otype = @1 and Sign = @2", item.WalletAddress, item.Otype, item.Sign);
+            var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0", item.WalletAddress, item.Otype, item.Sign);
             if(null == wallet || wallet.DIDUserId == userId)
                 return InvokeResult.Fail("1");//钱包验证错误!
-            var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0", item.Mail);
+            var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0 and IsLogout = 0", item.Mail);
             if(!string.IsNullOrEmpty(user))
                 return InvokeResult.Fail("2");//邮箱已注册!
-            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", item.Mail, userId);
+            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1 and IsLogout = 0", item.Mail, userId);
             return InvokeResult.Success("修改成功!");
         }
 
@@ -379,10 +420,11 @@ namespace DID.Services
                 t.Stop(); //先关闭定时器
                 item.LogoutDate = DateTime.Now;
                 await db.UpdateAsync(item);
-                await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);
-                var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId);
+                await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销账号
+                await db.ExecuteAsync("update Wallet set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销钱包
+                var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", userId);
                 if(!string.IsNullOrEmpty(refUserId))
-                    await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1", refUserId, userId);//更新邀请人为当前用户的上级
+                    await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1 and IsLogout = 0", refUserId, userId);//更新邀请人为当前用户的上级
             });//到达时间的时候执行事件；
             t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
             t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
@@ -403,16 +445,16 @@ namespace DID.Services
             using var db = new NDatabase();
             var model = new TeamInfo();
             model.TeamNumber = await db.FirstOrDefaultAsync<int>(";with temp as \n" +
-                        "(select DIDUserId from DIDUser where DIDUserId = @0\n" +
+                        "(select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                         "union all \n" +
-                        "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId) \n" +
+                        "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and IsLogout = 0) \n" +
                         "select Count(*) from temp", userId);
 
             //默认展示6级
             var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
-                                                    "(select *,0 Level from DIDUser where DIDUserId = @0\n" +
+                                                    "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                                                     "union all \n" +
-                                                    "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6) \n" +
+                                                    "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and IsLogout = 0) \n" +
                                                     "select * from temp ", userId);
 
             //todo:dao审核通过可以看所有数据
@@ -426,7 +468,7 @@ namespace DID.Services
                                 Grade = a.UserNode.ToString(),
                                 UID = a.Uid,
                                 RegDate = a.RegDate,
-                                Name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", a.UserAuthInfoId)
+                                Name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId)
                             }).ToList();
             
             model.Users = users;

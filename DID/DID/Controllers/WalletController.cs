@@ -54,5 +54,17 @@ namespace DID.Controllers
         {
             return await _service.GetWallets(_currentUser.UserId);
         }
+
+        /// <summary>
+        /// 取消授权
+        /// </summary>
+        /// <param name="walletId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Route("deletewallet")]
+        public async Task<Response> DeleteWallet(string walletId)
+        {
+            return await _service.DeleteWallet(walletId);
+        }
     }
 }
