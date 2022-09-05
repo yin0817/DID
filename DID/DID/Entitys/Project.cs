@@ -20,9 +20,12 @@ RegDate(注册时间)       Enum
 
 */
 
+using NPoco;
+
 namespace DID.Entitys
 {
     /* 项目表 */
+    [PrimaryKey("ProjectId", AutoIncrement = false)]
     public class Project
     {
         /// <summary>

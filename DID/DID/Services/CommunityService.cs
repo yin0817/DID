@@ -160,20 +160,25 @@ namespace DID.Controllers
         public async Task<Response<ComAddrRespon>> GetComAddr()
         {
             using var db = new NDatabase();
-            var province_list = await db.FetchAsync<Area>("select Distinct a.Province, b.Name from Community a left join Area b on a.Province = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
-            var city_list = await db.FetchAsync<Area>("select Distinct a.City, b.Name from Community a left join Area b on a.Province = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
-            var county_list = await db.FetchAsync<Area>("select Distinct a.Area, b.Name from Community a left join Area b on a.Province = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
+            var country_list = await db.FetchAsync<Area>("select Distinct a.Country code, b.Name from Community a left join Area b on a.Country = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
+            var province_list = await db.FetchAsync<Area>("select Distinct a.Province code, b.Name from Community a left join Area b on a.Province = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
+            var city_list = await db.FetchAsync<Area>("select Distinct a.City code, b.Name from Community a left join Area b on a.City = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
+            var county_list = await db.FetchAsync<Area>("select Distinct a.Area code, b.Name from Community a left join Area b on a.Area = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
 
-            var provinces = new Dictionary<int, string>();
-            province_list.ForEach(a => provinces.Add(Convert.ToInt32(a.code), a.name));
+            var country = new Dictionary<string, string>();
+            country_list.ForEach(a => country.Add(a.code, a.name));
 
-            var citys = new Dictionary<int, string>();
-            city_list.ForEach(a => citys.Add(Convert.ToInt32(a.code), a.name));
+            var provinces = new Dictionary<string, string>();
+            province_list.ForEach(a => provinces.Add(a.code, a.name));
 
-            var countys = new Dictionary<int, string>();
-            county_list.ForEach(a => countys.Add(Convert.ToInt32(a.code), a.name));
+            var citys = new Dictionary<string, string>();
+            city_list.ForEach(a => citys.Add(a.code, a.name));
+
+            var countys = new Dictionary<string, string>();
+            county_list.ForEach(a => countys.Add(a.code, a.name));
 
             var item = new ComAddrRespon(){
+                country_list = country,
                 province_list = provinces,
                 city_list = citys,
                 county_list = countys
@@ -181,7 +186,6 @@ namespace DID.Controllers
 
             return InvokeResult.Success(item);
         }
-
 
         /// <summary>
         /// 获取当前位置社区数量
@@ -227,11 +231,19 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             item.CommunityId = Guid.NewGuid().ToString();
+
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+            if (!string.IsNullOrEmpty(user.ApplyCommunityId))
+            {
+                var authType = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from Community where CommunityId = @0", user.ApplyCommunityId);
+                if(authType != AuthTypeEnum.未审核 && authType != AuthTypeEnum.审核失败)
+                    return InvokeResult.Fail("请勿重复申请!");
+            }
+            user.ApplyCommunityId = item.CommunityId;
+            
             var refUserId = await db.FirstOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", item.DIDUserId);//邀请人
             if (string.IsNullOrEmpty(refUserId))
-            {
                 return InvokeResult.Fail("邀请人未找到!");
-            }
 
             item.RefDIDUserId = refUserId;
             item.RefCommunityId = await db.FirstOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", refUserId);//邀请人社区
@@ -244,14 +256,15 @@ namespace DID.Controllers
                 ComAuthId = Guid.NewGuid().ToString(),
                 CommunityId = item.CommunityId,
                 AuditUserId = refUserId,//推荐人审核
-                //HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage,
                 CreateDate = DateTime.Now,
                 AuditType = AuditTypeEnum.未审核,
                 AuditStep = AuditStepEnum.初审
             };
+
             db.BeginTransaction();
             await db.InsertAsync(item);
             await db.InsertAsync(auth);
+            await db.UpdateAsync(user);
             db.CompleteTransaction();
 
             return InvokeResult.Success("申请成功!");
@@ -294,7 +307,11 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleByIdAsync<Community>(communityId);
-            var auth = await db.SingleOrDefaultAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and AuditUserId = @1;", communityId, userId);
+            var auth = await db.SingleOrDefaultAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and AuditUserId = @1", communityId, userId);
+
+            //不会出现重复的记录 每个用户只审核一次
+            if (auth.AuditType != AuditTypeEnum.未审核)
+                return InvokeResult.Fail("已审核!");
 
             auth.AuditType = auditType;
             auth.Remark = remark;
@@ -303,15 +320,18 @@ namespace DID.Controllers
             db.BeginTransaction();
             await db.UpdateAsync(auth);
 
-            //修改用户审核状态
+            //修改审核状态
             if (auth.AuditStep == AuditStepEnum.抽审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
-                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0;", communityId, AuthTypeEnum.审核成功);
+                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
+
+                //更改用户社区信息为自己的社区
+                await db.ExecuteAsync("update UserCommunity set CommunityId = @0 where DIDUserId = @1", communityId, authinfo.DIDUserId);
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
-                //修改用户审核状态
-                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0;", communityId, AuthTypeEnum.审核失败);
+                //修改审核状态
+                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核失败);
                 //todo: 审核失败 扣分
             }
 

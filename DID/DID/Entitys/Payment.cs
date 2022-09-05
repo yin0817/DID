@@ -1,4 +1,6 @@
-﻿namespace DID.Entitys
+﻿using NPoco;
+
+namespace DID.Entitys
 {
     /// <summary>
     /// 类型 0 现金支付 1 银行卡 2 支付宝 3 微信支付
@@ -10,19 +12,20 @@
     public enum IsEnum { 否, 是 }
 
     /* 收付款信息 */
+    [PrimaryKey("PaymentId", AutoIncrement = false)]
     public class Payment
     {
         /// <summary>
         /// 编号
         /// </summary>
-        public string PaymentId
+        public string? PaymentId
         {
             get; set;
         }
         /// <summary>
         /// 用户编号
         /// </summary>
-        public string DIDUserId
+        public string? DIDUserId
         {
             get; set;
         }
@@ -57,14 +60,14 @@
         /// <summary>
         /// 创建日期 默认为当前时间
         /// </summary>
-        public DateTime CreateDate
+        public DateTime? CreateDate
         {
             get; set;
         }
         /// <summary>
         /// 更新日期 默认为当前时间
         /// </summary>
-        public DateTime UpdateDate
+        public DateTime? UpdateDate
         {
             get; set;
         }
@@ -85,7 +88,7 @@
         /// <summary>
         /// 备注
         /// </summary>
-        public string Remark
+        public string? Remark
         {
             get; set;
         }

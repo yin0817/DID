@@ -56,7 +56,7 @@ namespace DID.Controllers
             return await _service.DeletePayment(payId);
         }
         /// <summary>
-        /// 修改支付信息
+        /// 修改支付信息(是否启用)
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>

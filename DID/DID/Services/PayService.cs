@@ -109,8 +109,10 @@ namespace DID.Controllers
         public async Task<Response> UpdatePayment(Payment req)
         {
             using var db = new NDatabase();
+            var item = await db.SingleByIdAsync<Payment>(req.PaymentId);
+            item.IsEnable = req.IsEnable;
             req.UpdateDate = DateTime.Now;
-            await db.UpdateAsync(req);
+            await db.UpdateAsync(item);
             return InvokeResult.Success("更新成功!");
         }
     }

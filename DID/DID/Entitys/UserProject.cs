@@ -19,9 +19,12 @@ IsDelete(是否删除)         Enum
 
 */
 
+using NPoco;
+
 namespace DID.Entitys
 {
     /* 用户项目关系表 */
+    [PrimaryKey("UserProjectId", AutoIncrement = false)]
     public class UserProject
     {
         /// <summary>

@@ -53,6 +53,17 @@ namespace DID.Controllers
         }
 
         /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getuserinfobyuid")]
+        public async Task<Response<UserInfoRespon>> GetUserInfoByUid(int uid)
+        {
+            return await _service.GetUserInfoByUid(uid);
+        }
+
+        /// <summary>
         /// 更新用户信息（邀请人 电报群 国家地区） 1 邀请码错误!
         /// </summary>
         /// <param name="user"></param>
@@ -84,7 +95,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 注册 1 邮箱格式错误! 2 验证码错误! 3 请勿重复注册! 4 邀请码错误!
+        /// 注册 1 邮箱格式错误! 2 验证码错误! 3 请勿重复注册! 4 邀请码错误! 5 钱包地址为空!
         /// </summary>
         /// <param name="login"></param>
         /// <returns></returns>
@@ -98,6 +109,8 @@ namespace DID.Controllers
             var code = _cache.Get(login.Mail)?.ToString();
             if (code != login.Code)
                 return InvokeResult.Fail<string>("2");//验证码错误!
+            if(string.IsNullOrEmpty(login.WalletAddress)||string.IsNullOrEmpty(login.Otype)|| string.IsNullOrEmpty(login.Sign))
+                return InvokeResult.Fail<string>("5");//钱包地址为空!
             return await _service.Register(login);
         }
 
@@ -136,7 +149,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 修改密码 1 钱包验证错误! 2 邮箱已注册! 3 验证码错误!
+        /// 修改邮箱 1 钱包验证错误! 2 邮箱已注册! 3 验证码错误!
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
@@ -172,6 +185,28 @@ namespace DID.Controllers
         public async Task<Response> Logout()
         {
             return await _service.Logout(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 取消注销
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("cancellogout")]
+        public async Task<Response> CancelLogout()
+        {
+            return await _service.CancelLogout(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取提交注销时间
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getlogoutdate")]
+        public async Task<Response<DateTime>> GetLogoutDate()
+        {
+            return await _service.GetLogoutDate(_currentUser.UserId);
         }
 
         /// <summary>

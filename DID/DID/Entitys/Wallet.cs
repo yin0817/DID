@@ -69,7 +69,7 @@ namespace DID.Entitys
         /// <summary>
         /// 删除时间
         /// </summary>
-        public DateTime DeleteDate
+        public DateTime? DeleteDate
         {
             get; set;
         }

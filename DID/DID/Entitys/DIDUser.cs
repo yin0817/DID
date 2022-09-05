@@ -148,7 +148,15 @@ namespace DID.Entitys
         /// <summary>
         /// 注销编号
         /// </summary>
-        public string UserLogoutId
+        public string? UserLogoutId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 用户申请社区编号
+        /// </summary>
+        public string? ApplyCommunityId
         {
             get; set;
         }

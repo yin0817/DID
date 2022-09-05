@@ -93,14 +93,75 @@ namespace DID.Controllers
         /// <summary>
         /// 项目用户信息
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="projectId"></param>
         /// <returns></returns>
-        public async Task<Response> AddUserProject(string userId, string projectId)
+        public async Task<Response<string>> AddUserProject(UserProject item)
         {
             using var db = new NDatabase();
-            await db.ExecuteAsync("insert into UserProject set UserProjectId = @0,DIDUserId = @1,ProjectId = @2", Guid.NewGuid().ToString(), userId, projectId);
-            return InvokeResult.Success("绑定成功!");
+            item.UserProjectId = Guid.NewGuid().ToString();
+            item.CreateDate = DateTime.Now;
+            item.IsBind = IsEnum.是;
+
+            item.ProjectId = Guid.NewGuid().ToString();
+
+            //默认选项
+            var project = new Project()
+            {
+                ProjectId = item.ProjectId,
+                Uid = IsEnum.是,
+                RegDate = IsEnum.是,
+                Area = IsEnum.是,
+                City = IsEnum.是,
+                Country = IsEnum.是,
+                CreditScore = IsEnum.是,
+                Mail = IsEnum.是,
+                Name = IsEnum.是,
+                Province = IsEnum.是,
+                Telegram = IsEnum.是
+            };
+
+            db.BeginTransaction();
+            await db.InsertAsync(item);
+            await db.InsertAsync(project);
+            db.CompleteTransaction();
+
+            return InvokeResult.Success<string>(item.ProjectId);
+        }
+
+        /// <summary>
+        /// 修改用户信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> UpdateUserProject(UserProject item)
+        {
+            using var db = new NDatabase();
+            await db.UpdateAsync(item);
+            return InvokeResult.Success("修改成功!");
+        }
+
+        /// <summary>
+        /// 修改用户信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> UpdateProject(Project item)
+        {
+            using var db = new NDatabase();
+            await db.UpdateAsync(item);
+            return InvokeResult.Success("修改成功!");
+        }
+
+        /// <summary>
+        /// 获取项目用户信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response<object>> GetProjectUser(string userProjectId)
+        {
+            using var db = new NDatabase();
+            var projectUser = await db.SingleOrDefaultByIdAsync<UserProject>(userProjectId);
+            var project = await db.SingleOrDefaultByIdAsync<Project>(projectUser.ProjectId);
+
+            var user = new { a = "aa" }; 
+
+            return InvokeResult.Success<object>(user);
         }
     }
 }

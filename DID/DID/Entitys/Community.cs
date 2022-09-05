@@ -25,21 +25,21 @@ namespace DID.Entitys
         /// <summary>
         /// 社区名
         /// </summary>
-        public string ComName
+        public string? ComName
         {
             get; set;
         }
         /// <summary>
         /// 手机号码
         /// </summary>
-        public string Phone
+        public string? Phone
         {
             get; set;
         }
         /// <summary>
         /// 邮箱
         /// </summary>
-        public string Mail
+        public string? Mail
         {
             get; set;
         }
@@ -60,28 +60,28 @@ namespace DID.Entitys
         /// <summary>
         /// 国家
         /// </summary>
-        public string Country
+        public string? Country
         {
             get; set;
         }
         /// <summary>
         /// 省
         /// </summary>
-        public string Province
+        public string? Province
         {
             get; set;
         }
         /// <summary>
         /// 市
         /// </summary>
-        public string City
+        public string? City
         {
             get; set;
         }
         /// <summary>
         /// 区
         /// </summary>
-        public string Area
+        public string? Area
         {
             get; set;
         }

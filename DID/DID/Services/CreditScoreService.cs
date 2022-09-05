@@ -85,10 +85,11 @@ namespace DID.Services
         public async Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where DIDUserId=@0;", userId);
+            var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where DIDUserId=@0", userId);
             var fraction = await db.SingleOrDefaultAsync<int>("select CreditScore from DIDUser where DIDUserId = @0", userId);
 
             return InvokeResult.Success(new GetCreditScoreRespon { CreditScore = fraction, Items = list });
         }
+
     }
 }

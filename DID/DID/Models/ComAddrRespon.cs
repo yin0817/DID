@@ -2,15 +2,19 @@
 {
     public class ComAddrRespon
     {
-        public Dictionary<int, string> province_list
+        public Dictionary<string, string> country_list
         {
             get; set;
         }
-        public Dictionary<int, string> city_list
+        public Dictionary<string, string> province_list
         {
             get; set;
         }
-        public Dictionary<int, string> county_list
+        public Dictionary<string, string> city_list
+        {
+            get; set;
+        }
+        public Dictionary<string, string> county_list
         {
             get; set;
         }

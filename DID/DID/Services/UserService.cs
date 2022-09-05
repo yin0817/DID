@@ -24,6 +24,13 @@ namespace DID.Services
         Task<Response<UserInfoRespon>> GetUserInfo(string userId);
 
         /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <returns></returns>
+        Task<Response<UserInfoRespon>> GetUserInfoByUid(int uid);
+
+        /// <summary>
         /// 更新用户信息（邀请人 电报群 国家地区）
         /// </summary>
         /// <param name="user"></param>
@@ -74,6 +81,18 @@ namespace DID.Services
         Task<Response> Logout(string userId);
 
         /// <summary>
+        /// 取消注销
+        /// </summary>
+        /// <returns></returns>
+        Task<Response> CancelLogout(string userId);
+
+        /// <summary>
+        /// 获取提交注销时间
+        /// </summary>
+        /// <returns></returns>
+        Task<Response<DateTime>> GetLogoutDate(string userId);
+
+        /// <summary>
         /// 获取团队信息
         /// </summary>
         /// <param name="userId"></param>
@@ -108,6 +127,51 @@ namespace DID.Services
         /// <summary>
         /// 获取用户信息
         /// </summary>
+        /// <param name="uid"></param>
+        /// <returns></returns>
+        public async Task<Response<UserInfoRespon>> GetUserInfoByUid(int uid)
+        {
+            var userRespon = new UserInfoRespon();
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0", uid);
+            if(null == user)
+                return InvokeResult.Fail<UserInfoRespon>("用户信息未找到!");
+
+            userRespon.Uid = user.Uid;
+            userRespon.UserId = user.DIDUserId;
+            if (!string.IsNullOrEmpty(user.RefUserId))
+                userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
+            userRespon.CreditScore = user.CreditScore;
+            userRespon.Mail = user.Mail;
+            userRespon.Country = user.Country;
+            userRespon.Area = user.Area;
+            userRespon.Telegram = user.Telegram;
+            userRespon.AuthType = user.AuthType;
+            if (user.AuthType == AuthTypeEnum.审核成功)
+            {
+                var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
+                userRespon.Name = authInfo.Name;
+                userRespon.PhoneNum = authInfo.PhoneNum;
+            }
+            userRespon.UserNode = user.UserNode;
+
+            //用户社区信息
+            if (!string.IsNullOrEmpty(user.RefUserId))
+                userRespon.CommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.DIDUserId);
+            if (!string.IsNullOrEmpty(user.ApplyCommunityId))
+            {
+                userRespon.ApplyCommunityId = user.ApplyCommunityId;
+                var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
+                userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
+
+            }
+
+            return InvokeResult.Success(userRespon);
+        }
+
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
         public async Task<Response<UserInfoRespon>> GetUserInfo(string userId)
@@ -115,8 +179,11 @@ namespace DID.Services
             var userRespon = new UserInfoRespon();
             using var db = new NDatabase();
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return InvokeResult.Fail<UserInfoRespon>("用户信息未找到!");
 
             userRespon.Uid = user.Uid;
+            userRespon.UserId = userId;
             if(!string.IsNullOrEmpty(user.RefUserId))
                 userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
             userRespon.CreditScore = user.CreditScore;
@@ -130,6 +197,18 @@ namespace DID.Services
                 var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
                 userRespon.Name = authInfo.Name;
                 userRespon.PhoneNum = authInfo.PhoneNum;
+            }
+            userRespon.UserNode = user.UserNode;
+
+            //用户社区信息
+            if (!string.IsNullOrEmpty(user.RefUserId))
+                userRespon.CommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0",userId);
+            if (!string.IsNullOrEmpty(user.ApplyCommunityId))
+            {
+                userRespon.ApplyCommunityId = user.ApplyCommunityId;
+                var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
+                userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
+                
             }
 
             return InvokeResult.Success(userRespon);
@@ -386,18 +465,18 @@ namespace DID.Services
         public async Task<Response> ChangeMail(string userId, ChangeMailReq item)
         {
             using var db = new NDatabase();
-            var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0", item.WalletAddress, item.Otype, item.Sign);
-            if(null == wallet || wallet.DIDUserId == userId)
+            var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0", item.WalletAddress, item.Otype, item.Sign);
+            if(null == wallet)
                 return InvokeResult.Fail("1");//钱包验证错误!
             var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0 and IsLogout = 0", item.Mail);
             if(!string.IsNullOrEmpty(user))
                 return InvokeResult.Fail("2");//邮箱已注册!
-            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1 and IsLogout = 0", item.Mail, userId);
+            await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", item.Mail, userId);
             return InvokeResult.Success("修改成功!");
         }
 
-        //两小时没人审核 自动到Dao审核
-        private readonly System.Timers.Timer t = new(30000);//实例化Timer类，设置间隔时间为10000毫秒；
+        //48小时后注销
+        private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
         /// <summary>
         /// 用户注销
         /// </summary>
@@ -406,7 +485,17 @@ namespace DID.Services
         {
             //todo:判断注销条件
             using var db = new NDatabase();
+
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (!string.IsNullOrEmpty(user.UserLogoutId))
+            {
+                var userLogout = await db.SingleOrDefaultByIdAsync<UserLogout>(user.UserLogoutId);
+                if(userLogout.IsCancel == IsEnum.否)
+                    return InvokeResult.Fail("请勿重复操作!");
+            }
+
             db.BeginTransaction();
+
             var item = new UserLogout() { 
                 DIDUserId = userId,
                 UserLogoutId = Guid.NewGuid().ToString(),
@@ -414,17 +503,24 @@ namespace DID.Services
                 IsCancel = IsEnum.否
             };
             await db.InsertAsync(item);
+
             await db.ExecuteAsync("update DIDUser set UserLogoutId = @0 where DIDUserId = @1", item.UserLogoutId, userId);
+
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 t.Stop(); //先关闭定时器
-                item.LogoutDate = DateTime.Now;
-                await db.UpdateAsync(item);
-                await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销账号
-                await db.ExecuteAsync("update Wallet set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销钱包
-                var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", userId);
-                if(!string.IsNullOrEmpty(refUserId))
-                    await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1 and IsLogout = 0", refUserId, userId);//更新邀请人为当前用户的上级
+
+                var nowItem = await db.SingleOrDefaultByIdAsync<UserLogout>(item.UserLogoutId);
+                if (nowItem.IsCancel == IsEnum.否)
+                {
+                    nowItem.LogoutDate = DateTime.Now;
+                    await db.UpdateAsync(nowItem);
+                    await db.ExecuteAsync("update DIDUser set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销账号
+                    await db.ExecuteAsync("update Wallet set IsLogout = @0 where DIDUserId = @1", IsEnum.是, userId);//注销钱包
+                    var refUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", userId);
+                    if (!string.IsNullOrEmpty(refUserId))
+                        await db.ExecuteAsync("update DIDUser set RefUserId = @0 where RefUserId = @1 and IsLogout = 0", refUserId, userId);//更新邀请人为当前用户的上级
+                }
             });//到达时间的时候执行事件；
             t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
             t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
@@ -432,6 +528,40 @@ namespace DID.Services
 
             db.CompleteTransaction();
             return InvokeResult.Success("提交注销成功!");
+        }
+
+        /// <summary>
+        /// 取消注销
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> CancelLogout(string userId)
+        { 
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            db.BeginTransaction();
+            if (!string.IsNullOrEmpty(user.UserLogoutId) && user.IsLogout == IsEnum.否)
+            {
+                var userLogout = await db.SingleOrDefaultByIdAsync<UserLogout>(user.UserLogoutId);
+                userLogout.IsCancel = IsEnum.是;
+                await db.UpdateAsync(userLogout);
+            }
+            else
+            {
+                return InvokeResult.Fail("取消失败!");
+            }
+            db.CompleteTransaction();
+            return InvokeResult.Success("取消成功!");
+        }
+
+        /// <summary>
+        /// 获取提交注销时间
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response<DateTime>> GetLogoutDate(string userId)
+        {
+            using var db = new NDatabase();
+            var logoutDate = await db.SingleOrDefaultAsync<DateTime>("select b.SubmitDate from DIDUser a left join UserLogout b on a.UserLogoutId = b.UserLogoutId where a.DIDUserId = @0", userId);
+            return InvokeResult.Success(logoutDate);
         }
 
         /// <summary>
@@ -447,14 +577,14 @@ namespace DID.Services
             model.TeamNumber = await db.FirstOrDefaultAsync<int>(";with temp as \n" +
                         "(select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                         "union all \n" +
-                        "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and IsLogout = 0) \n" +
+                        "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
                         "select Count(*) from temp", userId);
 
             //默认展示6级
             var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
                                                     "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                                                     "union all \n" +
-                                                    "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and IsLogout = 0) \n" +
+                                                    "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and a.IsLogout = 0) \n" +
                                                     "select * from temp ", userId);
 
             //todo:dao审核通过可以看所有数据

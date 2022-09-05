@@ -95,7 +95,11 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleByIdAsync<UserAuthInfo>(userAuthInfoId);
-            var auth = await db.SingleOrDefaultAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and AuditUserId = @1;", userAuthInfoId, userId);
+            var auth = await db.SingleOrDefaultAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and AuditUserId = @1", userAuthInfoId, userId);
+
+            //不会出现重复的记录 每个用户只审核一次
+            if (auth.AuditType != AuditTypeEnum.未审核)
+                return InvokeResult.Fail("已审核!");
 
             auth.AuditType = auditType;
             auth.Remark = remark;
@@ -107,12 +111,12 @@ namespace DID.Services
             //修改用户审核状态
             if (auth.AuditStep == AuditStepEnum.抽审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
-                await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0;", authinfo.CreatorId, AuthTypeEnum.审核成功);
+                await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核成功);
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
                 //修改用户审核状态
-                await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0;", authinfo.CreatorId, AuthTypeEnum.审核失败);
+                await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核失败);
                 //todo: 审核失败 扣分
             }
 
@@ -341,7 +345,7 @@ namespace DID.Services
         //    using var db = new NDatabase();
         //    foreach (var item in lists)
         //    {
-        //        var items = await db.FetchAsync<UserAuthInfo>("select * from UserAuthInfo where AuditUid = @0 and AuditType != 0 and AuditType != 1;", userId);
+        //        var items = await db.FetchAsync<UserAuthInfo>("select * from UserAuthInfo where AuditUid = @0 and AuditType != 0 and AuditType != 1", userId);
         //    }
         //    return InvokeResult.Success(items);
         //}
@@ -401,7 +405,7 @@ namespace DID.Services
             //if(!string.IsNullOrEmpty(list))
             //    return InvokeResult.Fail("请勿重复提交!");
             var str = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from DIDUser where DIDUserId = @0", info.CreatorId);
-            if (str != AuthTypeEnum.未审核)
+            if (str != AuthTypeEnum.未审核 && str != AuthTypeEnum.审核失败)
                 return InvokeResult.Fail("4");//请勿重复提交!
 
             var auth = new Auth

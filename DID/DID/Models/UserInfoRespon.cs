@@ -127,7 +127,7 @@ namespace DID.Models
             get; set;
         }
         /// <summary>
-        /// 用户社区编号
+        /// 用户申请社区编号
         /// </summary>
         public string? ApplyCommunityId
         {
@@ -137,6 +137,13 @@ namespace DID.Models
         /// 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
         public AuditTypeEnum? ComAuditType
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否完善信息
+        /// </summary>
+        public bool? IsImprove
         {
             get; set;
         }
