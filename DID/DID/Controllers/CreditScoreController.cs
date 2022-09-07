@@ -1,6 +1,7 @@
-﻿using DID.Entitys;
-using DID.Helps;
-using DID.Models;
+﻿using DID.Common;
+using DID.Models.Base;
+using DID.Models.Request;
+using DID.Models.Response;
 using DID.Services;
 using Microsoft.AspNetCore.Mvc;
 

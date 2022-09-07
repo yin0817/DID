@@ -1,7 +1,8 @@
 using AspNetCoreRateLimit;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using DID.Helps;
+using DID.Common;
+using DID.Models.Base;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -15,8 +16,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = new ConfigurationBuilder()
-.AddJsonFile("appsettings.json").
-AddJsonFile("Config/IpRateLimit.json").Build();
+                                    .AddJsonFile("appsettings.json")
+                                    .AddJsonFile("Config/IpRateLimit.json").Build();
 // Add services to the container.
 
 //全局添加需要认证
@@ -24,7 +25,6 @@ builder.Services.AddControllers().AddMvcOptions(options => options.Filters.Add(n
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton(new AppSettings(configuration));
@@ -42,7 +42,7 @@ builder.Host
 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
 .ConfigureContainer<ContainerBuilder>(builder =>
 {
-builder.RegisterAssemblyTypes(Assembly.Load(Assembly.GetExecutingAssembly().GetName().Name!))
+builder.RegisterAssemblyTypes(Assembly.Load("DID.Services"))
 .Where(t => t.Name.EndsWith("Service"))
 .AsImplementedInterfaces();
 });

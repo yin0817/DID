@@ -1,9 +1,9 @@
-﻿using DID.Entitys;
-using DID.Helps;
-using DID.Models;
+﻿using DID.Common;
+using DID.Entitys;
+using DID.Models.Base;
+using DID.Models.Response;
 using DID.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace DID.Controllers
 {

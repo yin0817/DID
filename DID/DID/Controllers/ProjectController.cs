@@ -1,6 +1,6 @@
-﻿using DID.Entitys;
-using DID.Helps;
-using DID.Models;
+﻿using DID.Common;
+using DID.Models.Base;
+using DID.Models.Response;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DID.Controllers

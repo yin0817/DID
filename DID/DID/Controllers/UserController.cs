@@ -1,13 +1,11 @@
-﻿using DID.Helps;
-using DID.Models;
+﻿using DID.Common;
+using DID.Models.Base;
+using DID.Models.Request;
+using DID.Models.Response;
 using DID.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace DID.Controllers
 {
@@ -216,7 +214,7 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("getuserteam")]
-        public async Task<Response<TeamInfo>> GetUserTeam(bool IsAuth = false)
+        public async Task<Response<TeamInfoRespon>> GetUserTeam(bool IsAuth = false)
         {
             return await _service.GetUserTeam(_currentUser.UserId, IsAuth);
         }

@@ -1,7 +1,8 @@
-﻿using DID.Entitys;
-using DID.Helps;
-using DID.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using DID.Common;
+using DID.Entitys;
+using DID.Models.Base;
+using DID.Models.Request;
+using DID.Models.Response;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DID.Controllers
