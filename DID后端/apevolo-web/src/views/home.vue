@@ -5,23 +5,29 @@
 
       <panel-group @handleSetLineChartData="handleSetLineChartData" />
 
-      <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
+      <!-- <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:32px;">
         <line-chart :chart-data="lineChartData" />
-      </el-row>
+      </el-row> -->
       <el-row :gutter="32">
-        <el-col :xs="24" :sm="24" :lg="8">
+        <!-- <el-col :xs="24" :sm="24" :lg="12">
           <div class="chart-wrapper">
             <radar-chart />
           </div>
         </el-col>
-        <el-col :xs="24" :sm="24" :lg="8">
+        <el-col :xs="24" :sm="24" :lg="12">
           <div class="chart-wrapper">
             <pie-chart />
+            <bar-chart />
+          </div>
+        </el-col> -->
+        <el-col :xs="24" :sm="24" :lg="12">
+          <div class="chart-wrapper">
+            <HBTBChart />
           </div>
         </el-col>
-        <el-col :xs="24" :sm="24" :lg="8">
+        <el-col :xs="24" :sm="24" :lg="12">
           <div class="chart-wrapper">
-            <bar-chart />
+            <KLine />
           </div>
         </el-col>
       </el-row>
@@ -32,10 +38,12 @@
 <script>
 import GithubCorner from '@/components/GithubCorner'
 import PanelGroup from './dashboard/PanelGroup'
-import LineChart from './dashboard/LineChart'
-import RadarChart from '@/components/Echarts/RadarChart'
-import PieChart from '@/components/Echarts/PieChart'
-import BarChart from '@/components/Echarts/BarChart'
+// import LineChart from './dashboard/LineChart'
+// import RadarChart from '@/components/Echarts/RadarChart'
+// import PieChart from '@/components/Echarts/PieChart'
+// import BarChart from '@/components/Echarts/BarChart'
+import HBTBChart from '@/components/Echarts/HBTBChart'
+import KLine from '@/components/Echarts/KLine'
 
 const lineChartData = {
   newVisitis: {
@@ -61,10 +69,12 @@ export default {
   components: {
     GithubCorner,
     PanelGroup,
-    LineChart,
-    RadarChart,
-    PieChart,
-    BarChart
+    // LineChart,
+    // RadarChart,
+    // PieChart,
+    // BarChart,
+    HBTBChart,
+    KLine
   },
   data() {
     return {
