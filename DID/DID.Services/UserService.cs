@@ -98,9 +98,11 @@ namespace DID.Services
         /// 获取团队信息
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<TeamInfoRespon>> GetUserTeam(string userId, bool IsAuth);
+        Task<Response<TeamInfoRespon>> GetUserTeam(string userId, bool? IsAuth, long page, long itemsPerPage);
     }
     /// <summary>
     /// 审核认证服务
@@ -566,9 +568,11 @@ namespace DID.Services
         /// 获取团队信息
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<TeamInfoRespon>> GetUserTeam(string userId,bool IsAuth)
+        public async Task<Response<TeamInfoRespon>> GetUserTeam(string userId,bool? isAuth, long page, long itemsPerPage)
         {
             using var db = new NDatabase();
             var model = new TeamInfoRespon();
@@ -578,30 +582,56 @@ namespace DID.Services
                         "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
                         "select Count(*) from temp", userId);
 
+            model.PushNumber = await db.FirstOrDefaultAsync<int>("select Count(*) from DIDUser where RefUserId = @0 and IsLogout = 0", userId);
+
+            var a = db.Page<DIDUser>(1,1,"select * from DIDUser");
+
             //默认展示6级
-            var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
+            var list = (await db.PageAsync<DIDUser>(page, itemsPerPage,new Sql(";with temp as \n" +
                                                     "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                                                     "union all \n" +
                                                     "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and a.IsLogout = 0) \n" +
-                                                    "select * from temp ", userId);
+                                                    "select * from temp ", userId))).Items;
 
             //todo:dao审核通过可以看所有数据
 
             //根据标签过滤数据
-            if(IsAuth)
+            if(null != isAuth && isAuth == true)
                 list = list.Where(a => a.AuthType == AuthTypeEnum.审核成功).ToList();
+
+            if (null != isAuth && isAuth == false)
+                list = list.Where(a => a.AuthType != AuthTypeEnum.审核成功).ToList();
 
             var users = list.Select(a => new TeamUser()
                             {
                                 Grade = a.UserNode.ToString(),
                                 UID = a.Uid,
+                                Mail = a.Mail,
+                                Phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId),
                                 RegDate = a.RegDate,
-                                Name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId)
+                                Name = GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
                             }).ToList();
             
             model.Users = users;
 
             return InvokeResult.Success(model);
+        }
+
+        /// <summary>
+        /// 姓名处理为姓***
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public string GetName(string str)
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                var index = str.Length;
+                str = str.Substring(1);
+                for (var i = 1; i < index; i++)
+                    str += '*';
+            }
+            return str;
         }
     }
 }

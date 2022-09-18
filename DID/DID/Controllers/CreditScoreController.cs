@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DID.Controllers
 {
     /// <summary>
-    /// 审核认证
+    /// 信用分
     /// </summary>
     [ApiController]
     [Route("api/creditscore")]
@@ -50,12 +50,14 @@ namespace DID.Controllers
         /// <summary>
         /// 获取信用分记录和当前信用分
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcreditscore")]
-        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(/*string userId*/)
+        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(long page, long itemsPerPage)
         {
-            return await _service.GetCreditScore(_currentUser.UserId);
+            return await _service.GetCreditScore(_currentUser.UserId, page, itemsPerPage);
         }
 
     }

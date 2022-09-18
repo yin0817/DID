@@ -8,11 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DID.Entity\DID.Entity.csproj" />
+    <PackageReference Include="NPoco" Version="5.3.2" />
   </ItemGroup>
 
 </Project>

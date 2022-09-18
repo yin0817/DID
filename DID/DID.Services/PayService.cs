@@ -38,8 +38,10 @@ namespace DID.Controllers
         /// 获取支付信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<Payment>>> GetPayment(string userId);
+        Task<Response<List<Payment>>> GetPayment(string userId, long page, long itemsPerPage);
 
     }
     /// <summary>
@@ -96,11 +98,14 @@ namespace DID.Controllers
         /// 获取支付信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<Payment>>> GetPayment(string userId)
+        public async Task<Response<List<Payment>>> GetPayment(string userId, long page, long itemsPerPage)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
+            //var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
+            var list = (await db.PageAsync<Payment>(page, itemsPerPage, "select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否)).Items;
             return InvokeResult.Success(list);
         }
         /// <summary>

@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Dao.Controller\Dao.Controllers.csproj" />
     <ProjectReference Include="..\DID.Common\DID.Common.csproj" />
     <ProjectReference Include="..\DID.Models\DID.Models.csproj" />
     <ProjectReference Include="..\DID.Services\DID.Services.csproj" />

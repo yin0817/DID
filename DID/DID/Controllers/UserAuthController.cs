@@ -75,34 +75,40 @@ namespace DID.Controllers
         /// <summary>
         /// 获取未审核信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getunauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedInfo(_currentUser.UserId);
+            return await _service.GetUnauditedInfo(_currentUser.UserId, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedInfo(_currentUser.UserId);
+            return await _service.GetAuditedInfo(_currentUser.UserId, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getbackinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(long page, long itemsPerPage)
         {
-            return await _service.GetBackInfo(_currentUser.UserId);
+            return await _service.GetBackInfo(_currentUser.UserId, page, itemsPerPage);
         }
 
 

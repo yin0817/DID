@@ -70,12 +70,14 @@ namespace DID.Controllers
         /// <summary>
         /// 获取支付信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getpayment")]
-        public async Task<Response<List<Payment>>> GetPayment()
+        public async Task<Response<List<Payment>>> GetPayment(long page, long itemsPerPage)
         {
-            return await _service.GetPayment(_currentUser.UserId);
+            return await _service.GetPayment(_currentUser.UserId, page, itemsPerPage);
         }
     }
 }

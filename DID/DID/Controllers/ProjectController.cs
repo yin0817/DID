@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DID.Controllers
 {
     /// <summary>
-    /// 社区相关接口
+    /// 项目相关接口
     /// </summary>
     [ApiController]
     [Route("api/project")]

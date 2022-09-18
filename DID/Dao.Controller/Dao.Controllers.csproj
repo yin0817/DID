@@ -8,11 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DID.Entity\DID.Entity.csproj" />
+    <ProjectReference Include="..\Dao.Models\Dao.Models.csproj" />
+    <ProjectReference Include="..\Dao.Services\Dao.Services.csproj" />
+    <ProjectReference Include="..\DID.Models\DID.Models.csproj" />
   </ItemGroup>
 
 </Project>

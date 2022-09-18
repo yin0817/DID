@@ -90,45 +90,53 @@ namespace DID.Controllers
         /// <param name="province"></param>
         /// <param name="city"></param>
         /// <param name="area"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcomlist")]
-        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area)
+        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage)
         {
-            return await _service.GetComList(country, province, city, area);
+            return await _service.GetComList(country, province, city, area, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getbackcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetBackCom()
+        public async Task<Response<List<ComAuthRespon>>> GetBackCom(long page, long itemsPerPage)
         {
-            return await _service.GetBackCom(_currentUser.UserId);
+            return await _service.GetBackCom(_currentUser.UserId, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取未审核信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getunauditedcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom()
+        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedCom(_currentUser.UserId);
+            return await _service.GetUnauditedCom(_currentUser.UserId, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauditedcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom()
+        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedCom(_currentUser.UserId);
+            return await _service.GetAuditedCom(_currentUser.UserId, page, itemsPerPage);
         }
 
         /// <summary>

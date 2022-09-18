@@ -10,7 +10,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace DID.Controllers
 {
     /// <summary>
-    /// 审核认证
+    /// 用户相关接口
     /// </summary>
     [ApiController]
     [Route("api/user")]
@@ -210,13 +210,15 @@ namespace DID.Controllers
         /// <summary>
         /// 获取团队信息
         /// </summary>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth">是否认证 null 查看所有</param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getuserteam")]
-        public async Task<Response<TeamInfoRespon>> GetUserTeam(bool IsAuth = false)
+        public async Task<Response<TeamInfoRespon>> GetUserTeam(bool? isAuth, long page, long itemsPerPage)
         {
-            return await _service.GetUserTeam(_currentUser.UserId, IsAuth);
+            return await _service.GetUserTeam(_currentUser.UserId, isAuth, page, itemsPerPage);
         }
 
         

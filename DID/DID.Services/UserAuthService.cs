@@ -32,22 +32,28 @@ namespace DID.Services
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId);
+        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId);
+        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId);
+        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 审核
@@ -183,12 +189,15 @@ namespace DID.Services
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId)
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType != 0", userId);
+            //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType != 0", userId);
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage,"select * from Auth where AuditUserId = @0 and AuditType != 0", userId)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0",item.UserAuthInfoId);
@@ -236,12 +245,15 @@ namespace DID.Services
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId)
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType = 0", userId);
+            //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType = 0", userId);
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType = 0", userId)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0", item.UserAuthInfoId);
@@ -289,12 +301,15 @@ namespace DID.Services
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId)
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0", userId);
+            //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0", userId);
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0", userId)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0", item.UserAuthInfoId);

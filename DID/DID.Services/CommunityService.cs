@@ -51,28 +51,34 @@ namespace DID.Controllers
         /// <param name="city"></param>
         /// <param name="area"></param>
         /// <returns></returns>
-        Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area);
+        Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetBackCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetBackCom(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId, long page, long itemsPerPage);
 
         /// <summary>
         /// 社区申请审核
@@ -206,11 +212,13 @@ namespace DID.Controllers
         /// 获取当前位置社区信息
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area)
+        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Community>("select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
-                country, province, city, area, AuthTypeEnum.审核成功);
+            //var list = await db.FetchAsync<Community>("select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
+            //    country, province, city, area, AuthTypeEnum.审核成功);
+            var list = (await db.PageAsync<Community>(page, itemsPerPage, "select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
+                country, province, city, area, AuthTypeEnum.审核成功)).Items;
 
             var result = new List<ComRespon>();
             foreach (var item in list)
@@ -377,12 +385,15 @@ namespace DID.Controllers
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -435,12 +446,15 @@ namespace DID.Controllers
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -493,12 +507,15 @@ namespace DID.Controllers
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetBackCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetBackCom(string userId, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0", userId)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);

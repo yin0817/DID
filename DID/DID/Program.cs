@@ -34,7 +34,7 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddLogging(cfg =>
 {
     cfg.AddLog4Net("Config/log4net.config");
-}); 
+});
 #endregion
 
 #region Autofac注入
@@ -42,9 +42,12 @@ builder.Host
 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
 .ConfigureContainer<ContainerBuilder>(builder =>
 {
-builder.RegisterAssemblyTypes(Assembly.Load("DID.Services"))
-.Where(t => t.Name.EndsWith("Service"))
-.AsImplementedInterfaces();
+    builder.RegisterAssemblyTypes(Assembly.Load("DID.Services"))
+    .Where(t => t.Name.EndsWith("Service"))
+    .AsImplementedInterfaces();
+    builder.RegisterAssemblyTypes(Assembly.Load("Dao.Services"))
+   .Where(t => t.Name.EndsWith("Service"))
+   .AsImplementedInterfaces();
 });
 #endregion
 
@@ -64,24 +67,25 @@ builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrateg
 #region Swagger
 builder.Services.AddSwaggerGen(options =>
 {
-options.SwaggerDoc("v1", new OpenApiInfo
-{
-Version = "v1",
-Title = "DID",
-Description = "DID接口"
-});
+
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "DID",
+        Description = "DID接口"
+    });
     //添加安全定义
-options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-{
-Description = "请输入token,格式为 Bearer xxxxxxxx（注意中间必须有空格）",
-Name = "Authorization",
-In = ParameterLocation.Header,
-Type = SecuritySchemeType.ApiKey,
-BearerFormat = "JWT",
-Scheme = "Bearer"
-});
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "请输入token,格式为 Bearer xxxxxxxx（注意中间必须有空格）",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
     //添加安全要求
-options.AddSecurityRequirement(new OpenApiSecurityRequirement {
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement {
         {
             new OpenApiSecurityScheme{
                 Reference =new OpenApiReference{
@@ -90,9 +94,18 @@ options.AddSecurityRequirement(new OpenApiSecurityRequirement {
                 }
             },new string[]{ }
         }
-});
-var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    });
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename),true);
+
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Controllers.xml"),true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Entity.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Models.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Services.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Common.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Entity.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Models.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Services.xml"), true);
 });
 #endregion
 
@@ -100,58 +113,58 @@ options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
-        //取出私钥
-var secretByte = Encoding.UTF8.GetBytes(builder.Configuration["Authentication:SecretKey"]);
-options.TokenValidationParameters = new TokenValidationParameters()
-{
-            //验证发布者
-    ValidateIssuer = true,
-    ValidIssuer = builder.Configuration["Authentication:Issuer"],
-            //验证接收者
-    ValidateAudience = true,
-    ValidAudience = builder.Configuration["Authentication:Audience"],
-            //验证是否过期
-    ValidateLifetime = true,
-            //验证私钥
-    IssuerSigningKey = new SymmetricSecurityKey(secretByte)
-            //注意这是缓冲过期时间，总的有效时间等于这个时间加上jwt的过期时间，如果不配置，默认是5分钟
-            //ClockSkew = TimeSpan.FromSeconds(4)
-};
+    //取出私钥
+    var secretByte = Encoding.UTF8.GetBytes(builder.Configuration["Authentication:SecretKey"]);
+    options.TokenValidationParameters = new TokenValidationParameters()
+    {
+        //验证发布者
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["Authentication:Issuer"],
+        //验证接收者
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["Authentication:Audience"],
+        //验证是否过期
+        ValidateLifetime = true,
+        //验证私钥
+        IssuerSigningKey = new SymmetricSecurityKey(secretByte)
+        //注意这是缓冲过期时间，总的有效时间等于这个时间加上jwt的过期时间，如果不配置，默认是5分钟
+        //ClockSkew = TimeSpan.FromSeconds(4)
+    };
 });
 #endregion
 
 #region MemoryCache
-builder.Services.AddMemoryCache(); 
+builder.Services.AddMemoryCache();
 #endregion
 
 #region 跨域
 builder.Services.AddCors(c =>
 {
-if (AppSettings.GetValue<bool>("Cors", "EnableAllIPs"))
-{
+    if (AppSettings.GetValue<bool>("Cors", "EnableAllIPs"))
+    {
         //允许任意跨域请求
-c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
-    policy =>
+        c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
+            policy =>
+            {
+                policy
+                    .SetIsOriginAllowed(host => true)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
+            });
+    }
+    else
     {
-        policy
-            .SetIsOriginAllowed(host => true)
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
-    });
-}
-else
-{
-c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
-    policy =>
-    {
-        policy
-            .WithOrigins(AppSettings.GetValue("Cors", "IPs").Split(','))
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-}
-}); 
+        c.AddPolicy(AppSettings.GetValue("Cors", "PolicyName"),
+            policy =>
+            {
+                policy
+                    .WithOrigins(AppSettings.GetValue("Cors", "IPs").Split(','))
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+    }
+});
 #endregion
 
 //builder.Services.AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true);//请求参数为空判断
@@ -161,8 +174,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 //}
 
 app.UseHttpsRedirection();
@@ -193,21 +206,21 @@ app.MapControllers();
 #region 异常处理
 app.UseExceptionHandler(builder =>
 {
-builder.Run(async context =>
-{
-context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-context.Response.ContentType = "application/json";
+    builder.Run(async context =>
+    {
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.ContentType = "application/json";
 
-var exception = context.Features.Get<IExceptionHandlerFeature>();
-if (exception != null)
-{
-    app.Logger.LogError(exception.Error.Message);
-    var error = new Response { Code = 1, Message = "服务器错误!" };
-    var errObj = JsonConvert.SerializeObject(error);
-    await context.Response.WriteAsync(errObj).ConfigureAwait(false);
-}
+        var exception = context.Features.Get<IExceptionHandlerFeature>();
+        if (exception != null)
+        {
+            app.Logger.LogError(exception.Error.Message);
+            var error = new Response { Code = 1, Message = "服务器错误!" };
+            var errObj = JsonConvert.SerializeObject(error);
+            await context.Response.WriteAsync(errObj).ConfigureAwait(false);
+        }
+    });
 });
-}); 
 #endregion
 
 app.Run();
