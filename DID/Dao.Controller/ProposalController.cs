@@ -1,7 +1,10 @@
-﻿using Dao.Entity;
-using Dao.Models;
+﻿using Dao.Common.ActionFilter;
+using Dao.Entity;
+using Dao.Models.Base;
+using Dao.Models.Request;
 using Dao.Services;
 using DID.Models.Base;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +15,8 @@ namespace Dao.Controllers
     /// </summary>
     [ApiController]
     [Route("api/proposal")]
+    [AllowAnonymous]
+    [DaoActionFilter]
     public class ProposalController : Controller
     {
         private readonly ILogger<ProposalController> _logger;
@@ -43,11 +48,12 @@ namespace Dao.Controllers
         /// <summary>
         /// 获取提案详情
         /// </summary>
-        /// <param name="proposalId"></param>
+        /// <param name="proposalId">提案编号</param>
+        /// <param name="wallet">钱包参数</param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("getproposal")]
-        public async Task<Response<Proposal>> GetProposal(string proposalId)
+        public async Task<Response<Proposal>> GetProposal(string proposalId, DaoBaseReq wallet)
         {
             return await _service.GetProposal(proposalId);
         }
@@ -57,7 +63,7 @@ namespace Dao.Controllers
         /// </summary>
         /// <param name="type">0 最新10条 1 更多(所有)</param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("getproposallist")]
         public async Task<Response<List<Proposal>>> GetProposalList(int type)
         {
@@ -69,7 +75,7 @@ namespace Dao.Controllers
         /// </summary>
         /// <param name="proposalId"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("cancelproposal")]
         public async Task<Response> CancelProposal(string proposalId)
         {

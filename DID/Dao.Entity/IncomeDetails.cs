@@ -2,8 +2,27 @@
 
 namespace Dao.Entity
 {
-    public enum TypeEnum { 处理工单, 处理仲裁, 处理审核 }
-
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum IDTypeEnum
+    { 
+        /// <summary>
+        /// 
+        /// </summary>
+        处理工单, 
+        /// <summary>
+        /// 
+        /// </summary>
+        处理仲裁, 
+        /// <summary>
+        /// 
+        /// </summary>
+        处理审核 
+    }
+    /// <summary>
+    /// 收益明细
+    /// </summary>
     [PrimaryKey("IncomeDetailsId", AutoIncrement = false)]
     public class IncomeDetails
     {
@@ -31,14 +50,14 @@ namespace Dao.Entity
         /// <summary>
         /// 0=处理工单 1=处理仲裁 2=处理审核 
         /// </summary>
-        public TypeEnum Type
+        public IDTypeEnum Type
         {
             get; set;
         }
         /// <summary>
         /// 备注
         /// </summary>
-        public string Remarks
+        public string? Remarks
         {
             get; set;
         }

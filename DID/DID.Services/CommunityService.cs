@@ -12,7 +12,7 @@ namespace DID.Controllers
     /// 社区接口
     /// </summary>
     public interface ICommunityService
-    { 
+    {
         /// <summary>
         /// 设置用户社区选择（未填邀请码）
         /// </summary>
@@ -25,7 +25,7 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<Response<ComSelect>> GetComSelect(string userId);
+        Task<Response<ComSelectRespon>> GetComSelect(string userId);
 
         /// <summary>
         /// 获取已有社区位置
@@ -114,7 +114,7 @@ namespace DID.Controllers
     /// 社区服务
     /// </summary>
     public class CommunityService : ICommunityService
-{
+    {
         private readonly ILogger<CommunityService> _logger;
 
         /// <summary>
@@ -131,11 +131,28 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<Response<ComSelect>> GetComSelect(string userId)
+        public async Task<Response<ComSelectRespon>> GetComSelect(string userId)
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultAsync<ComSelect>("select * from ComSelect where DIDUserId = @0", userId);
-            return InvokeResult.Success(item);
+
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", item.Country);
+
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", item.Province);
+
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", item.City);
+
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", item.Area);
+
+
+            var respon = new ComSelectRespon()
+            {
+                country = new Area() { code = item.Country, name = country },
+                province = new Area() { code = item.Province, name = province },
+                city = new Area() { code = item.City, name = city },
+                county = new Area() { code = item.Area, name = area }
+            };
+            return InvokeResult.Success(respon);
         }
 
         /// <summary>
@@ -147,9 +164,16 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             var id = await db.SingleOrDefaultAsync<string>("select ComSelectId from ComSelect where DIDUserId = @0", req.UserId);
-            if(!string.IsNullOrEmpty(id))
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", req.Country);
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", req.Province);
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", req.City);
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", req.Area);
+            if (string.IsNullOrEmpty(country) || string.IsNullOrEmpty(province) || string.IsNullOrEmpty(city) || string.IsNullOrEmpty(area))
+                return InvokeResult.Fail("2"); //位置信息错误!
+            if (!string.IsNullOrEmpty(id))
                 return InvokeResult.Fail("1"); //请勿重复设置!
-            var item = new ComSelect() { 
+            var item = new ComSelect()
+            {
                 ComSelectId = Guid.NewGuid().ToString(),
                 DIDUserId = req.UserId,
                 Country = req.Country,
@@ -186,7 +210,8 @@ namespace DID.Controllers
             var countys = new Dictionary<string, string>();
             county_list.ForEach(a => countys.Add(a.code, a.name));
 
-            var item = new ComAddrRespon(){
+            var item = new ComAddrRespon()
+            {
                 country_list = country,
                 province_list = provinces,
                 city_list = citys,
@@ -203,7 +228,7 @@ namespace DID.Controllers
         public async Task<Response<int>> GetComNum(string country, string province, string city, string area)
         {
             using var db = new NDatabase();
-            var num = await db.SingleOrDefaultAsync<int>("select count(1) from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4", 
+            var num = await db.SingleOrDefaultAsync<int>("select count(1) from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
                 country, province, city, area, AuthTypeEnum.审核成功);
             return InvokeResult.Success(num);
         }
@@ -223,7 +248,8 @@ namespace DID.Controllers
             var result = new List<ComRespon>();
             foreach (var item in list)
             {
-                result.Add(new ComRespon() { 
+                result.Add(new ComRespon()
+                {
                     Name = item.ComName,
                     Describe = item.ComName,
                     Image = item.Image,
@@ -247,11 +273,11 @@ namespace DID.Controllers
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
                 var authType = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from Community where CommunityId = @0", user.ApplyCommunityId);
-                if(authType != AuthTypeEnum.未审核 && authType != AuthTypeEnum.审核失败)
+                if (authType != AuthTypeEnum.未审核 && authType != AuthTypeEnum.审核失败)
                     return InvokeResult.Fail("请勿重复申请!");
             }
             user.ApplyCommunityId = item.CommunityId;
-            
+
             var refUserId = await db.FirstOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", item.DIDUserId);//邀请人
             if (string.IsNullOrEmpty(refUserId))
                 return InvokeResult.Fail("邀请人未找到!");
@@ -305,7 +331,7 @@ namespace DID.Controllers
         public async Task<Response<Community>> GetCommunityInfo(string userId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId); 
+            var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
 
             return InvokeResult.Success(item);
         }
@@ -405,7 +431,7 @@ namespace DID.Controllers
                     RefName = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.RefDIDUserId),
                     Address = community.Address,
                     ComName = community.ComName,
-                    Country  = community.Country,
+                    Country = community.Country,
                     Province = community.Province,
                     City = community.City,
                     Area = community.Area,
@@ -543,7 +569,7 @@ namespace DID.Controllers
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram
                 };
-              
+
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", item.CommunityId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
@@ -577,7 +603,7 @@ namespace DID.Controllers
             try
             {
                 var dir = new DirectoryInfo(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "Images/ComImges/" ));
+                    AppDomain.CurrentDomain.BaseDirectory, "Images/ComImges/"));
 
                 //保存目录不存在就创建这个目录
                 if (!dir.Exists)

@@ -587,11 +587,12 @@ namespace DID.Services
             var a = db.Page<DIDUser>(1,1,"select * from DIDUser");
 
             //默认展示6级
-            var list = (await db.PageAsync<DIDUser>(page, itemsPerPage,new Sql(";with temp as \n" +
+            var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
                                                     "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                                                     "union all \n" +
                                                     "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and a.IsLogout = 0) \n" +
-                                                    "select * from temp ", userId))).Items;
+                                                    "select * from temp order by (select null)\n" +
+                                                    "offset @1 rows fetch next @2 rows only", userId, (page - 1) * itemsPerPage, itemsPerPage);
 
             //todo:dao审核通过可以看所有数据
 
@@ -627,7 +628,7 @@ namespace DID.Services
             if (!string.IsNullOrEmpty(str))
             {
                 var index = str.Length;
-                str = str.Substring(1);
+                str = str.Substring(0,1);
                 for (var i = 1; i < index; i++)
                     str += '*';
             }

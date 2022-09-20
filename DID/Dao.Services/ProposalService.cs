@@ -1,5 +1,5 @@
 ﻿using Dao.Entity;
-using Dao.Models;
+using Dao.Models.Request;
 using DID.Common;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
@@ -44,6 +44,9 @@ namespace Dao.Services
         Task<Response> ProposalVote(ProposalVoteReq req);
     }
 
+    /// <summary>
+    /// 提案服务
+    /// </summary>
     public class ProposalService : IProposalService
     {
         private readonly ILogger<ProposalService> _logger;
@@ -69,6 +72,9 @@ namespace Dao.Services
             using var db = new NDatabase();
             var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
                                                        req.WalletAddress, req.Otype, req.Sign);
+            if(string.IsNullOrEmpty(walletId))
+                return InvokeResult.Fail("钱包未找到!");
+
             var item = new Proposal
             {
                 ProposalId = Guid.NewGuid().ToString(),
@@ -91,7 +97,7 @@ namespace Dao.Services
         public async Task<Response<Proposal>> GetProposal(string proposalId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleByIdAsync<Proposal>(proposalId);
+            var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
             return InvokeResult.Success(item);
         }
 
@@ -123,7 +129,7 @@ namespace Dao.Services
         public async Task<Response> CancelProposal(string proposalId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleByIdAsync<Proposal>(proposalId);
+            var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
             if(item.State == StateEnum.已终止)
                 return InvokeResult.Fail("请勿重复设置!");
             item.State = StateEnum.已终止;
@@ -160,10 +166,7 @@ namespace Dao.Services
             {
                 if (item.FavorVotes > item.OpposeVotes)
                     item.State = StateEnum.已通过;
-
-            
             }
-
 
             return InvokeResult.Success("投票成功!");
         }

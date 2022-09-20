@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Dao.Models.Base;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dao.Models
+namespace Dao.Models.Request
 {
     /// <summary>
     /// 提案
     /// </summary>
-    public class ProposalReq
+    public class ProposalReq : DaoBaseReq
     {
         /// <summary>
         /// 钱包地址
@@ -50,7 +51,7 @@ namespace Dao.Models
     /// <summary>
     /// 投票
     /// </summary>
-    public class ProposalVoteReq
+    public class ProposalVoteReq : DaoBaseReq
     {
         /// <summary>
         /// 提案编号

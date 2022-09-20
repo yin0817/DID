@@ -36,7 +36,7 @@ namespace Dao.Entity
         /// <summary>
         /// 类型 0 反对 1 赞成
         /// </summary>
-        public TypeEnum Type
+        public IDTypeEnum Type
         {
             get; set;
         }

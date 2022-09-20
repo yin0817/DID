@@ -13,13 +13,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DID.Models", "DID.Models\DI
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DID.Common", "DID.Common\DID.Common.csproj", "{39E234F2-E7CF-4464-B91F-A8898657EE78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dao.Entity", "Dao.Entity\Dao.Entity.csproj", "{C2EB0550-6E64-49EE-AD4D-A953DDB10967}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dao.Entity", "Dao.Entity\Dao.Entity.csproj", "{C2EB0550-6E64-49EE-AD4D-A953DDB10967}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dao.Models", "Dao.Models\Dao.Models.csproj", "{408F60FE-6545-4B6E-8DB6-319932563DBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dao.Models", "Dao.Models\Dao.Models.csproj", "{408F60FE-6545-4B6E-8DB6-319932563DBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dao.Services", "Dao.Services\Dao.Services.csproj", "{A804A179-C86F-4243-B273-3B7F05F9209D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dao.Services", "Dao.Services\Dao.Services.csproj", "{A804A179-C86F-4243-B273-3B7F05F9209D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dao.Controllers", "Dao.Controller\Dao.Controllers.csproj", "{2AF2E4DD-2776-4883-B1DB-F4C518046A72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dao.Controllers", "Dao.Controller\Dao.Controllers.csproj", "{2AF2E4DD-2776-4883-B1DB-F4C518046A72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dao.Common", "Dao.Common\Dao.Common.csproj", "{7B3895A9-5051-43DF-9EB9-6EC5DA7D2BAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +65,10 @@ Global
 		{2AF2E4DD-2776-4883-B1DB-F4C518046A72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AF2E4DD-2776-4883-B1DB-F4C518046A72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AF2E4DD-2776-4883-B1DB-F4C518046A72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B3895A9-5051-43DF-9EB9-6EC5DA7D2BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B3895A9-5051-43DF-9EB9-6EC5DA7D2BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B3895A9-5051-43DF-9EB9-6EC5DA7D2BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B3895A9-5051-43DF-9EB9-6EC5DA7D2BAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

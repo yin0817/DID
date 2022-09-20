@@ -96,9 +96,9 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename),true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename), true);
 
-    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Controllers.xml"),true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Controllers.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Entity.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Models.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Services.xml"), true);

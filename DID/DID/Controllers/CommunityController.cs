@@ -34,7 +34,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 设置用户社区选择（未填邀请码） 1 请勿重复设置!
+        /// 设置用户社区选择（未填邀请码） 1 请勿重复设置! 2 位置信息错误!
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
@@ -52,7 +52,7 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("getcomselect")]
-        public async Task<Response<ComSelect>> GetComSelect()
+        public async Task<Response<ComSelectRespon>> GetComSelect()
         {
             return await _service.GetComSelect(_currentUser.UserId);
         }
