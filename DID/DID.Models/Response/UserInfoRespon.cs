@@ -17,7 +17,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 用户编号
         /// </summary>
-        public string UserId
+        public string? UserId
         {
             get; set;
         }

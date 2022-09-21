@@ -1,6 +1,10 @@
-﻿using Dao.Entity;
+﻿using Dao.Common;
+using Dao.Entity;
+using Dao.Models.Base;
 using Dao.Models.Request;
+using Dao.Models.Response;
 using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
 
@@ -20,14 +24,23 @@ namespace Dao.Services
         /// </summary>
         /// <param name="proposalId"></param>
         /// <returns></returns>
-        Task<Response<Proposal>> GetProposal(string proposalId);
+        Task<Response<GetProposalRespon>> GetProposal(string proposalId, DaoBaseReq wallet);
 
         /// <summary>
         /// 获取提案列表
         /// </summary>
         /// <param name="type">0 最新10条 1 更多(所有)</param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<Proposal>>> GetProposalList(int type);
+        Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage);
+
+        /// <summary>
+        /// 获取我的提案列表
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response<List<ProposalListRespon>>> GetMyProposalList(DaoBaseReq req);
 
         /// <summary>
         /// 取消提案
@@ -41,7 +54,7 @@ namespace Dao.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response> ProposalVote(ProposalVoteReq req);
+        Task<Response<int>> ProposalVote(ProposalVoteReq req);
     }
 
     /// <summary>
@@ -70,10 +83,7 @@ namespace Dao.Services
             //todo: 10000EOTC 才能提案
 
             using var db = new NDatabase();
-            var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
-                                                       req.WalletAddress, req.Otype, req.Sign);
-            if(string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail("钱包未找到!");
+            var walletId = WalletHelp.GetWalletId(req);
 
             var item = new Proposal
             {
@@ -93,31 +103,93 @@ namespace Dao.Services
         /// 获取提案详情
         /// </summary>
         /// <param name="proposalId"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response<Proposal>> GetProposal(string proposalId)
+        public async Task<Response<GetProposalRespon>> GetProposal(string proposalId, DaoBaseReq req)
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
-            return InvokeResult.Success(item);
+            if(null == item)
+                return InvokeResult.Fail<GetProposalRespon>("提案信息未找到!");
+
+            var wallet = await db.SingleOrDefaultByIdAsync<Wallet>(item.WalletId);
+
+            var userId = await db.SingleOrDefaultAsync<string>("select b.DIDUserId from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
+               "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0", req.WalletAddress, req.Otype, req.Sign);
+
+            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where UserId = @0 and ProposalId = @1",
+                userId, proposalId);
+
+
+            var model = new GetProposalRespon()
+            {
+                WalletAddress = wallet.WalletAddress,
+                Title = item.Title,
+                State = item.State,
+                CreateDate = item.CreateDate,
+                Summary = item.Summary,
+                ProposalId = proposalId,
+                FavorVotes = item.FavorVotes,
+                OpposeVotes = item.OpposeVotes,
+                PeopleNum = item.PeopleNum,
+                IsVote = string.IsNullOrEmpty(userVoteId) ? 0 : 1
+            };
+            return InvokeResult.Success(model);
         }
 
         /// <summary>
         /// 获取提案列表
         /// </summary>
         /// <param name="type">0 最新10条 1 更多(所有)</param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<Proposal>>> GetProposalList(int type)
+        public async Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage)
         {
             using var db = new NDatabase();
-            var list = new List<Proposal>();
+            var list = new List<ProposalListRespon>();
             if (type == 0)//最新10条
             {
-                list = await db.FetchAsync<Proposal>("select top 10 * from Proposal order by CreateDate Desc ");
+                var items = await db.FetchAsync<Proposal>("select top 10 * from Proposal order by CreateDate Desc");
+                list = items.Select(x => new ProposalListRespon() { 
+                    State = x.State,
+                    Title = x.Title,
+                    Total = x.FavorVotes + x.OpposeVotes,
+                    ProposalId = x.ProposalId
+                }).ToList();
             }
             else if (type == 1)//所有
             {
-                list = await db.FetchAsync<Proposal>("select * from Proposal order by CreateDate Desc ");
+                var items = (await db.PageAsync<Proposal>(page??0,itemsPerPage??0,"select * from Proposal order by CreateDate Desc")).Items;
+                list = items.Select(x => new ProposalListRespon()
+                {
+                    State = x.State,
+                    Title = x.Title,
+                    Total = x.FavorVotes + x.OpposeVotes,
+                    ProposalId = x.ProposalId
+                }).ToList();
             }
+            return InvokeResult.Success(list);
+        }
+
+        /// <summary>
+        /// 获取我的提案列表
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<Response<List<ProposalListRespon>>> GetMyProposalList(DaoBaseReq req)
+        {
+            using var db = new NDatabase();
+            var list = new List<ProposalListRespon>();
+            var walletId = WalletHelp.GetWalletId(req);
+            var items = await db.FetchAsync<Proposal>("select * from Proposal where WalletId = @0 order by CreateDate Desc", walletId);
+            list = items.Select(x => new ProposalListRespon()
+            {
+                State = x.State,
+                Title = x.Title,
+                Total = x.FavorVotes + x.OpposeVotes,
+                ProposalId = x.ProposalId
+            }).ToList();
             return InvokeResult.Success(list);
         }
 
@@ -130,7 +202,9 @@ namespace Dao.Services
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
-            if(item.State == StateEnum.已终止)
+            if (null == item)
+                return InvokeResult.Fail("提案信息未找到!");
+            if (item.State == StateEnum.已终止)
                 return InvokeResult.Fail("请勿重复设置!");
             item.State = StateEnum.已终止;
             await db.UpdateAsync(item);
@@ -142,9 +216,19 @@ namespace Dao.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response> ProposalVote(ProposalVoteReq req)
+        public async Task<Response<int>> ProposalVote(ProposalVoteReq req)
         {
+            var walletId = WalletHelp.GetWalletId(req);
+
             using var db = new NDatabase();
+
+            var userId = await db.SingleOrDefaultAsync<string>("select b.DIDUserId from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
+                "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0", req.WalletAddress, req.Otype, req.Sign);
+
+            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where UserId = @0 and ProposalId = @1",
+                userId, req.ProposalId);
+            if (!string.IsNullOrEmpty(userVoteId))
+                return InvokeResult.Fail<int>("请勿重复投票!");
 
             var mail = await db.SingleOrDefaultAsync<string>("select b.Mail from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
                 "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0",
@@ -152,8 +236,11 @@ namespace Dao.Services
             //todo: 通过用户邮箱获取用户票数
             var voteNum = 1;
 
-            var item = await db.SingleByIdAsync<Proposal>(req.ProposalId);
-
+            var item = await db.SingleOrDefaultByIdAsync<Proposal>(req.ProposalId);
+            if(null == item)
+                return InvokeResult.Fail<int>("提案信息未找到!");
+            if (item.State != StateEnum.进行中)
+                return InvokeResult.Fail<int>("投票已结束!");
             if (req.Vote == VoteEnum.同意)
                 item.FavorVotes += voteNum;
             else if (req.Vote == VoteEnum.反对)
@@ -168,7 +255,21 @@ namespace Dao.Services
                     item.State = StateEnum.已通过;
             }
 
-            return InvokeResult.Success("投票成功!");
+            var userVote = new UserVote() { 
+                UserVoteId = Guid.NewGuid().ToString(),
+                ProposalId = req.ProposalId,
+                UserId = userId,
+                Type = req.Vote,
+                CreateDate = DateTime.Now,
+                VoteNum = voteNum
+            };
+
+            db.BeginTransaction();
+            await db.InsertAsync(userVote);
+            await db.UpdateAsync(item);
+            db.CompleteTransaction();
+
+            return InvokeResult.Success(voteNum);
         }
     }
 

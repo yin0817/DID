@@ -2,6 +2,7 @@
 using Dao.Entity;
 using Dao.Models.Base;
 using Dao.Models.Request;
+using Dao.Models.Response;
 using Dao.Services;
 using DID.Models.Base;
 using Microsoft.AspNetCore.Authorization;
@@ -53,21 +54,35 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getproposal")]
-        public async Task<Response<Proposal>> GetProposal(string proposalId, DaoBaseReq wallet)
+        public async Task<Response<GetProposalRespon>> GetProposal(string proposalId, DaoBaseReq wallet)
         {
-            return await _service.GetProposal(proposalId);
+            return await _service.GetProposal(proposalId, wallet);
+        }
+
+        /// <summary>
+        /// 获取我的提案列表
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getmyproposallist")]
+        public async Task<Response<List<ProposalListRespon>>> GetMyProposalList(DaoBaseReq req)
+        { 
+            return await _service.GetMyProposalList(req);
         }
 
         /// <summary>
         /// 获取提案列表
         /// </summary>
         /// <param name="type">0 最新10条 1 更多(所有)</param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpPost]
         [Route("getproposallist")]
-        public async Task<Response<List<Proposal>>> GetProposalList(int type)
+        public async Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage)
         {
-            return await _service.GetProposalList(type);
+            return await _service.GetProposalList(type, page, itemsPerPage);
         }
 
         /// <summary>
@@ -89,7 +104,7 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("proposalvote")]
-        public async Task<Response> ProposalVote(ProposalVoteReq req)
+        public async Task<Response<int>> ProposalVote(ProposalVoteReq req)
         {
             return await _service.ProposalVote(req);
         }

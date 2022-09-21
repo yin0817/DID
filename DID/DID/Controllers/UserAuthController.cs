@@ -56,10 +56,10 @@ namespace DID.Controllers
         [Route("upload")]
         public async Task<Response> UploadUserInfo(UserAuthInfo info)
         {
-            if (!CommonHelp.IsPhoneNum(info.PhoneNum))
-                return InvokeResult.Fail("1");//手机号错误!
-            if (!CommonHelp.IsCard(info.IdCard))
-                return InvokeResult.Fail("2");//证件号错误!
+            //if (!CommonHelp.IsPhoneNum(info.PhoneNum))
+            //    return InvokeResult.Fail("1");//手机号错误!
+            //if (!CommonHelp.IsCard(info.IdCard))
+            //    return InvokeResult.Fail("2");//证件号错误!
 
             info.CreatorId = _currentUser.UserId;
             info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;

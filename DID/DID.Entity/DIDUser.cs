@@ -128,11 +128,24 @@ namespace DID.Entitys
         {
             get; set;
         }
-
         /// <summary>
-        /// 地区
+        /// 省
         /// </summary>
-        public string? Area
+        public string Province
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 市
+        /// </summary>
+        public string City
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 区
+        /// </summary>
+        public string Area
         {
             get; set;
         }

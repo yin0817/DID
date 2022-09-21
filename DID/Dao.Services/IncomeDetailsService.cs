@@ -30,6 +30,13 @@ namespace Dao.Services
         /// <returns></returns>
         Task<Response<List<IncomeDetailsRespon>>> GetIncomeDetails(DaoBaseReq req, long page, long itemsPerPage);
 
+        /// <summary>
+        /// 获取总收益
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response<double>> GetTotalIncome(DaoBaseReq req);
+
     }
 
     /// <summary>
@@ -69,9 +76,23 @@ namespace Dao.Services
         }
 
         /// <summary>
+        /// 获取总收益
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<Response<double>> GetTotalIncome(DaoBaseReq req)
+        {
+            using var db = new NDatabase();
+            var walletId = WalletHelp.GetWalletId(req);
+            var list = await db.FetchAsync<double>("select EOTC from IncomeDetails where WalletId = @0", walletId);
+            var total = list.Sum();
+            return InvokeResult.Success(total);
+        }
+
+        /// <summary>
         /// 获取收益详情
         /// </summary>
-        /// <param name="walletId"></param>
+        /// <param name="req"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>

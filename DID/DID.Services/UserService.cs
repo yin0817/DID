@@ -188,8 +188,17 @@ namespace DID.Services
                 userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
             userRespon.CreditScore = user.CreditScore;
             userRespon.Mail = user.Mail;
-            userRespon.Country = user.Country;
-            userRespon.Area = user.Area;
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Country);
+
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Province);
+
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.City);
+
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Area);
+            userRespon.Country = user.Country + "-" + country;
+            userRespon.Province = user.Province + "-" + province;
+            userRespon.City = user.City + "-" + city;
+            userRespon.Area = user.Area + "-" + area;
             userRespon.Telegram = user.Telegram;
             userRespon.AuthType = user.AuthType;
             if (user.AuthType == AuthTypeEnum.审核成功)
@@ -234,6 +243,10 @@ namespace DID.Services
                 sql.Append("Telegram = @0, ", user.Telegram);
             if(!string.IsNullOrEmpty(user.Country))
                 sql.Append("Country = @0, ", user.Country);
+            if (!string.IsNullOrEmpty(user.Province))
+                sql.Append("Province = @0, ", user.Province);
+            if (!string.IsNullOrEmpty(user.City))
+                sql.Append("City = @0, ", user.City);
             if (!string.IsNullOrEmpty(user.Area))
                 sql.Append("Area = @0, ", user.Country);
             sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", user.UserId);

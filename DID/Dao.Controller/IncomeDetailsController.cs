@@ -59,5 +59,17 @@ namespace Dao.Controllers
         {
             return await _service.GetIncomeDetails(req, page, itemsPerPage);
         }
+
+        /// <summary>
+        /// 获取总收益
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("gettotalincome")]
+        public async Task<Response<double>> GetTotalIncome(DaoBaseReq req)
+        { 
+            return await _service.GetTotalIncome(req);
+        }
     }
 }

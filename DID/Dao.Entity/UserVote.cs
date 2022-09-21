@@ -36,7 +36,7 @@ namespace Dao.Entity
         /// <summary>
         /// 类型 0 反对 1 赞成
         /// </summary>
-        public IDTypeEnum Type
+        public VoteEnum Type
         {
             get; set;
         }
@@ -48,4 +48,5 @@ namespace Dao.Entity
             get; set;
         }
     }
+    public enum VoteEnum { 同意, 反对 }
 }
