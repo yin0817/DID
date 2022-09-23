@@ -53,43 +53,54 @@ namespace Dao.Controllers
         /// <summary>
         /// 工单图片上传 1 请上传文件! 2 文件类型错误!
         /// </summary>
-        /// <param name="upload"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("uploadimage")]
-        public async Task<Response> UploadImage()
+        public async Task<Response> UploadImage(string type)
         {
             var files = Request.Form.Files;
             if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
 
-            return await _service.UploadImage(files[0]);
+            return await _service.UploadImage(files[0],type);
         }
 
         /// <summary>
         /// 获取工单列表
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="page">页数</param>
-        /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="req"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("getworkorderlist")]
-        public async Task<Response> GetWorkOrderList(WorkOrderStatusEnum type, long page, long itemsPerPage)
+        public async Task<Response> GetWorkOrderList(GetWorkOrderListReq req)
         {
-            return await _service.GetWorkOrderList(type, page, itemsPerPage);
+            return await _service.GetWorkOrderList(req);
+        }
+
+        /// <summary>
+        /// 获取工单详情
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="workOrderId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getworkorder")]
+        public async Task<Response<GetWorkOrderRespon>> GetWorkOrder(string workOrderId)
+        { 
+            return await _service.GetWorkOrder(workOrderId);
         }
 
         /// <summary>
         /// 修改工单状态
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        //[HttpPost]
-        //[Route("workorderstatus")]
-        //public async Task<Response> WorkOrderStatus(WorkOrderStatusReq req)
-        //{
-        //    return await _service.GetWorkOrderList(type);
-        //}
+        [HttpPost]
+        [Route("workorderstatus")]
+        public async Task<Response> WorkOrderStatus(WorkOrderStatusReq req)
+        {
+            return await _service.WorkOrderStatus(req);
+        }
     }
 }

@@ -93,6 +93,13 @@ namespace DID.Entitys
             get; set;
         }
         /// <summary>
+        /// 地址名称
+        /// </summary>
+        public string? AddressName
+        {
+            get; set;
+        }
+        /// <summary>
         /// 审核状态 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
         public AuthTypeEnum AuthType

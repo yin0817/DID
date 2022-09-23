@@ -2,6 +2,9 @@
 
 namespace Dao.Entity
 {
+    /// <summary>
+    /// 状态 0=进行中 1=未通过 2=已通过 3=已终止
+    /// </summary>
     public enum StateEnum { 进行中, 未通过, 已通过, 已终止 }
 
     //public enum IsCancelEnum { 未取消, 已取消 }

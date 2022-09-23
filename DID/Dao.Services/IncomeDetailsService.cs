@@ -83,8 +83,8 @@ namespace Dao.Services
         public async Task<Response<double>> GetTotalIncome(DaoBaseReq req)
         {
             using var db = new NDatabase();
-            var walletId = WalletHelp.GetWalletId(req);
-            var list = await db.FetchAsync<double>("select EOTC from IncomeDetails where WalletId = @0", walletId);
+            var walletIds = WalletHelp.GetWalletIds(req);
+            var list = await db.FetchAsync<double>("select EOTC from IncomeDetails where WalletId in (@0)", walletIds);
             var total = list.Sum();
             return InvokeResult.Success(total);
         }
@@ -98,9 +98,9 @@ namespace Dao.Services
         /// <returns></returns>
         public async Task<Response<List<IncomeDetailsRespon>>> GetIncomeDetails(DaoBaseReq req, long page, long itemsPerPage)
         {
-            var walletId = WalletHelp.GetWalletId(req);
+            var walletIds = WalletHelp.GetWalletIds(req);
             using var db = new NDatabase();
-            var items = (await db.PageAsync<IncomeDetails>(page, itemsPerPage, "select * from IncomeDetails where WalletId = @0", walletId)).Items;
+            var items = (await db.PageAsync<IncomeDetails>(page, itemsPerPage, "select * from IncomeDetails where WalletId in (@0)", walletIds)).Items;
             var list = items.Select(a => new IncomeDetailsRespon() {
                 EOTC = a.EOTC,
                 Type = a.Type,

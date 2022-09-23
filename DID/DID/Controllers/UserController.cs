@@ -107,8 +107,8 @@ namespace DID.Controllers
             var code = _cache.Get(login.Mail)?.ToString();
             if (code != login.Code)
                 return InvokeResult.Fail<string>("2");//验证码错误!
-            if(string.IsNullOrEmpty(login.WalletAddress)||string.IsNullOrEmpty(login.Otype)|| string.IsNullOrEmpty(login.Sign))
-                return InvokeResult.Fail<string>("5");//钱包地址为空!
+            //if(string.IsNullOrEmpty(login.WalletAddress)||string.IsNullOrEmpty(login.Otype)|| string.IsNullOrEmpty(login.Sign))
+            //    return InvokeResult.Fail<string>("5");//钱包地址为空!
             return await _service.Register(login);
         }
 
@@ -131,19 +131,16 @@ namespace DID.Controllers
         /// <summary>
         /// 修改密码 1 验证码错误!
         /// </summary>
-        /// <param name="mail"></param>
-        /// <param name="newPassWord"></param>
-        /// <param name="code"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("changepwd")]
-        [AllowAnonymous]
-        public async Task<Response> ChangePassword(string mail, string newPassWord, string code)
+        public async Task<Response> ChangePassword(ChangePasswordReq req)
         {
-            var usercode = _cache.Get(mail)?.ToString();
-            if (usercode != code)
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
                 return InvokeResult.Fail<string>("1"); //验证码错误!
-            return await _service.ChangePassword(_currentUser.UserId, newPassWord);
+            return await _service.ChangePassword(_currentUser.UserId, req.NewPassWord);
         }
 
         /// <summary>
@@ -153,7 +150,6 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("changemail")]
-        [AllowAnonymous]
         public async Task<Response> ChangeMail(ChangeMailReq req)
         {
             var usercode = _cache.Get(req.Mail)?.ToString();

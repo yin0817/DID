@@ -3,7 +3,7 @@
 namespace Dao.Entity
 {
     /// <summary>
-    /// 
+    ///  0=处理工单 1=处理仲裁 2=处理审核 
     /// </summary>
     public enum IDTypeEnum
     { 

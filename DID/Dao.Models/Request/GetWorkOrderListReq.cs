@@ -8,26 +8,33 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Request
 {
-    public class WorkOrderStatusReq : DaoBaseReq
+    public class GetWorkOrderListReq : DaoBaseReq
     {
         /// <summary>
-        /// 编号
-        /// </summary>
-        public string WorkOrderId
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 状态 选项：0=待处理 1=处理中 2=已处理
+        /// 工单状态
         /// </summary>
         public WorkOrderStatusEnum WorkOrderStatus
         {
             get; set;
         }
         /// <summary>
-        /// 处理记录
+        /// 类型 0=bug反馈 1=功能建议 不传全部
         /// </summary>
-        public string? Record
+        public WorkOrderTypeEnum? WorkOrderType
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 页数
+        /// </summary>
+        public long Page
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 每页数量
+        /// </summary>
+        public long ItemsPerPage
         {
             get; set;
         }

@@ -1,35 +1,34 @@
-﻿using Dao.Entity;
-using Dao.Models.Base;
+﻿using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dao.Models.Request
+namespace DID.Models.Request
 {
-    public class WorkOrderStatusReq : DaoBaseReq
+    public class AuditCommunityReq
     {
         /// <summary>
-        /// 编号
+        /// 社区编号
         /// </summary>
-        public string WorkOrderId
+        public string CommunityId
         {
             get; set;
         }
         /// <summary>
-        /// 状态 选项：0=待处理 1=处理中 2=已处理
+        ///  审核类型 0 未审核 1 审核通过  2 信息不全 3 信息有误 4 证件照片有误 5 证件照片不清晰
         /// </summary>
-        public WorkOrderStatusEnum WorkOrderStatus
+        public AuditTypeEnum AuditType
         {
             get; set;
         }
         /// <summary>
-        /// 处理记录
+        /// 备注
         /// </summary>
-        public string? Record
+        public string? Remark
         {
             get; set;
-        }
+        } 
     }
 }

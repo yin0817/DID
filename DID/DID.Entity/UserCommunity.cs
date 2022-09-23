@@ -5,7 +5,7 @@ namespace DID.Entitys
     /// <summary>
     /// 社区审核表
     /// </summary>
-    [PrimaryKey("ComAuthAuthId", AutoIncrement = false)]
+    [PrimaryKey("UserCommunityId", AutoIncrement = false)]
     public class UserCommunity
     {
         /// <summary>

@@ -62,9 +62,9 @@ namespace DID.Controllers
             //    return InvokeResult.Fail("2");//证件号错误!
 
             info.CreatorId = _currentUser.UserId;
-            info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;
-            info.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage;
-            info.HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage;
+            info.PortraitImage = info.PortraitImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage : info.PortraitImage;
+            info.NationalImage = info.NationalImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage : info.NationalImage;
+            info.HandHeldImage = info.HandHeldImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage : info.HandHeldImage;
             if (!System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.PortraitImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.HandHeldImage)))

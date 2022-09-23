@@ -46,8 +46,9 @@ namespace Dao.Services
         /// 取消提案
         /// </summary>
         /// <param name="proposalId"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response> CancelProposal(string proposalId);
+        Task<Response> CancelProposal(DaoBaseReq req, string proposalId);
 
         /// <summary>
         /// 投票
@@ -196,14 +197,18 @@ namespace Dao.Services
         /// <summary>
         /// 取消提案
         /// </summary>
+        /// <param name="req"></param>
         /// <param name="proposalId"></param>
         /// <returns></returns>
-        public async Task<Response> CancelProposal(string proposalId)
+        public async Task<Response> CancelProposal(DaoBaseReq req,string proposalId)
         {
+            var walletId = WalletHelp.GetWalletId(req);
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
             if (null == item)
                 return InvokeResult.Fail("提案信息未找到!");
+            if (item.WalletId != walletId)
+                return InvokeResult.Fail("取消失败!");
             if (item.State == StateEnum.已终止)
                 return InvokeResult.Fail("请勿重复设置!");
             item.State = StateEnum.已终止;
@@ -241,7 +246,7 @@ namespace Dao.Services
                 return InvokeResult.Fail<int>("提案信息未找到!");
             if (item.State != StateEnum.进行中)
                 return InvokeResult.Fail<int>("投票已结束!");
-            if (req.Vote == VoteEnum.同意)
+            if (req.Vote == VoteEnum.赞成)
                 item.FavorVotes += voteNum;
             else if (req.Vote == VoteEnum.反对)
                 item.OpposeVotes += voteNum;

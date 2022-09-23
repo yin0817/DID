@@ -1,33 +1,31 @@
-﻿using Dao.Entity;
-using Dao.Models.Base;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dao.Models.Request
+namespace DID.Models.Request
 {
-    public class WorkOrderStatusReq : DaoBaseReq
+    public class ChangePasswordReq
     {
         /// <summary>
-        /// 编号
+        /// 邮箱
         /// </summary>
-        public string WorkOrderId
+        public string Mail
         {
             get; set;
         }
         /// <summary>
-        /// 状态 选项：0=待处理 1=处理中 2=已处理
+        /// 新密码（md5）
         /// </summary>
-        public WorkOrderStatusEnum WorkOrderStatus
+        public string NewPassWord
         {
             get; set;
         }
         /// <summary>
-        /// 处理记录
+        /// 验证码
         /// </summary>
-        public string? Record
+        public string Code
         {
             get; set;
         }

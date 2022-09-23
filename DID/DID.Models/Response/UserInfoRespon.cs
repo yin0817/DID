@@ -136,7 +136,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
-        public AuditTypeEnum? ComAuditType
+        public AuthTypeEnum? ComAuditType
         {
             get; set;
         }

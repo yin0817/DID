@@ -7,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace Dao.Entity
 {
+    /// <summary>
+    /// /// <summary>
+    /// 类型 0=bug反馈 1=功能建议 
+    /// </summary>
+    /// </summary>
     public enum WorkOrderTypeEnum { bug反馈 , 功能建议 }
-
+    /// <summary>
+    /// 状态 选项：0=待处理 1=处理中 2=已处理
+    /// </summary>
     public enum WorkOrderStatusEnum {待处理, 处理中 ,已处理 }
 
     [PrimaryKey("WorkOrderId", AutoIncrement = false)]
@@ -66,7 +73,7 @@ namespace Dao.Entity
         /// <summary>
         /// 状态 选项：0=待处理 1=处理中 2=已处理
         /// </summary>
-        public WorkOrderStatusEnum Status
+        public WorkOrderStatusEnum WorkOrderStatus
         {
             get; set;
         }

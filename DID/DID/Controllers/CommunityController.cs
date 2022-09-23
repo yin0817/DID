@@ -143,11 +143,11 @@ namespace DID.Controllers
         /// 社区申请审核
         /// </summary>
         /// <returns> </returns>
-        [HttpGet]
+        [HttpPost]
         [Route("auditcommunity")]
-        public async Task<Response> AuditCommunity(string communityId, AuditTypeEnum auditType, string remark)
+        public async Task<Response> AuditCommunity(AuditCommunityReq req)
         {
-            return await _service.AuditCommunity(communityId, _currentUser.UserId, auditType, remark);
+            return await _service.AuditCommunity(req.CommunityId, _currentUser.UserId, req.AuditType, req.Remark);
         }
 
         /// <summary>
@@ -159,6 +159,17 @@ namespace DID.Controllers
         public async Task<Response<Community>> GetCommunityInfo()
         {
             return await _service.GetCommunityInfo(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 查询社区信息
+        /// </summary>
+        /// <returns> </returns>
+        [HttpGet]
+        [Route("getcommunityinfobyid")]
+        public async Task<Response<Community>> GetCommunityInfoById(string communityId)
+        {
+            return await _service.GetCommunityInfoById(communityId);
         }
 
         /// <summary>
@@ -179,7 +190,7 @@ namespace DID.Controllers
         /// <returns> </returns>
         [HttpPost]
         [Route("applycommunity")]
-        public async Task<Response> ApplyCommunity(Community item)
+        public async Task<Response<string>> ApplyCommunity(Community item)
         {
             item.DIDUserId = _currentUser.UserId;
             return await _service.ApplyCommunity(item);
@@ -199,6 +210,18 @@ namespace DID.Controllers
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
 
             return await _service.UploadImage(files[0]);
+        }
+
+        /// <summary>
+        /// 获取社区审核失败信息
+        /// </summary>
+        /// <param name="communityId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getcomauthfail")]
+        public async Task<Response<List<AuthInfo>>> GetComAuthFail(string communityId)
+        {
+            return await _service.GetComAuthFail(communityId);
         }
     }
 }

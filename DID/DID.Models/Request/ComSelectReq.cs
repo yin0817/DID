@@ -32,14 +32,14 @@ namespace DID.Models.Request
         /// <summary>
         /// 市
         /// </summary>
-        public string City
+        public string? City
         {
             get; set;
         }
         /// <summary>
         /// 区
         /// </summary>
-        public string Area
+        public string? Area
         {
             get; set;
         }

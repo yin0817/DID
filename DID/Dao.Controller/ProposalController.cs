@@ -88,13 +88,14 @@ namespace Dao.Controllers
         /// <summary>
         /// 取消提案
         /// </summary>
+        /// <param name="req"></param>
         /// <param name="proposalId"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("cancelproposal")]
-        public async Task<Response> CancelProposal(string proposalId)
+        public async Task<Response> CancelProposal(DaoBaseReq req, string proposalId)
         {
-            return await _service.CancelProposal(proposalId);
+            return await _service.CancelProposal(req, proposalId);
         }
 
         /// <summary>

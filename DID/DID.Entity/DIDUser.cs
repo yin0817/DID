@@ -173,5 +173,29 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// Dao总收益
+        /// </summary>
+        public double EOTC
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否为仲裁员 0 否 1 是 
+        /// </summary>
+        public IsEnum IsArbitrate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否为审核员 0 否 1 是
+        /// </summary>
+        public IsEnum IsExamine
+        {
+            get; set;
+        }
     }
 }

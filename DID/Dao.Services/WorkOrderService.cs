@@ -26,16 +26,28 @@ namespace Dao.Services
         /// 社区图片上传 1 请上传文件! 2 文件类型错误!
         /// </summary>
         /// <returns></returns>
-        Task<Response> UploadImage(IFormFile file);
+        Task<Response> UploadImage(IFormFile file, string type);
 
         /// <summary>
         /// 获取工单列表
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="page">页数</param>
-        /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response<List<GetWorkOrderListRespon>>> GetWorkOrderList(WorkOrderStatusEnum type, long page, long itemsPerPage);
+        Task<Response<List<GetWorkOrderListRespon>>> GetWorkOrderList(GetWorkOrderListReq req);
+
+        /// <summary>
+        /// 获取工单详情
+        /// </summary>
+        /// <param name="workOrderId"></param>
+        /// <returns></returns>
+        Task<Response<GetWorkOrderRespon>> GetWorkOrder(string workOrderId);
+
+        /// <summary>
+        /// 修改工单状态
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response> WorkOrderStatus(WorkOrderStatusReq req);
 
     }
 
@@ -73,7 +85,7 @@ namespace Dao.Services
                 Describe = req.Describe,
                 Images = req.Images,
                 Phone = req.Phone,
-                Status = WorkOrderStatusEnum.待处理,
+                WorkOrderStatus = WorkOrderStatusEnum.待处理,
                 WalletId = walletId
             };
             await db.InsertAsync(model);
@@ -84,14 +96,14 @@ namespace Dao.Services
         /// 图片上传
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public async Task<Response> UploadImage(IFormFile file)
+        public async Task<Response> UploadImage(IFormFile file,string type)
         {
             try
             {
                 var dir = new DirectoryInfo(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "Images/WorkOrderImges/"));
+                    AppDomain.CurrentDomain.BaseDirectory, $"Images/{type}/"));
 
                 //保存目录不存在就创建这个目录
                 if (!dir.Exists)
@@ -106,7 +118,7 @@ namespace Dao.Services
                     //file.CopyTo(stream);
                 }
                 //return InvokeResult.Success("Images/AuthImges/" + upload.UId + "/" + filename);
-                return InvokeResult.Success("Images/WorkOrderImges/" + filename);
+                return InvokeResult.Success($"Images/{type}/{filename}");
             }
             catch (Exception e)
             {
@@ -118,36 +130,100 @@ namespace Dao.Services
         /// <summary>
         /// 获取工单列表
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="page">页数</param>
-        /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response<List<GetWorkOrderListRespon>>> GetWorkOrderList(WorkOrderStatusEnum type, long page, long itemsPerPage)
+        public async Task<Response<List<GetWorkOrderListRespon>>> GetWorkOrderList(GetWorkOrderListReq req)
         {
+            var walletId = WalletHelp.GetWalletId(req);
             using var db = new NDatabase();
-            var models = (await db.PageAsync<WorkOrder>(page, itemsPerPage, "select * from WorkOrder where WorkOrderStatus = @0 order by CreateDate desc", type)).Items;
-
-            //获取提交人
-            string getSubmitter(string walletId)
+            var models = new List<WorkOrder>();
+            if (null == req.WorkOrderType)
             {
-                var uid = db.SingleOrDefault<string>("select b.Uid from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
-                "where a.WalletId = @0 and a.IsLogout = 0 and a.IsDelete = 0", walletId);
-                var name = db.SingleOrDefault<string>("select a.Name from UserAuthInfo a left join Wallet b on  a.DIDUserId = b.DIDUserId " +
-                    "where a.WalletId = @0 and a.IsLogout = 0 and a.IsDelete = 0", walletId);
-                return name + "(" + uid + ")";
+                if (req.WorkOrderStatus == WorkOrderStatusEnum.待处理)
+                    models = (await db.PageAsync<WorkOrder>(req.Page, req.ItemsPerPage, "select * from WorkOrder where WorkOrderStatus = @0 order by CreateDate desc", req.WorkOrderStatus)).Items;
+                else//只能看自己处理的
+                    models = (await db.PageAsync<WorkOrder>(req.Page, req.ItemsPerPage, "select * from WorkOrder where WorkOrderStatus = @0 and HandleWalletId = @1 order by CreateDate desc", req.WorkOrderStatus, walletId)).Items;
             }
-
+            else
+            {
+                if (req.WorkOrderStatus == WorkOrderStatusEnum.待处理)
+                    models = (await db.PageAsync<WorkOrder>(req.Page, req.ItemsPerPage, "select * from WorkOrder where WorkOrderStatus = @0 and WorkOrderType = @1 order by CreateDate desc", req.WorkOrderStatus, req.WorkOrderType)).Items;
+                else//只能看自己处理的
+                    models = (await db.PageAsync<WorkOrder>(req.Page, req.ItemsPerPage, "select * from WorkOrder where WorkOrderStatus = @0 and WorkOrderType = @1 and HandleWalletId = @2 order by CreateDate desc", req.WorkOrderStatus, req.WorkOrderType, walletId)).Items;
+            }
             var list = models.Select(x => new GetWorkOrderListRespon()
             {
                 CreateDate = x.CreateDate,
                 Describe = x.Describe,
-                Status = x.Status,
-                Submitter = getSubmitter(x.WalletId)
+                Status = x.WorkOrderStatus,
+                Submitter = GetSubmitter(x.WalletId)
             }).ToList();
 
             return InvokeResult.Success(list);
+        }
 
+        //获取提交人
+        string GetSubmitter(string walletId)
+        {
+            using var db = new NDatabase();
+            var uid = db.SingleOrDefault<string>("select b.Uid from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
+            "where a.WalletId = @0 and a.IsLogout = 0 and a.IsDelete = 0", walletId);
+            var name = db.SingleOrDefault<string>("select c.Name from DIDUser a left join Wallet b on a.DIDUserId = b.DIDUserId left join UserAuthInfo c on a.UserAuthInfoId = c.UserAuthInfoId " +
+                "where b.WalletId = @0 and b.IsLogout = 0 and b.IsDelete = 0", walletId);
+
+            return name + "(" + uid + ")";
+        }
+
+        /// <summary>
+        /// 获取工单详情
+        /// </summary>
+        /// <param name="workOrderId"></param>
+        /// <returns></returns>
+        public async Task<Response<GetWorkOrderRespon>> GetWorkOrder(string workOrderId)
+        {
+            using var db = new NDatabase();
+
+            var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(workOrderId);
+
+            var respon = new GetWorkOrderRespon()
+            {
+                CreateDate = model.CreateDate,
+                Describe = model.Describe,
+                Images = model.Images,
+                Phone = model.Phone,
+                Status = model.WorkOrderStatus,
+                Handle = GetSubmitter(model.HandleWalletId),
+                Submitter = GetSubmitter(model.WalletId),
+                Record = model.Record
+            };
+            return InvokeResult.Success(respon);
+        }
+
+
+        /// <summary>
+        /// 修改工单状态
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<Response> WorkOrderStatus(WorkOrderStatusReq req)
+        {
+            using var db = new NDatabase();
+            if (req.WorkOrderStatus == WorkOrderStatusEnum.处理中)
+            {
+                var walletId = WalletHelp.GetWalletId(req);
+                var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
+                model.HandleWalletId = walletId;
+                model.WorkOrderStatus = req.WorkOrderStatus;
+                await db.UpdateAsync(model);
+            }
+            else if(req.WorkOrderStatus == WorkOrderStatusEnum.已处理)
+            {
+                var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
+                model.WorkOrderStatus = req.WorkOrderStatus;
+                await db.UpdateAsync(model);
+            }
+
+            return InvokeResult.Success("修改成功!");
         }
     }
-
 }

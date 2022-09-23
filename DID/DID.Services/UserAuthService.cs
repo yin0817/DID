@@ -479,7 +479,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var item = new AuthSuccessRespon();
             var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 2", userId);
-            if (authinfo == null) InvokeResult.Success("1");//认证信息未找到!
+            if (authinfo == null) return InvokeResult.Fail<AuthSuccessRespon>("1");//认证信息未找到!
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
             item.IdCard = authinfo.IdCard;
@@ -514,7 +514,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var item = new AuthFailRespon();
             var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", userId);
-            if (authinfo == null) InvokeResult.Success("1");//认证信息未找到!
+            if (authinfo == null) return InvokeResult.Fail<AuthFailRespon>("1");//认证信息未找到!
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
             item.IdCard = authinfo.IdCard;

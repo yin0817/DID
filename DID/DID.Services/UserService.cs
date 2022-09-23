@@ -188,13 +188,13 @@ namespace DID.Services
                 userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
             userRespon.CreditScore = user.CreditScore;
             userRespon.Mail = user.Mail;
-            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Country);
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = 'COUNTRIES'", user.Country);
 
-            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Province);
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.Province, user.Country);
 
-            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.City);
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.City, user.Province);
 
-            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0", user.Area);
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.Area, user.City);
             userRespon.Country = user.Country + "-" + country;
             userRespon.Province = user.Province + "-" + province;
             userRespon.City = user.City + "-" + city;
@@ -217,7 +217,7 @@ namespace DID.Services
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
                 var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
                 userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
-                
+                userRespon.ComAuditType = community.AuthType;
             }
 
             return InvokeResult.Success(userRespon);
@@ -256,15 +256,17 @@ namespace DID.Services
             //加入推荐人社区
             if (!string.IsNullOrEmpty(user.RefUserId))
             {
+                if (user.RefUserId == user.UserId)
+                    return InvokeResult.Fail("邀请码错误!");
                 var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
                 if (!string.IsNullOrEmpty(communityId))
                 {
                     var userCom = new UserCommunity()
                     {
-                        CommunityId = Guid.NewGuid().ToString(),
+                        UserCommunityId = Guid.NewGuid().ToString(),
                         CreateDate = DateTime.Now,
                         DIDUserId = user.UserId,
-                        UserCommunityId = communityId
+                        CommunityId = communityId
                     };
                     await db.InsertAsync(userCom);
                 }
@@ -407,10 +409,10 @@ namespace DID.Services
                 {
                     var userCom = new UserCommunity()
                     {
-                        CommunityId = Guid.NewGuid().ToString(),
+                        UserCommunityId = Guid.NewGuid().ToString(),
                         CreateDate = DateTime.Now,
                         DIDUserId = user.DIDUserId,
-                        UserCommunityId = communityId
+                        CommunityId = communityId
                     };
                     await db.InsertAsync(userCom);
                 }
@@ -625,7 +627,6 @@ namespace DID.Services
                                 RegDate = a.RegDate,
                                 Name = GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
                             }).ToList();
-            
             model.Users = users;
 
             return InvokeResult.Success(model);
