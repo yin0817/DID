@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dao.Entity\Dao.Entity.csproj" />
+    <ProjectReference Include="..\DID.Entity\DID.Entity.csproj" />
   </ItemGroup>
 
 </Project>

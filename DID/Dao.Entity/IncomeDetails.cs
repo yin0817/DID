@@ -41,6 +41,13 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string DIDUserId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 收益数量
         /// </summary>
         public double EOTC

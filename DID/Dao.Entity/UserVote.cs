@@ -13,9 +13,16 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
+        /// 钱包编号
+        /// </summary>
+        public string WalletId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 用户编号
         /// </summary>
-        public string UserId
+        public string DIDUserId
         {
             get; set;
         }

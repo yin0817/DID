@@ -80,7 +80,7 @@ namespace DID.Services
         /// 用户注销
         /// </summary>
         /// <returns></returns>
-        Task<Response> Logout(string userId);
+        Task<Response> Logout(string userId, string? reasons);
 
         /// <summary>
         /// 取消注销
@@ -495,8 +495,10 @@ namespace DID.Services
         /// <summary>
         /// 用户注销
         /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="reason"></param>
         /// <returns></returns>
-        public async Task<Response> Logout(string userId)
+        public async Task<Response> Logout(string userId, string reason)
         {
             //todo:判断注销条件
             using var db = new NDatabase();
@@ -515,7 +517,8 @@ namespace DID.Services
                 DIDUserId = userId,
                 UserLogoutId = Guid.NewGuid().ToString(),
                 SubmitDate = DateTime.Now,
-                IsCancel = IsEnum.否
+                IsCancel = IsEnum.否,
+                Reason = reason
             };
             await db.InsertAsync(item);
 
@@ -620,7 +623,7 @@ namespace DID.Services
 
             var users = list.Select(a => new TeamUser()
                             {
-                                Grade = a.UserNode.ToString(),
+                                Grade = a.UserNode.ToString(),//todo:获取用户等级  0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
                                 UID = a.Uid,
                                 Mail = a.Mail,
                                 Phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId),

@@ -63,7 +63,7 @@ namespace DID.Services
         /// <param name="auditType"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string remark);
+        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark);
         /// <summary>
         /// 获取用户审核成功信息
         /// </summary>
@@ -101,7 +101,7 @@ namespace DID.Services
         /// <param name="auditType"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string remark)
+        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark)
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleByIdAsync<UserAuthInfo>(userAuthInfoId);
@@ -151,7 +151,7 @@ namespace DID.Services
                 var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
                 img1 = CommonHelp.WhiteGraphics(img1, new Rectangle((int)(img1.Width * 0.6), 0, (int)(img1.Width * 0.4), img1.Height));//遮住右边40%
                 nextAuth.NationalImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
+                img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
                 
                 await db.InsertAsync(nextAuth);
             }
@@ -175,7 +175,7 @@ namespace DID.Services
                 var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
                 img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
                 nextAuth.NationalImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
+                img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
 
                 await db.InsertAsync(nextAuth);
             }
@@ -444,9 +444,9 @@ namespace DID.Services
             img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, auth.PortraitImage));
             //国徽面处理
             var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage));
-            img1 = CommonHelp.WhiteGraphics(img, new Rectangle(0, 0, (int)(img1.Width * 0.4), img1.Height));//遮住左边40%
+            img1 = CommonHelp.WhiteGraphics(img1, new Rectangle(0, 0, (int)(img1.Width * 0.4), img1.Height));//遮住左边40%
             auth.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-            img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, auth.NationalImage));
+            img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, auth.NationalImage));
 
             db.BeginTransaction();
             await db.InsertAsync(info);

@@ -85,7 +85,7 @@ namespace Dao.Services
 
             using var db = new NDatabase();
             var walletId = WalletHelp.GetWalletId(req);
-
+            var userId = WalletHelp.GetUserId(req);
             var item = new Proposal
             {
                 ProposalId = Guid.NewGuid().ToString(),
@@ -94,7 +94,8 @@ namespace Dao.Services
                 Title = req.Title,
                 CreateDate = DateTime.Now,
                 //IsCancel = IsCancelEnum.未取消,
-                State = StateEnum.进行中
+                State = StateEnum.进行中,
+                DIDUserId = userId
             };
             await db.InsertAsync(item);
             return InvokeResult.Success("提交成功!");
@@ -118,7 +119,7 @@ namespace Dao.Services
             var userId = await db.SingleOrDefaultAsync<string>("select b.DIDUserId from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
                "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0", req.WalletAddress, req.Otype, req.Sign);
 
-            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where UserId = @0 and ProposalId = @1",
+            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where DIDUserId = @0 and ProposalId = @1",
                 userId, proposalId);
 
 
@@ -182,8 +183,9 @@ namespace Dao.Services
         {
             using var db = new NDatabase();
             var list = new List<ProposalListRespon>();
-            var walletId = WalletHelp.GetWalletId(req);
-            var items = await db.FetchAsync<Proposal>("select * from Proposal where WalletId = @0 order by CreateDate Desc", walletId);
+            //var walletId = WalletHelp.GetWalletId(req);
+            var userId = WalletHelp.GetUserId(req);
+            var items = await db.FetchAsync<Proposal>("select * from Proposal where DIDUserId = @0 order by CreateDate Desc", userId);
             list = items.Select(x => new ProposalListRespon()
             {
                 State = x.State,
@@ -230,7 +232,7 @@ namespace Dao.Services
             var userId = await db.SingleOrDefaultAsync<string>("select b.DIDUserId from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
                 "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0", req.WalletAddress, req.Otype, req.Sign);
 
-            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where UserId = @0 and ProposalId = @1",
+            var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where DIDUserId = @0 and ProposalId = @1",
                 userId, req.ProposalId);
             if (!string.IsNullOrEmpty(userVoteId))
                 return InvokeResult.Fail<int>("请勿重复投票!");
@@ -263,10 +265,11 @@ namespace Dao.Services
             var userVote = new UserVote() { 
                 UserVoteId = Guid.NewGuid().ToString(),
                 ProposalId = req.ProposalId,
-                UserId = userId,
+                DIDUserId = userId,
                 Type = req.Vote,
                 CreateDate = DateTime.Now,
-                VoteNum = voteNum
+                VoteNum = voteNum,
+                WalletId = walletId
             };
 
             db.BeginTransaction();

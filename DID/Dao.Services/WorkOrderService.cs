@@ -153,26 +153,18 @@ namespace Dao.Services
             }
             var list = models.Select(x => new GetWorkOrderListRespon()
             {
+                WorkOrderId = x.WorkOrderId,
                 CreateDate = x.CreateDate,
                 Describe = x.Describe,
                 Status = x.WorkOrderStatus,
-                Submitter = GetSubmitter(x.WalletId)
+                Submitter = WalletHelp.GetSubmitter(x.WalletId),
+                Type = x.WorkOrderType
             }).ToList();
 
             return InvokeResult.Success(list);
         }
 
-        //获取提交人
-        string GetSubmitter(string walletId)
-        {
-            using var db = new NDatabase();
-            var uid = db.SingleOrDefault<string>("select b.Uid from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
-            "where a.WalletId = @0 and a.IsLogout = 0 and a.IsDelete = 0", walletId);
-            var name = db.SingleOrDefault<string>("select c.Name from DIDUser a left join Wallet b on a.DIDUserId = b.DIDUserId left join UserAuthInfo c on a.UserAuthInfoId = c.UserAuthInfoId " +
-                "where b.WalletId = @0 and b.IsLogout = 0 and b.IsDelete = 0", walletId);
-
-            return name + "(" + uid + ")";
-        }
+        
 
         /// <summary>
         /// 获取工单详情
@@ -192,8 +184,8 @@ namespace Dao.Services
                 Images = model.Images,
                 Phone = model.Phone,
                 Status = model.WorkOrderStatus,
-                Handle = GetSubmitter(model.HandleWalletId),
-                Submitter = GetSubmitter(model.WalletId),
+                Handle = WalletHelp.GetSubmitter(model.HandleWalletId),
+                Submitter = WalletHelp.GetSubmitter(model.WalletId),
                 Record = model.Record
             };
             return InvokeResult.Success(respon);

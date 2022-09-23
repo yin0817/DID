@@ -74,7 +74,7 @@ namespace DID.Entitys
         /// <summary>
         /// 类型 0 现金支付 1 银行卡 2 支付宝 3 微信支付
         /// </summary>
-        public TypeEnum Type
+        public PayType Type
         {
             get; set;
         }

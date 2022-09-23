@@ -27,6 +27,13 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string DIDUserId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 标题
         /// </summary>
         public string Title

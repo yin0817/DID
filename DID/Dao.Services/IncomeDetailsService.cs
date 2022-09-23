@@ -4,6 +4,7 @@ using Dao.Models.Base;
 using Dao.Models.Request;
 using Dao.Models.Response;
 using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
 
@@ -63,15 +64,24 @@ namespace Dao.Services
         public async Task<Response> AddIncomeDetails(AddIncomeDetailsReq req)
         {
             using var db = new NDatabase();
+            var userId = WalletHelp.GetUserId(req);
             var item = new IncomeDetails() { 
                 IncomeDetailsId = Guid.NewGuid().ToString(),
                 CreateDate = DateTime.Now,
                 EOTC = req.EOTC,
                 Remarks = req.Remarks,
                 Type = req.Type,
-                WalletId = WalletHelp.GetWalletId(req)
+                WalletId = WalletHelp.GetWalletId(req),
+                DIDUserId = userId
             };
+            var user = await db.SingleOrDefaultByIdAsync<DIDUser>(userId);
+
+            db.BeginTransaction();
             await db.InsertAsync(item);
+            user.DaoEOTC += req.EOTC;
+            await db.UpdateAsync(item);
+            db.CompleteTransaction();
+
             return InvokeResult.Success("添加成功");
         }
 
@@ -98,9 +108,10 @@ namespace Dao.Services
         /// <returns></returns>
         public async Task<Response<List<IncomeDetailsRespon>>> GetIncomeDetails(DaoBaseReq req, long page, long itemsPerPage)
         {
-            var walletIds = WalletHelp.GetWalletIds(req);
+            //var walletIds = WalletHelp.GetWalletIds(req);
+            var userId = WalletHelp.GetUserId(req);
             using var db = new NDatabase();
-            var items = (await db.PageAsync<IncomeDetails>(page, itemsPerPage, "select * from IncomeDetails where WalletId in (@0)", walletIds)).Items;
+            var items = (await db.PageAsync<IncomeDetails>(page, itemsPerPage, "select * from IncomeDetails where DIDUserId = @0", userId)).Items;
             var list = items.Select(a => new IncomeDetailsRespon() {
                 EOTC = a.EOTC,
                 Type = a.Type,

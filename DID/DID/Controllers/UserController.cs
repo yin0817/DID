@@ -174,11 +174,14 @@ namespace DID.Controllers
         /// 用户注销
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("logout")]
-        public async Task<Response> Logout()
+        public async Task<Response> Logout(LogoutReq req)
         {
-            return await _service.Logout(_currentUser.UserId);
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                return InvokeResult.Fail<string>("1"); //验证码错误!
+            return await _service.Logout(_currentUser.UserId, req.Reason);
         }
 
         /// <summary>

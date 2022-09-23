@@ -7,47 +7,44 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Response
 {
-    public class GetWorkOrderListRespon
+    public class UserRiskRespon
     {
         /// <summary>
-        /// 工单编号
+        /// 编号
         /// </summary>
-        public string WorkOrderId
+        public string UserRiskId
         {
             get; set;
         }
+
         /// <summary>
-        /// 创建日期 默认为当前时间
+        /// 姓名
+        /// </summary>
+        public string Name
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 原因
+        /// </summary>
+        public string Reason
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 创建时间
         /// </summary>
         public DateTime CreateDate
         {
             get; set;
         }
+
         /// <summary>
-        /// 状态 选项：0=待处理 1=处理中 2=已处理
+        /// 审核状态 0 未核对 1 核对成功  2 核对失败
         /// </summary>
-        public WorkOrderStatusEnum Status
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 类型 0=bug反馈 1=功能建议 
-        /// </summary>
-        public WorkOrderTypeEnum Type
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 提交人
-        /// </summary>
-        public string Submitter
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 描述
-        /// </summary>
-        public string Describe
+        public RiskStatusEnum AuthStatus
         {
             get; set;
         }

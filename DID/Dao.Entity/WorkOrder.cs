@@ -11,7 +11,6 @@ namespace Dao.Entity
     /// /// <summary>
     /// 类型 0=bug反馈 1=功能建议 
     /// </summary>
-    /// </summary>
     public enum WorkOrderTypeEnum { bug反馈 , 功能建议 }
     /// <summary>
     /// 状态 选项：0=待处理 1=处理中 2=已处理
@@ -32,6 +31,13 @@ namespace Dao.Entity
         /// 钱包编号
         /// </summary>
         public string WalletId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string DIDUserId
         {
             get; set;
         }
