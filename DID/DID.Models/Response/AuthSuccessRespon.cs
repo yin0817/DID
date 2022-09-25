@@ -82,5 +82,12 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 是否为Dao审核 0 否 1 是
+        /// </summary>
+        public IsEnum IsDao
+        {
+            get; set;
+        }
     }
 }

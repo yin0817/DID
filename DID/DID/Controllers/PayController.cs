@@ -42,6 +42,7 @@ namespace DID.Controllers
         public async Task<Response> AddPayment(Payment req, string mail, string code)
         {
             req.DIDUserId = _currentUser.UserId;
+
             return await _service.AddPayment(req, mail, code);
         }
 

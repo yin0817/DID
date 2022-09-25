@@ -1,4 +1,5 @@
-﻿using NPoco;
+﻿using DID.Entitys;
+using NPoco;
 
 namespace Dao.Entity
 {
@@ -15,11 +16,11 @@ namespace Dao.Entity
     /// <summary>
     /// 0 否 1 是
     /// </summary>
-    public enum IsEnum
-    {
-        否,
-        是
-    }
+    //public enum IsEnum
+    //{
+    //    否,
+    //    是
+    //}
     [PrimaryKey("UserRiskId", AutoIncrement = false)]
     public class UserRisk
     {

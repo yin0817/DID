@@ -177,5 +177,22 @@ namespace DID.Common
             }
             return builder.ToString();
         }
+
+        /// <summary>
+        /// 姓名处理为姓***
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string GetName(string str)
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                var index = str.Length;
+                str = str.Substring(0, 1);
+                for (var i = 1; i < index; i++)
+                    str += '*';
+            }
+            return str;
+        }
     }
 }

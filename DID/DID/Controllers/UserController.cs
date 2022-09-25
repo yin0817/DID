@@ -220,6 +220,15 @@ namespace DID.Controllers
             return await _service.GetUserTeam(_currentUser.UserId, isAuth, page, itemsPerPage);
         }
 
-        
+        /// <summary>
+        /// 提交团队申请
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("teamauth")]
+        public async Task<Response> TeamAuth()
+        {
+            return await _service.TeamAuth(_currentUser.UserId);
+        }
     }
 }

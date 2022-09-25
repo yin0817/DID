@@ -1,4 +1,5 @@
 ﻿using DID.Common;
+using DID.Entity;
 using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
@@ -103,6 +104,13 @@ namespace DID.Services
         /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         Task<Response<TeamInfoRespon>> GetUserTeam(string userId, bool? IsAuth, long page, long itemsPerPage);
+
+        /// <summary>
+        /// 提交团队申请
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response> TeamAuth(string userId);
     }
     /// <summary>
     /// 审核认证服务
@@ -433,6 +441,17 @@ namespace DID.Services
                 };
                 await db.InsertAsync(wallet);
             }
+
+            //添加现金支付
+            var pay = new Payment() { 
+                Type = PayType.现金支付,
+                CreateDate = DateTime.Now,
+                IsDelete = IsEnum.否,
+                IsEnable = IsEnum.否,
+                DIDUserId = userId,
+                PaymentId = Guid.NewGuid().ToString()
+            };
+            await db.InsertAsync(pay);
             db.CompleteTransaction();
 
             return InvokeResult.Success("用户注册成功!");
@@ -628,28 +647,33 @@ namespace DID.Services
                                 Mail = a.Mail,
                                 Phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId),
                                 RegDate = a.RegDate,
-                                Name = GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
+                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
                             }).ToList();
             model.Users = users;
 
             return InvokeResult.Success(model);
         }
 
+
         /// <summary>
-        /// 姓名处理为姓***
+        /// 提交团队申请
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        public string GetName(string str)
+        public async Task<Response> TeamAuth(string userId)
         {
-            if (!string.IsNullOrEmpty(str))
-            {
-                var index = str.Length;
-                str = str.Substring(0,1);
-                for (var i = 1; i < index; i++)
-                    str += '*';
-            }
-            return str;
+            using var db = new NDatabase();
+            var auditUserId = "e8771b3c-3b05-4830-900d-df2be0a6e9f7";//Dao审核
+            var item = new TeamAuth() { 
+                TeamAuthId = Guid.NewGuid().ToString(),
+                AuditType = TeamAuditEnum.未审核,
+                CreateDate = DateTime.Now,
+                DIDUserId = userId,
+                AuditUserId = auditUserId
+            };
+            await db.InsertAsync(item);
+            return InvokeResult.Success("提交成功!");
         }
+
     }
 }

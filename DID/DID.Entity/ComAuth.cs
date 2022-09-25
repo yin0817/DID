@@ -64,5 +64,20 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 是否为Dao审核 0 否 1 是
+        /// </summary>
+        public IsEnum IsDao
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否删除
+        /// </summary>
+        public IsEnum IsDelete
+        {
+            get; set;
+        }
     }
 }

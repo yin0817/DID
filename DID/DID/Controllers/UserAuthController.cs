@@ -83,7 +83,7 @@ namespace DID.Controllers
         [Route("getunauditedinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedInfo(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetUnauditedInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace DID.Controllers
         [Route("getauditedinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedInfo(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetAuditedInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace DID.Controllers
         [Route("getbackinfo")]
         public async Task<Response<List<UserAuthRespon>>> GetBackInfo(long page, long itemsPerPage)
         {
-            return await _service.GetBackInfo(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetBackInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
 

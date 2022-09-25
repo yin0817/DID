@@ -70,10 +70,13 @@ namespace DID.Controllers
         /// <returns></returns>
         public async Task<Response> AddPayment(Payment req,string mail, string code)
         {
-            var usercode = _cache.Get(mail)?.ToString();
-            
-            if (usercode != code)
-                return InvokeResult.Fail<string>("1");//验证码错误!
+            if (req.Type != PayType.现金支付)
+            {
+                var usercode = _cache.Get(mail)?.ToString();
+
+                if (usercode != code)
+                    return InvokeResult.Fail<string>("1");//验证码错误!
+            }
             using var db = new NDatabase();
             db.BeginTransaction();
             var payment = await db.SingleOrDefaultAsync<Payment>("select * from Payment where Type = @0 and DIDUserId = @1 and IsDelete = 0", req.Type, req.DIDUserId);
@@ -112,7 +115,7 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             //var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
-            var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
+            var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1 order by Type", userId, IsEnum.否);
             return InvokeResult.Success(list);
         }
         /// <summary>

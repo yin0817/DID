@@ -3,6 +3,7 @@ using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
+using DID.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DID.Controllers
@@ -110,7 +111,7 @@ namespace DID.Controllers
         [Route("getbackcom")]
         public async Task<Response<List<ComAuthRespon>>> GetBackCom(long page, long itemsPerPage)
         {
-            return await _service.GetBackCom(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetBackCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
@@ -123,7 +124,7 @@ namespace DID.Controllers
         [Route("getunauditedcom")]
         public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedCom(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetUnauditedCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
@@ -136,7 +137,7 @@ namespace DID.Controllers
         [Route("getauditedcom")]
         public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedCom(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetAuditedCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>

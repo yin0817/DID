@@ -25,8 +25,9 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId, long page, long itemsPerPage);
+        Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId, long page, long itemsPerPage, TypeEnum type);
     }
     /// <summary>
     /// 审核认证服务
@@ -86,12 +87,13 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId, long page, long itemsPerPage)
+        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId, long page, long itemsPerPage, TypeEnum type)
         {
             using var db = new NDatabase();
             //var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where DIDUserId=@0", userId);
-            var list = (await db.PageAsync<CreditScoreHistory>(page, itemsPerPage, "select * from CreditScoreHistory where DIDUserId=@0", userId)).Items;
+            var list = (await db.PageAsync<CreditScoreHistory>(page, itemsPerPage, "select * from CreditScoreHistory where DIDUserId=@0 and Type = @1", userId, type)).Items;
             var fraction = await db.SingleOrDefaultAsync<int>("select CreditScore from DIDUser where DIDUserId = @0", userId);
 
             return InvokeResult.Success(new GetCreditScoreRespon { CreditScore = fraction, Items = list });

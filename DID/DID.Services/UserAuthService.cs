@@ -32,28 +32,31 @@ namespace DID.Services
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 审核
@@ -154,6 +157,9 @@ namespace DID.Services
                 img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
                 
                 await db.InsertAsync(nextAuth);
+
+                //去Dao审核
+                ToDaoAuth(nextAuth.AuthId);
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
@@ -178,6 +184,9 @@ namespace DID.Services
                 img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
 
                 await db.InsertAsync(nextAuth);
+
+                //去Dao审核
+                //ToDaoAuth(nextAuth.AuthId);
             }
            
             db.CompleteTransaction();
@@ -189,15 +198,16 @@ namespace DID.Services
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType != 0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage,"select * from Auth where AuditUserId = @0 and AuditType != 0", userId)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0",item.UserAuthInfoId);
@@ -220,7 +230,7 @@ namespace DID.Services
                     authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
                     authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -231,7 +241,8 @@ namespace DID.Services
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     }) ;
                 
                 }
@@ -245,15 +256,16 @@ namespace DID.Services
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType = 0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType = 0", userId)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0", item.UserAuthInfoId);
@@ -276,7 +288,7 @@ namespace DID.Services
                     authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
                     authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -287,7 +299,8 @@ namespace DID.Services
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     });
 
                 }
@@ -301,15 +314,16 @@ namespace DID.Services
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0", userId)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0", item.UserAuthInfoId);
@@ -332,7 +346,7 @@ namespace DID.Services
                     authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
                     authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", item.UserAuthInfoId);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -343,7 +357,8 @@ namespace DID.Services
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     });
                 }
                 authinfo.Auths = list;
@@ -454,17 +469,8 @@ namespace DID.Services
             await db.ExecuteAsync("update DIDUser set UserAuthInfoId = @0,AuthType = @2 where DIDUserId = @1", info.UserAuthInfoId, info.CreatorId, AuthTypeEnum.审核中);//更新用户当前认证编号 审核中
             db.CompleteTransaction();
 
-            //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(10000);//实例化Timer类，设置间隔时间为10000毫秒；
-            t.Elapsed += new System.Timers.ElapsedEventHandler((object? source, System.Timers.ElapsedEventArgs e) =>
-            {
-                t.Stop(); //先关闭定时器
-               //todo: Dao审核
-               
-            });//到达时间的时候执行事件；
-            t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
-            t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
-            t.Start(); //启动定时器
+            //去Dao审核
+            ToDaoAuth(auth.AuthId);
 
             return InvokeResult.Success("提交成功!");
         }
@@ -526,6 +532,38 @@ namespace DID.Services
             item.Remark = auths[0].Remark;
             item.AuditType = auths[0].AuditType;
             return InvokeResult.Success(item);
-        }  
+        }
+
+        /// <summary>
+        /// 两小时未审核去Dao审核
+        /// </summary>
+        /// <param name="authId"></param>
+        public void ToDaoAuth(string authId)
+        {
+            //两小时没人审核 自动到Dao审核
+            var t = new System.Timers.Timer(10000);//实例化Timer类，设置间隔时间为10000毫秒；
+            t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
+            {
+                t.Stop(); //先关闭定时器
+                          //todo: Dao审核
+                using var db = new NDatabase();
+                var item = await db.SingleOrDefaultByIdAsync<Auth>(authId);
+
+                if (item.AuditType != AuditTypeEnum.未审核)
+                {
+                    item.IsDelete = IsEnum.是;
+                    await db.UpdateAsync(item);
+
+                    item.AuthId = Guid.NewGuid().ToString();
+                    item.IsDao = IsEnum.是;
+                    item.AuditUserId = "d389e5db-37d0-40cd-9d8b-0d31a0ef2c12";//Dao在线节点用户编号
+                    item.CreateDate = DateTime.Now;
+                    await db.InsertAsync(item);
+                }
+            });//到达时间的时候执行事件；
+            t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+            t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
+            t.Start(); //启动定时器
+        }
     }
 }

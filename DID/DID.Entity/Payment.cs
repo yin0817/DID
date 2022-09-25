@@ -32,28 +32,28 @@ namespace DID.Entitys
         /// <summary>
         /// 名称
         /// </summary>
-        public string Name
+        public string? Name
         {
             get; set;
         }
         /// <summary>
         /// 开户银行
         /// </summary>
-        public string Bank
+        public string? Bank
         {
             get; set;
         }
         /// <summary>
         /// 卡号
         /// </summary>
-        public string CardNum
+        public string? CardNum
         {
             get; set;
         }
         /// <summary>
         /// 支付密码
         /// </summary>
-        public string PassWord
+        public string? PassWord
         {
             get; set;
         }

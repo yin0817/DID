@@ -20,10 +20,36 @@ namespace Dao.Services
         /// 设置用户风险等级
         /// </summary>
         /// <param name="req"></param>
-        /// <param name="level"></param>
         /// <returns></returns>
         Task<Response> UserRiskLevel(UserRiskLevelReq req);
 
+        /// <summary>
+        /// 获取风控列表
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response<List<UserRiskRespon>>> UserRisk(DaoBaseReq req);
+
+        /// <summary>
+        /// 修改用户风险状态
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response> UserRiskStatus(UserRiskStatusReq req);
+
+        /// <summary>
+        /// 解除风险
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response> RemoveRisk(RemoveRiskReq req);
+
+        /// <summary>
+        /// 获取风险用户信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response<RiskUserInfo>> GetUserInfo(RemoveRiskReq req);
 
     }
 
@@ -52,32 +78,42 @@ namespace Dao.Services
         {
             using var db = new NDatabase();
             var userId = WalletHelp.GetUserId(req);
-            var user = await db.SingleOrDefaultByIdAsync<DIDUser>(userId);
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+
+            if (user.RiskLevel == RiskLevelEnum.高风险)
+                return InvokeResult.Fail("请勿重复设置!");
             user.RiskLevel = req.Level;
                 
             await db.UpdateAsync(user);
+            if (req.Level == RiskLevelEnum.高风险)
+            {
+                //生成审核信息（5个人3个通过解除） 可配置
+                var list = new List<string>();
+                list.Add("e8771b3c-3b05-4830-900d-df2be0a6e9f7");
+                list.Add("d389e5db-37d0-40cd-9d8b-0d31a0ef2c12");
+                list.Add("61d14a4f-c45f-4b13-a957-5bcaff9b3324");
+                list.Add("7e88d292-7454-4e26-821a-b4e6049a7a95");
+                list.Add("2a5bf1dd-e15b-40f4-94bb-b68cee2bbaf9");
 
-            //生成审核信息（5个人3个通过解除） 可配置
-            var list = new List<string>();
-            list.Add("e8771b3c-3b05-4830-900d-df2be0a6e9f7");
-            list.Add("d389e5db-37d0-40cd-9d8b-0d31a0ef2c12");
-            list.Add("61d14a4f-c45f-4b13-a957-5bcaff9b3324");
-            list.Add("7e88d292-7454-4e26-821a-b4e6049a7a95");
-            list.Add("2a5bf1dd-e15b-40f4-94bb-b68cee2bbaf9");
+                var risks = new List<UserRisk>();
 
-            list.Select(async x => await db.InsertAsync(
-                new UserRisk{
-                    UserRiskId = Guid.NewGuid().ToString(),
-                    AuditUserId = x,
-                    DIDUserId = userId,
-                    AuthStatus = RiskStatusEnum.未核对,
-                    IsRemoveRisk = Entity.IsEnum.否,
-                    Reason = req.Reason,
-                    CreateDate = DateTime.Now,
-                    IsDelete = Entity.IsEnum.否
+                list.ForEach( x => risks.Add(
+                    new UserRisk
+                    {
+                        UserRiskId = Guid.NewGuid().ToString(),
+                        AuditUserId = x,
+                        DIDUserId = userId,
+                        AuthStatus = RiskStatusEnum.未核对,
+                        IsRemoveRisk = IsEnum.否,
+                        Reason = req.Reason,
+                        CreateDate = DateTime.Now,
+                        IsDelete = IsEnum.否
 
-                })
-            );
+                    })
+                );
+
+                await db.InsertBatchAsync(risks);
+            }
 
 
             return InvokeResult.Success("设置成功!");
@@ -130,26 +166,61 @@ namespace Dao.Services
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response> RemoveRisk(string UserRiskId)
+        public async Task<Response> RemoveRisk(RemoveRiskReq req)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultByIdAsync<UserRisk>(UserRiskId);
-            item.IsRemoveRisk = Entity.IsEnum.是;
-            await db.UpdateAsync(item);
-
-            var list = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0");
-            var num = list.Sum(a => a.IsRemoveRisk == Entity.IsEnum.是 ? 1 : 0);
-
-            //5个人3个通过
-            if (num >= 3)
+            var item = await db.SingleOrDefaultByIdAsync<UserRisk>(req.UserRiskId);
+            var userId = WalletHelp.GetUserId(req);
+            if (item.AuthStatus == RiskStatusEnum.核对成功 && item.AuditUserId == userId)
             {
-                var user = await db.SingleOrDefaultByIdAsync<DIDUser>(item.DIDUserId);
-                user.RiskLevel = RiskLevelEnum.低风险;
+                item.IsRemoveRisk = IsEnum.是;
+                await db.UpdateAsync(item);
 
-                await db.UpdateAsync(user);
-                await db.SaveAsync(list.Select(a => { a.IsDelete = Entity.IsEnum.是; return a; }).ToList());
+                var list = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0", item.DIDUserId);
+                var num = list.Sum(a => a.IsRemoveRisk == IsEnum.是 ? 1 : 0);
+
+                //5个人3个通过
+                if (num >= 3)
+                {
+                    var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+                    user.RiskLevel = RiskLevelEnum.低风险;
+
+                    await db.UpdateAsync(user);
+                    await db.SaveAsync(list.Select(a => { a.IsDelete = IsEnum.是; return a; }).ToList());
+                }
+                return InvokeResult.Success("解除成功!");
             }
-            return InvokeResult.Success("解除成功!");
+            else
+                return InvokeResult.Fail("解除失败!");
+        }
+
+
+        /// <summary>
+        /// 获取风险用户信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<Response<RiskUserInfo>> GetUserInfo(RemoveRiskReq req)
+        {
+            using var db = new NDatabase();
+            var item = await db.SingleOrDefaultByIdAsync<UserRisk>(req.UserRiskId);
+            var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 2", item.DIDUserId);
+            if (authinfo == null) return InvokeResult.Fail<RiskUserInfo>("1");//认证信息未找到!
+            var model = new RiskUserInfo();
+            model.Name = CommonHelp.GetName(authinfo.Name);
+            
+            //后四位变为*
+            authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+            authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+            model.PhoneNum = authinfo.PhoneNum;
+            model.IdCard = authinfo.IdCard;
+
+            var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep Desc", authinfo.UserAuthInfoId);
+            model.PortraitImage = auths[0].PortraitImage;
+            model.NationalImage = auths[0].NationalImage;
+            model.HandHeldImage = auths[0].HandHeldImage;
+
+            return InvokeResult.Success(model);
         }
     }
 }

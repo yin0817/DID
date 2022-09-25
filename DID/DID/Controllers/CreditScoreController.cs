@@ -1,4 +1,5 @@
 ﻿using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
@@ -52,12 +53,13 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="type">类型 0 加分 1 减分</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcreditscore")]
-        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(long page, long itemsPerPage)
+        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(long page, long itemsPerPage, TypeEnum type)
         {
-            return await _service.GetCreditScore(_currentUser.UserId, page, itemsPerPage);
+            return await _service.GetCreditScore(_currentUser.UserId, page, itemsPerPage, type);
         }
 
     }

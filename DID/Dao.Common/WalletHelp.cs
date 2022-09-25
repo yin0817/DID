@@ -75,9 +75,9 @@ namespace Dao.Common
         public static string GetUidName(string userId)
         {
             using var db = new NDatabase();
-            var uid = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0 and a.IsLogout = 0 and a.IsDelete = 0", userId);
+            var uid = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", userId);
             var name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
-                "where a.DIDUserId = @0 and b.IsLogout = 0 and b.IsDelete = 0", userId);
+                "where a.DIDUserId = @0", userId);
 
             return name + "(" + uid + ")";
         }
