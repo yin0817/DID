@@ -29,11 +29,10 @@ namespace Dao.Services
         /// <summary>
         /// 获取提案列表
         /// </summary>
-        /// <param name="type">0 最新10条 1 更多(所有)</param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage);
+        Task<Response<List<ProposalListRespon>>> GetProposalList(long page, long itemsPerPage);
 
         /// <summary>
         /// 获取我的提案列表
@@ -142,35 +141,22 @@ namespace Dao.Services
         /// <summary>
         /// 获取提案列表
         /// </summary>
-        /// <param name="type">0 最新10条 1 更多(所有)</param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage)
+        public async Task<Response<List<ProposalListRespon>>> GetProposalList(long page, long itemsPerPage)
         {
             using var db = new NDatabase();
             var list = new List<ProposalListRespon>();
-            if (type == 0)//最新10条
+
+            var items = (await db.PageAsync<Proposal>(page,itemsPerPage,"select * from Proposal order by CreateDate Desc")).Items;
+            list = items.Select(x => new ProposalListRespon()
             {
-                var items = await db.FetchAsync<Proposal>("select top 10 * from Proposal order by CreateDate Desc");
-                list = items.Select(x => new ProposalListRespon() { 
-                    State = x.State,
-                    Title = x.Title,
-                    Total = x.FavorVotes + x.OpposeVotes,
-                    ProposalId = x.ProposalId
-                }).ToList();
-            }
-            else if (type == 1)//所有
-            {
-                var items = (await db.PageAsync<Proposal>(page??0,itemsPerPage??0,"select * from Proposal order by CreateDate Desc")).Items;
-                list = items.Select(x => new ProposalListRespon()
-                {
-                    State = x.State,
-                    Title = x.Title,
-                    Total = x.FavorVotes + x.OpposeVotes,
-                    ProposalId = x.ProposalId
-                }).ToList();
-            }
+                State = x.State,
+                Title = x.Title,
+                Total = x.FavorVotes + x.OpposeVotes,
+                ProposalId = x.ProposalId
+            }).ToList();
             return InvokeResult.Success(list);
         }
 

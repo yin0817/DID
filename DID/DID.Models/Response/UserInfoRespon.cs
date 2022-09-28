@@ -147,5 +147,19 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 是否有用户审核信息
+        /// </summary>
+        public bool? HasAuth
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否有社区审核信息
+        /// </summary>
+        public bool? HasComAuth
+        {
+            get; set;
+        }
     }
 }

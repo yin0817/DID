@@ -51,6 +51,19 @@ namespace Dao.Services
         /// <returns></returns>
         Task<Response<RiskUserInfo>> GetUserInfo(RemoveRiskReq req);
 
+        /// <summary>
+        /// 获取用户风险等级
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response<RiskLevelEnum>> GetUserRiskLevel(string userId);
+
+        /// <summary>
+        /// 获取解除风控联系人
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response<List<GetRiskList>>> GetRiskList(string userId);
     }
 
     /// <summary>
@@ -117,6 +130,42 @@ namespace Dao.Services
 
 
             return InvokeResult.Success("设置成功!");
+        }
+
+        /// <summary>
+        /// 获取解除风控联系人
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response<List<GetRiskList>>> GetRiskList(string userId)
+        {
+            using var db = new NDatabase();
+            var items = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0", userId);
+
+            var risks = new List<GetRiskList>();
+            items.ForEach(x => risks.Add(
+                new GetRiskList
+                {
+                    Name = WalletHelp.GetName(x.AuditUserId),
+                    Phone = WalletHelp.GetPhone(x.AuditUserId),
+                    Status = x.IsRemoveRisk
+                })
+            );
+
+            return InvokeResult.Success(risks);
+        }
+
+        /// <summary>
+        /// 获取用户风险等级
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response<RiskLevelEnum>> GetUserRiskLevel(string userId)
+        {
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+
+            return InvokeResult.Success(user.RiskLevel);
         }
 
         /// <summary>

@@ -123,6 +123,11 @@ namespace Dao.Services
 
             await db.UpdateAsync(item);
 
+            if (type == TeamAuditEnum.审核通过)
+            { 
+                //todo:发送邮件
+            }
+
             return InvokeResult.Success("审核成功!");
         }
 
@@ -135,17 +140,21 @@ namespace Dao.Services
         {
             using var db = new NDatabase();
             var com = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
-            //if (user.AuthType == AuthTypeEnum.审核成功)
-            //{
-            //    var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
-            //    userRespon.Name = authInfo.Name;
-            //    userRespon.PhoneNum = authInfo.PhoneNum;
-            //}
+            
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            string? phone = null;
+
+            if (user.AuthType == AuthTypeEnum.审核成功)
+            {
+                var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
+                phone = authInfo.PhoneNum;
+            }
+
             var model = new GetComInfoRespon()
             {
                 ComName = com?.ComName,
-                Mail = com?.Mail,
-                Phone = com?.Phone
+                Mail = user?.Mail,
+                Phone = phone
             };
 
             return InvokeResult.Success(model);

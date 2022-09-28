@@ -6,6 +6,7 @@ using Dao.Models.Request;
 using Dao.Models.Response;
 using Dao.Services;
 using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -96,5 +97,32 @@ namespace Dao.Controllers
         {
             return await _service.GetUserInfo(req);
         }
+
+        /// <summary>
+        /// 获取用户风险等级
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getuserrisklevel")]
+        public async Task<Response<RiskLevelEnum>> GetUserRiskLevel(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetUserRiskLevel(userId);
+        }
+
+        /// <summary>
+        /// 获取解除风控联系人
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getrisklist")]
+        public async Task<Response<List<GetRiskList>>> GetRiskList(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetRiskList(userId);
+        }
+
     }
 }

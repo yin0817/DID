@@ -18,7 +18,7 @@ namespace Dao.Controllers
     [ApiController]
     [Route("api/destruction")]
     [AllowAnonymous]
-    [DaoActionFilter]
+    //[DaoActionFilter]
     public class DestructionController : Controller
     {
         private readonly ILogger<DestructionController> _logger;
@@ -40,7 +40,7 @@ namespace Dao.Controllers
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("adddestruction")]
         public async Task<Response> AddDestruction(Destruction req)
         { 
@@ -57,6 +57,18 @@ namespace Dao.Controllers
         public async Task<Response<List<Destruction>>> GetDestruction(GetDestructionReq req)
         {
             return await _service.GetDestruction(req);
+        }
+
+        /// <summary>
+        /// 删除销毁记录
+        /// </summary>
+        /// <param name="destructionId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("destruction")]
+        public async Task<Response> DeleteDestruction(string destructionId)
+        {
+            return await _service.DeleteDestruction(destructionId);
         }
     }
 }

@@ -5,7 +5,7 @@ namespace Dao.Models.Request
     /// <summary>
     /// 获取销毁记录
     /// </summary>
-    public class GetDestructionReq : DaoBaseReq
+    public class GetDestructionReq 
     {
         /// <summary>
         /// 关键字
@@ -31,16 +31,16 @@ namespace Dao.Models.Request
         /// <summary>
         /// 页数
         /// </summary>
-        public long Page
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 每页数量
-        /// </summary>
-        public long ItemsPerPage
-        {
-            get; set;
-        }
+        //public long Page
+        //{
+        //    get; set;
+        //}
+        ///// <summary>
+        ///// 每页数量
+        ///// </summary>
+        //public long ItemsPerPage
+        //{
+        //    get; set;
+        //}
     }
 }

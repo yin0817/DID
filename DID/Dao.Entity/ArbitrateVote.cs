@@ -9,53 +9,45 @@ using System.Threading.Tasks;
 namespace Dao.Entity
 {
     /// <summary>
-    /// 销毁查询
+    ///  投票状态 0 未投票 1 原告胜 2 被告胜
     /// </summary>
-    [PrimaryKey("DestructionId", AutoIncrement = false)]
-    public class Destruction
+    public enum VoteStatusEnum { 未投票, 原告胜, 被告胜 }
+    /// <summary>
+    /// 仲裁投票表
+    /// </summary>
+    [PrimaryKey("ArbitrateVoteId", AutoIncrement = false)]
+    public class ArbitrateVote
     {
         /// <summary>
         /// 编号
         /// </summary>
-        public string? DestructionId
-        {
-            get; set;
-        }
-        ///// <summary>
-        ///// 钱包编号
-        ///// </summary>
-        //public string WalletId
-        //{
-        //    get; set;
-        //}
-        /// <summary>
-        /// EOTC数量
-        /// </summary>
-        public double EOTC
+        public string ArbitrateVoteId
         {
             get; set;
         }
         /// <summary>
-        /// hash值
+        /// 仲裁编号
         /// </summary>
-        public string HashCode
+        public string ArbitrateInfoId
         {
             get; set;
         }
         /// <summary>
-        /// 注释
+        /// 投票人编号
         /// </summary>
-        public string Memo
+        public string VoteUserId
         {
             get; set;
         }
+
         /// <summary>
-        /// 备注
+        /// 投票状态 0 未投票 1 原告胜 2 被告胜
         /// </summary>
-        public string? Remark
+        public VoteStatusEnum VoteStatus
         {
             get; set;
         }
+
         /// <summary>
         /// 创建日期 默认为当前时间
         /// </summary>
@@ -63,10 +55,19 @@ namespace Dao.Entity
         {
             get; set;
         }
+
         /// <summary>
-        /// 销毁日期 默认为当前时间
+        /// 投票日期
         /// </summary>
-        public DateTime DestructionDate
+        public DateTime? VoteDate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 原因
+        /// </summary>
+        public string? Reason
         {
             get; set;
         }

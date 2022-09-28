@@ -70,7 +70,7 @@ namespace Dao.Common
         /// <summary>
         /// 获取UId + Name
         /// </summary>
-        /// <param name="walletId"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         public static string GetUidName(string userId)
         {
@@ -79,7 +79,35 @@ namespace Dao.Common
             var name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
                 "where a.DIDUserId = @0", userId);
 
-            return name + "(" + uid + ")";
+            return name??"未认证" + "(" + uid + ")";
+        }
+
+        /// <summary>
+        /// 获取Name
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static string GetName(string userId)
+        {
+            using var db = new NDatabase();
+            var name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
+                "where a.DIDUserId = @0", userId);
+
+            return name ?? "未认证";
+        }
+
+        /// <summary>
+        /// 获取Phone
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public static string GetPhone(string userId)
+        {
+            using var db = new NDatabase();
+            var phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
+                "where a.DIDUserId = @0", userId);
+
+            return phone;
         }
     }
 }

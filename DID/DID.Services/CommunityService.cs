@@ -723,7 +723,7 @@ namespace DID.Services
         public void ToDaoAuth(string authId)
         {
             //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(10000);//实例化Timer类，设置间隔时间为10000毫秒；
+            var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 t.Stop(); //先关闭定时器

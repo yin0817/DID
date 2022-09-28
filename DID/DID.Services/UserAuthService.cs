@@ -501,7 +501,7 @@ namespace DID.Services
                     UId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", auth.AuditUserId),
                     AuditStep = auth.AuditStep,
                     AuthDate = auth.AuditDate,
-                    Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.AuthType = 3", auth.AuditUserId),
+                    Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                     AuditType = auth.AuditType,
                     Remark = auth.Remark
                 });
@@ -541,9 +541,10 @@ namespace DID.Services
         public void ToDaoAuth(string authId)
         {
             //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(10000);//实例化Timer类，设置间隔时间为10000毫秒；
+            var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
+                
                 t.Stop(); //先关闭定时器
                           //todo: Dao审核
                 using var db = new NDatabase();
@@ -564,6 +565,7 @@ namespace DID.Services
             t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
             t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
             t.Start(); //启动定时器
+
         }
     }
 }

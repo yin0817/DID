@@ -214,6 +214,13 @@ namespace Dao.Services
                 model.WorkOrderStatus = req.WorkOrderStatus;
                 await db.UpdateAsync(model);
             }
+            else if (req.WorkOrderStatus == WorkOrderStatusEnum.待处理)
+            {
+                var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
+                model.WorkOrderStatus = req.WorkOrderStatus;
+                model.HandleWalletId = "";
+                await db.UpdateAsync(model);
+            }
 
             return InvokeResult.Success("修改成功!");
         }

@@ -74,15 +74,14 @@ namespace Dao.Controllers
         /// <summary>
         /// 获取提案列表
         /// </summary>
-        /// <param name="type">0 最新10条 1 更多(所有)</param>
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpPost]
         [Route("getproposallist")]
-        public async Task<Response<List<ProposalListRespon>>> GetProposalList(int type, long? page, long? itemsPerPage)
+        public async Task<Response<List<ProposalListRespon>>> GetProposalList(DaoBasePageReq req)
         {
-            return await _service.GetProposalList(type, page, itemsPerPage);
+            return await _service.GetProposalList(req.Page, req.ItemsPerPage);
         }
 
         /// <summary>
