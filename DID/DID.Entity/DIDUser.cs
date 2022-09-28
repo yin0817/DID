@@ -7,6 +7,10 @@ namespace DID.Entitys
     /// </summary>
     public enum AuthTypeEnum { 未审核, 审核中, 审核成功, 审核失败 }
     /// <summary>
+    /// 风险等级 0 低风险 1 中风险 2 高风险
+    /// </summary>s
+    public enum RiskLevelEnum { 低风险, 中风险, 高风险 }
+    /// <summary>
     /// 用户信息表
     /// </summary>
     //[PrimaryKey("DIDUserId", AutoIncrement = false)]
@@ -128,11 +132,24 @@ namespace DID.Entitys
         {
             get; set;
         }
-
         /// <summary>
-        /// 地区
+        /// 省
         /// </summary>
-        public string? Area
+        public string Province
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 市
+        /// </summary>
+        public string City
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 区
+        /// </summary>
+        public string Area
         {
             get; set;
         }
@@ -157,6 +174,38 @@ namespace DID.Entitys
         /// 用户申请社区编号
         /// </summary>
         public string? ApplyCommunityId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Dao总收益
+        /// </summary>
+        public double DaoEOTC
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否为仲裁员 0 否 1 是 
+        /// </summary>
+        public IsEnum IsArbitrate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否为审核员 0 否 1 是
+        /// </summary>
+        public IsEnum IsExamine
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 风险等级 0 低风险 1 中风险 2 高风险
+        /// </summary>
+        public RiskLevelEnum RiskLevel
         {
             get; set;
         }

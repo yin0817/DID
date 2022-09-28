@@ -1,6 +1,7 @@
 ﻿using DID.Common;
 using DID.Entitys;
 using DID.Models.Base;
+using DID.Models.Request;
 using DID.Models.Response;
 using DID.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,15 +57,15 @@ namespace DID.Controllers
         [Route("upload")]
         public async Task<Response> UploadUserInfo(UserAuthInfo info)
         {
-            if (!CommonHelp.IsPhoneNum(info.PhoneNum))
-                return InvokeResult.Fail("1");//手机号错误!
-            if (!CommonHelp.IsCard(info.IdCard))
-                return InvokeResult.Fail("2");//证件号错误!
+            //if (!CommonHelp.IsPhoneNum(info.PhoneNum))
+            //    return InvokeResult.Fail("1");//手机号错误!
+            //if (!CommonHelp.IsCard(info.IdCard))
+            //    return InvokeResult.Fail("2");//证件号错误!
 
             info.CreatorId = _currentUser.UserId;
-            info.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage;
-            info.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage;
-            info.HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage;
+            info.PortraitImage = !info.PortraitImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage : info.PortraitImage;
+            info.NationalImage = !info.NationalImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage : info.NationalImage;
+            info.HandHeldImage = !info.HandHeldImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage : info.HandHeldImage;
             if (!System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.PortraitImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.HandHeldImage)))
@@ -75,48 +76,53 @@ namespace DID.Controllers
         /// <summary>
         /// 获取未审核信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getunauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedInfo(_currentUser.UserId);
+            return await _service.GetUnauditedInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauditedinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedInfo(_currentUser.UserId);
+            return await _service.GetAuditedInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getbackinfo")]
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo()
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(long page, long itemsPerPage)
         {
-            return await _service.GetBackInfo(_currentUser.UserId);
+            return await _service.GetBackInfo(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
 
         /// <summary>
         /// 审核
         /// </summary>
-        /// <param name="userAuthInfoId">审核记录编号</param>
-        /// <param name="auditType">审核类型</param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("auditinfo")]
-        public async Task<Response> AuditInfo(string userAuthInfoId, AuditTypeEnum auditType, string remark)
+        public async Task<Response> AuditInfo(AuditInfoReq req)
         {
-            return await _service.AuditInfo(userAuthInfoId, _currentUser.UserId, auditType, remark);
+            return await _service.AuditInfo(req.UserAuthInfoId, _currentUser.UserId, req.AuditType, req.Remark);
         }
         /// <summary>
         /// 获取用户审核失败信息 1 认证信息未找到!

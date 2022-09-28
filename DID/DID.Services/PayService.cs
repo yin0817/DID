@@ -70,13 +70,27 @@ namespace DID.Controllers
         /// <returns></returns>
         public async Task<Response> AddPayment(Payment req,string mail, string code)
         {
-            var usercode = _cache.Get(mail)?.ToString();
-            if (usercode != code)
-                return InvokeResult.Fail<string>("1");//验证码错误!
+            if (req.Type != PayType.现金支付)
+            {
+                var usercode = _cache.Get(mail)?.ToString();
+
+                if (usercode != code)
+                    return InvokeResult.Fail<string>("1");//验证码错误!
+            }
             using var db = new NDatabase();
+            db.BeginTransaction();
+            var payment = await db.SingleOrDefaultAsync<Payment>("select * from Payment where Type = @0 and DIDUserId = @1 and IsDelete = 0", req.Type, req.DIDUserId);
+            if (null != payment)
+            {
+                payment.IsDelete = IsEnum.是;
+                await db.UpdateAsync(payment);
+            }
             req.PaymentId = Guid.NewGuid().ToString();
             req.CreateDate = DateTime.Now;
+           
+            
             await db.InsertAsync(req);
+            db.CompleteTransaction();
             return InvokeResult.Success("添加成功!");
         }
         /// <summary>
@@ -100,7 +114,8 @@ namespace DID.Controllers
         public async Task<Response<List<Payment>>> GetPayment(string userId)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
+            //var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1", userId, IsEnum.否);
+            var list = await db.FetchAsync<Payment>("select * from Payment where DIDUserId = @0 and IsDelete = @1 order by Type", userId, IsEnum.否);
             return InvokeResult.Success(list);
         }
         /// <summary>

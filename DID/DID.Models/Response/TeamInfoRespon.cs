@@ -12,13 +12,13 @@ namespace DID.Models.Response
             get; set;
         }
 
-        ///// <summary>
-        ///// 直推人数
-        ///// </summary>
-        //public int PushNumber
-        //{
-        //    get; set;
-        //}
+        /// <summary>
+        /// 直推人数
+        /// </summary>
+        public int PushNumber
+        {
+            get; set;
+        }
 
         ///// <summary>
         ///// 有效节点
@@ -66,6 +66,22 @@ namespace DID.Models.Response
         /// 注册时间
         /// </summary>
         public DateTime RegDate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 电话
+        /// </summary>
+        public string Phone
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 邮箱
+        /// </summary>
+        public string Mail
         {
             get; set;
         }

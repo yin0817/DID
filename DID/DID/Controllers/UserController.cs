@@ -1,4 +1,7 @@
-﻿using DID.Common;
+﻿using Dao.Models.Response;
+using Dao.Services;
+using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
@@ -10,7 +13,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace DID.Controllers
 {
     /// <summary>
-    /// 审核认证
+    /// 用户相关接口
     /// </summary>
     [ApiController]
     [Route("api/user")]
@@ -24,6 +27,8 @@ namespace DID.Controllers
 
         private readonly ICurrentUser _currentUser;
 
+        private readonly IRiskService _riskservice;
+
         /// <summary>
         /// 
         /// </summary>
@@ -31,12 +36,14 @@ namespace DID.Controllers
         /// <param name="service"></param>
         /// <param name="cache"></param>
         /// <param name="currentUser"></param>
-        public UserController(ILogger<UserController> logger, IUserService service, IMemoryCache cache, ICurrentUser currentUser)
+        /// <param name="riskservice"></param>
+        public UserController(ILogger<UserController> logger, IUserService service, IMemoryCache cache, ICurrentUser currentUser, IRiskService riskservice)
         {
             _logger = logger;
             _service = service;
             _cache = cache;
             _currentUser = currentUser;
+            _riskservice = riskservice;
         }
 
         /// <summary>
@@ -85,7 +92,8 @@ namespace DID.Controllers
         public async Task<Response<string>> Login(LoginReq login)
         {
            if (!string.IsNullOrEmpty(login.Mail) && !CommonHelp.IsMail(login.Mail))
-                return InvokeResult.Fail<string>("1");
+                //return InvokeResult.Fail<string>("1");
+                return InvokeResult.Fail<string>("邮箱格式错误!");
             //var code = _cache.Get(login.Mail)?.ToString();
             //if (code != login.Code)
             //    return InvokeResult.Fail<string>("验证码错误!");
@@ -103,12 +111,14 @@ namespace DID.Controllers
         public async Task<Response> Register(LoginReq login)
         {
             if (!CommonHelp.IsMail(login.Mail))
-                return InvokeResult.Fail<string>("1");//邮箱格式错误!
+                //return InvokeResult.Fail<string>("1");//邮箱格式错误!
+                return InvokeResult.Fail<string>("邮箱格式错误!");
             var code = _cache.Get(login.Mail)?.ToString();
             if (code != login.Code)
-                return InvokeResult.Fail<string>("2");//验证码错误!
-            if(string.IsNullOrEmpty(login.WalletAddress)||string.IsNullOrEmpty(login.Otype)|| string.IsNullOrEmpty(login.Sign))
-                return InvokeResult.Fail<string>("5");//钱包地址为空!
+                //return InvokeResult.Fail<string>("2");//验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
+            //if(string.IsNullOrEmpty(login.WalletAddress)||string.IsNullOrEmpty(login.Otype)|| string.IsNullOrEmpty(login.Sign))
+            //    return InvokeResult.Fail<string>("5");//钱包地址为空!
             return await _service.Register(login);
         }
 
@@ -124,26 +134,25 @@ namespace DID.Controllers
         public async Task<Response> GetCode(string mail)
         {
             if (!CommonHelp.IsMail(mail))
-                return InvokeResult.Fail<string>("1");//邮箱格式错误!
+                //return InvokeResult.Fail<string>("1");//邮箱格式错误!
+                return InvokeResult.Fail<string>("邮箱格式错误!");
             return await _service.GetCode(mail);
         }
 
         /// <summary>
         /// 修改密码 1 验证码错误!
         /// </summary>
-        /// <param name="mail"></param>
-        /// <param name="newPassWord"></param>
-        /// <param name="code"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
         [HttpPost]
         [Route("changepwd")]
-        [AllowAnonymous]
-        public async Task<Response> ChangePassword(string mail, string newPassWord, string code)
+        public async Task<Response> ChangePassword(ChangePasswordReq req)
         {
-            var usercode = _cache.Get(mail)?.ToString();
-            if (usercode != code)
-                return InvokeResult.Fail<string>("1"); //验证码错误!
-            return await _service.ChangePassword(_currentUser.UserId, newPassWord);
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                //return InvokeResult.Fail<string>("1"); //验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
+            return await _service.ChangePassword(_currentUser.UserId, req.NewPassWord);
         }
 
         /// <summary>
@@ -153,12 +162,12 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("changemail")]
-        [AllowAnonymous]
         public async Task<Response> ChangeMail(ChangeMailReq req)
         {
             var usercode = _cache.Get(req.Mail)?.ToString();
             if (usercode != req.Code)
-                return InvokeResult.Fail<string>("3"); //验证码错误!
+                //return InvokeResult.Fail<string>("3"); //验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
             return await _service.ChangeMail(_currentUser.UserId, req);
         }
 
@@ -178,11 +187,15 @@ namespace DID.Controllers
         /// 用户注销
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [Route("logout")]
-        public async Task<Response> Logout()
+        public async Task<Response> Logout(LogoutReq req)
         {
-            return await _service.Logout(_currentUser.UserId);
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                //return InvokeResult.Fail<string>("1"); //验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
+            return await _service.Logout(_currentUser.UserId, req.Reason);
         }
 
         /// <summary>
@@ -210,15 +223,48 @@ namespace DID.Controllers
         /// <summary>
         /// 获取团队信息
         /// </summary>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth">是否认证 null 查看所有</param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getuserteam")]
-        public async Task<Response<TeamInfoRespon>> GetUserTeam(bool IsAuth = false)
+        public async Task<Response<TeamInfoRespon>> GetUserTeam(bool? isAuth, long page, long itemsPerPage)
         {
-            return await _service.GetUserTeam(_currentUser.UserId, IsAuth);
+            return await _service.GetUserTeam(_currentUser.UserId, isAuth, page, itemsPerPage);
         }
 
-        
+        /// <summary>
+        /// 提交团队申请
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("teamauth")]
+        public async Task<Response> TeamAuth()
+        {
+            return await _service.TeamAuth(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取用户风险等级
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getuserrisklevel")]
+        public async Task<Response<RiskLevelEnum>> GetUserRiskLevel()
+        {
+            return await _riskservice.GetUserRiskLevel(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 获取解除风控联系人
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getrisklist")]
+        public async Task<Response<List<GetRiskList>>> GetRiskList()
+        {
+            return await _riskservice.GetRiskList(_currentUser.UserId);
+        }
     }
 }

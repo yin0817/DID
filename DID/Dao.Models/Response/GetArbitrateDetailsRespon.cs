@@ -1,0 +1,120 @@
+﻿using Dao.Entity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Dao.Models.Response
+{
+    public class GetArbitrateDetailsRespon
+    {
+        /// <summary>
+        /// 编号
+        /// </summary>
+        public string ArbitrateInfoId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 原告
+        /// </summary>
+        public string Plaintiff
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告
+        /// </summary>
+        public string Defendant
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 原告票数
+        /// </summary>
+        public int PlaintiffNum
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告票数
+        /// </summary>
+        public int DefendantNum
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 结案时间
+        /// </summary>
+        public DateTime VoteDate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 投票记录
+        /// </summary>
+        public List<Vote>? Votes
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 举证截至日期
+        /// </summary>
+        public DateTime AdduceDate
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 状态 0 举证中 1 投票中 2 取消 3 原告胜 4 被告胜
+        /// </summary>
+        public ArbitrateStatusEnum Status
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 举证记录
+        /// </summary>
+        public List<AdduceList> Adduce
+        {
+            get; set;
+        }
+
+    }
+
+    public class Vote
+    { 
+        /// <summary>
+        /// 姓名
+        /// </summary>
+        public string Name
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 仲裁员编号
+        /// </summary>
+        public string Number
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 投票状态 0 未投票 1 原告胜 2 被告胜
+        /// </summary>
+        public VoteStatusEnum VoteStatus
+        {
+            get; set;
+        }
+    }
+
+
+}

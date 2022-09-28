@@ -3,6 +3,7 @@ using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
+using DID.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DID.Controllers
@@ -34,7 +35,7 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// 设置用户社区选择（未填邀请码） 1 请勿重复设置!
+        /// 设置用户社区选择（未填邀请码） 1 请勿重复设置! 2 位置信息错误!
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
@@ -52,7 +53,7 @@ namespace DID.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("getcomselect")]
-        public async Task<Response<ComSelect>> GetComSelect()
+        public async Task<Response<ComSelectRespon>> GetComSelect()
         {
             return await _service.GetComSelect(_currentUser.UserId);
         }
@@ -90,56 +91,64 @@ namespace DID.Controllers
         /// <param name="province"></param>
         /// <param name="city"></param>
         /// <param name="area"></param>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcomlist")]
-        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area)
+        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage)
         {
-            return await _service.GetComList(country, province, city, area);
+            return await _service.GetComList(country, province, city, area, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getbackcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetBackCom()
+        public async Task<Response<List<ComAuthRespon>>> GetBackCom(long page, long itemsPerPage)
         {
-            return await _service.GetBackCom(_currentUser.UserId);
+            return await _service.GetBackCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取未审核信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getunauditedcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom()
+        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetUnauditedCom(_currentUser.UserId);
+            return await _service.GetUnauditedCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
         [HttpGet]
         [Route("getauditedcom")]
-        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom()
+        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(long page, long itemsPerPage)
         {
-            return await _service.GetAuditedCom(_currentUser.UserId);
+            return await _service.GetAuditedCom(_currentUser.UserId, IsEnum.否, page, itemsPerPage);
         }
 
         /// <summary>
         /// 社区申请审核
         /// </summary>
         /// <returns> </returns>
-        [HttpGet]
+        [HttpPost]
         [Route("auditcommunity")]
-        public async Task<Response> AuditCommunity(string communityId, AuditTypeEnum auditType, string remark)
+        public async Task<Response> AuditCommunity(AuditCommunityReq req)
         {
-            return await _service.AuditCommunity(communityId, _currentUser.UserId, auditType, remark);
+            return await _service.AuditCommunity(req.CommunityId, _currentUser.UserId, req.AuditType, req.Remark);
         }
 
         /// <summary>
@@ -151,6 +160,17 @@ namespace DID.Controllers
         public async Task<Response<Community>> GetCommunityInfo()
         {
             return await _service.GetCommunityInfo(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// 查询社区信息
+        /// </summary>
+        /// <returns> </returns>
+        [HttpGet]
+        [Route("getcommunityinfobyid")]
+        public async Task<Response<Community>> GetCommunityInfoById(string communityId)
+        {
+            return await _service.GetCommunityInfoById(communityId);
         }
 
         /// <summary>
@@ -171,7 +191,7 @@ namespace DID.Controllers
         /// <returns> </returns>
         [HttpPost]
         [Route("applycommunity")]
-        public async Task<Response> ApplyCommunity(Community item)
+        public async Task<Response<string>> ApplyCommunity(Community item)
         {
             item.DIDUserId = _currentUser.UserId;
             return await _service.ApplyCommunity(item);
@@ -191,6 +211,18 @@ namespace DID.Controllers
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
 
             return await _service.UploadImage(files[0]);
+        }
+
+        /// <summary>
+        /// 获取社区审核失败信息
+        /// </summary>
+        /// <param name="communityId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getcomauthfail")]
+        public async Task<Response<List<AuthInfo>>> GetComAuthFail(string communityId)
+        {
+            return await _service.GetComAuthFail(communityId);
         }
     }
 }

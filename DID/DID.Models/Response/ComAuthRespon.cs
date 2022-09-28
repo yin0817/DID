@@ -99,6 +99,13 @@ namespace DID.Models.Response
             get; set;
         }
         /// <summary>
+        /// 详细地址
+        /// </summary>
+        public string AddressName
+        {
+            get; set;
+        }
+        /// <summary>
         /// 有无办公室 0 无  1 有
         /// </summary>
         public IsEnum HasOffice
@@ -158,6 +165,13 @@ namespace DID.Models.Response
         /// 审批记录
         /// </summary>
         public List<AuthInfo>? Auths
+        {
+            get; set;
+        }
+        /// <summary>
+        /// EOTC数量
+        /// </summary>
+        public double? Eotc
         {
             get; set;
         }

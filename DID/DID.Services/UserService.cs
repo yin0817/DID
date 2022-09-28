@@ -1,4 +1,5 @@
 ﻿using DID.Common;
+using DID.Entity;
 using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
@@ -80,7 +81,7 @@ namespace DID.Services
         /// 用户注销
         /// </summary>
         /// <returns></returns>
-        Task<Response> Logout(string userId);
+        Task<Response> Logout(string userId, string? reasons);
 
         /// <summary>
         /// 取消注销
@@ -98,9 +99,18 @@ namespace DID.Services
         /// 获取团队信息
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<TeamInfoRespon>> GetUserTeam(string userId, bool IsAuth);
+        Task<Response<TeamInfoRespon>> GetUserTeam(string userId, bool? IsAuth, long page, long itemsPerPage);
+
+        /// <summary>
+        /// 提交团队申请
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response> TeamAuth(string userId);
     }
     /// <summary>
     /// 审核认证服务
@@ -182,12 +192,22 @@ namespace DID.Services
 
             userRespon.Uid = user.Uid;
             userRespon.UserId = userId;
-            if(!string.IsNullOrEmpty(user.RefUserId))
+            userRespon.RefUserId = user.RefUserId;
+            if (!string.IsNullOrEmpty(user.RefUserId))
                 userRespon.RefUid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", user.RefUserId);
             userRespon.CreditScore = user.CreditScore;
             userRespon.Mail = user.Mail;
-            userRespon.Country = user.Country;
-            userRespon.Area = user.Area;
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = 'COUNTRIES'", user.Country);
+
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.Province, user.Country);
+
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.City, user.Province);
+
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", user.Area, user.City);
+            userRespon.Country = user.Country + "-" + country;
+            userRespon.Province = user.Province + "-" + province;
+            userRespon.City = user.City + "-" + city;
+            userRespon.Area = user.Area + "-" + area;
             userRespon.Telegram = user.Telegram;
             userRespon.AuthType = user.AuthType;
             if (user.AuthType == AuthTypeEnum.审核成功)
@@ -206,8 +226,14 @@ namespace DID.Services
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
                 var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
                 userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
-                
+                userRespon.ComAuditType = community.AuthType;
             }
+
+            var auth = await db.SingleOrDefaultAsync<int>("select count(*) from Auth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = 0", userId);
+            userRespon.HasAuth = auth > 0;
+
+            var comauth = await db.SingleOrDefaultAsync<int>("select count(*) from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = 0", userId);
+            userRespon.HasComAuth = comauth > 0;
 
             return InvokeResult.Success(userRespon);
         }
@@ -223,17 +249,22 @@ namespace DID.Services
             var sql = new Sql("update DIDUser set ");
             if (!string.IsNullOrEmpty(user.RefUserId))
             {
-                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0", user.RefUserId);
-                if (string.IsNullOrEmpty(refUserId) || user.UserId == refUserId)//不能修改为自己
+                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.RefUserId);
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
+                if (string.IsNullOrEmpty(refUserId) || user.UserId == refUserId || string.IsNullOrEmpty(communityId))//不能修改为自己 必须有社区
                     return InvokeResult.Fail("1"); //邀请码错误!
                 sql.Append("RefUserId = @0, ", user.RefUserId);
             }
             if (!string.IsNullOrEmpty(user.Telegram))
                 sql.Append("Telegram = @0, ", user.Telegram);
-            if(!string.IsNullOrEmpty(user.Country))
+            //if(!string.IsNullOrEmpty(user.Country))
                 sql.Append("Country = @0, ", user.Country);
-            if (!string.IsNullOrEmpty(user.Area))
-                sql.Append("Area = @0, ", user.Country);
+            //if (!string.IsNullOrEmpty(user.Province))
+                sql.Append("Province = @0, ", user.Province);
+            //if (!string.IsNullOrEmpty(user.City))
+                sql.Append("City = @0, ", user.City);
+            //if (!string.IsNullOrEmpty(user.Area))
+                sql.Append("Area = @0, ", user.Area);
             sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", user.UserId);
 
             
@@ -241,15 +272,17 @@ namespace DID.Services
             //加入推荐人社区
             if (!string.IsNullOrEmpty(user.RefUserId))
             {
+                if (user.RefUserId == user.UserId)
+                    return InvokeResult.Fail("邀请码错误!");
                 var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
                 if (!string.IsNullOrEmpty(communityId))
                 {
                     var userCom = new UserCommunity()
                     {
-                        CommunityId = Guid.NewGuid().ToString(),
+                        UserCommunityId = Guid.NewGuid().ToString(),
                         CreateDate = DateTime.Now,
                         DIDUserId = user.UserId,
-                        UserCommunityId = communityId
+                        CommunityId = communityId
                     };
                     await db.InsertAsync(userCom);
                 }
@@ -275,10 +308,12 @@ namespace DID.Services
                 user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Mail = @0 and IsLogout = 0", login.Mail);
 
                 if (null == user)
-                    return InvokeResult.Fail<string>("2");//邮箱未注册!
+                    //return InvokeResult.Fail<string>("2");//邮箱未注册!
+                    return InvokeResult.Fail<string>("邮箱未注册!");
 
                 if (user.PassWord != login.Password)
-                    return InvokeResult.Fail<string>("3");//密码错误!
+                    //return InvokeResult.Fail<string>("3");//密码错误!
+                    return InvokeResult.Fail<string>("密码错误!");
             }
 
             if (!string.IsNullOrEmpty(login.WalletAddress) && !string.IsNullOrEmpty(login.Otype) && !string.IsNullOrEmpty(login.Sign))//钱包登录
@@ -305,11 +340,14 @@ namespace DID.Services
                         await db.InsertAsync(item);
                     }
                     else if (wallet.DIDUserId != user.DIDUserId)
-                        return InvokeResult.Fail<string>("4");//钱包地址错误!
+                        //return InvokeResult.Fail<string>("4");//钱包地址错误!
+                        return InvokeResult.Fail<string>("钱包地址错误!");
+
                 }
             }
             if(string.IsNullOrEmpty(user.DIDUserId))
-                return InvokeResult.Fail<string>("5");//登录错误!
+                //return InvokeResult.Fail<string>("5");//登录错误!
+                return InvokeResult.Fail<string>("登录错误");//登录错误!
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
@@ -359,13 +397,16 @@ namespace DID.Services
             var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
                                                         login.WalletAddress, login.Otype, login.Sign);
             if (!string.IsNullOrEmpty(userId) || !string.IsNullOrEmpty(walletId))
-                return InvokeResult.Fail("3");//请勿重复注册!
+                //return InvokeResult.Fail("3");//请勿重复注册!
+                return InvokeResult.Fail("请勿重复注册!");//请勿重复注册!
 
             if (!string.IsNullOrEmpty(login.RefUserId))
             {
                 var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", login.RefUserId);
-                if (string.IsNullOrEmpty(refUserId))
-                    return InvokeResult.Fail("4"); //邀请码错误!
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", login.RefUserId);
+                if (string.IsNullOrEmpty(refUserId) || string.IsNullOrEmpty(communityId))//邀请码必须加入社区
+                    //return InvokeResult.Fail("4"); //邀请码错误!
+                     return InvokeResult.Fail("邀请码错误!"); //邀请码错误!
             }
 
             db.BeginTransaction();
@@ -392,10 +433,10 @@ namespace DID.Services
                 {
                     var userCom = new UserCommunity()
                     {
-                        CommunityId = Guid.NewGuid().ToString(),
+                        UserCommunityId = Guid.NewGuid().ToString(),
                         CreateDate = DateTime.Now,
                         DIDUserId = user.DIDUserId,
-                        UserCommunityId = communityId
+                        CommunityId = communityId
                     };
                     await db.InsertAsync(userCom);
                 }
@@ -416,6 +457,17 @@ namespace DID.Services
                 };
                 await db.InsertAsync(wallet);
             }
+
+            //添加现金支付
+            var pay = new Payment() { 
+                Type = PayType.现金支付,
+                CreateDate = DateTime.Now,
+                IsDelete = IsEnum.否,
+                IsEnable = IsEnum.否,
+                DIDUserId = userId,
+                PaymentId = Guid.NewGuid().ToString()
+            };
+            await db.InsertAsync(pay);
             db.CompleteTransaction();
 
             return InvokeResult.Success("用户注册成功!");
@@ -474,12 +526,15 @@ namespace DID.Services
         }
 
         //48小时后注销
-        private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
+        //private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
+        private readonly System.Timers.Timer t = new(60000);
         /// <summary>
         /// 用户注销
         /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="reason"></param>
         /// <returns></returns>
-        public async Task<Response> Logout(string userId)
+        public async Task<Response> Logout(string userId, string reason)
         {
             //todo:判断注销条件
             using var db = new NDatabase();
@@ -498,7 +553,8 @@ namespace DID.Services
                 DIDUserId = userId,
                 UserLogoutId = Guid.NewGuid().ToString(),
                 SubmitDate = DateTime.Now,
-                IsCancel = IsEnum.否
+                IsCancel = IsEnum.否,
+                Reason = reason
             };
             await db.InsertAsync(item);
 
@@ -566,9 +622,11 @@ namespace DID.Services
         /// 获取团队信息
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="IsAuth"></param>
+        /// <param name="isAuth"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<TeamInfoRespon>> GetUserTeam(string userId,bool IsAuth)
+        public async Task<Response<TeamInfoRespon>> GetUserTeam(string userId,bool? isAuth, long page, long itemsPerPage)
         {
             using var db = new NDatabase();
             var model = new TeamInfoRespon();
@@ -578,30 +636,66 @@ namespace DID.Services
                         "select a.DIDUserId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
                         "select Count(*) from temp", userId);
 
+            model.PushNumber = await db.FirstOrDefaultAsync<int>("select Count(*) from DIDUser where RefUserId = @0 and IsLogout = 0", userId);
+
             //默认展示6级
             var list = await db.FetchAsync<DIDUser>(";with temp as \n" +
                                                     "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
                                                     "union all \n" +
                                                     "select a.*,temp.Level+1 Level  from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and a.IsLogout = 0) \n" +
-                                                    "select * from temp ", userId);
+                                                    "select * from temp order by (select null)\n" +
+                                                    "offset @1 rows fetch next @2 rows only", userId, (page - 1) * itemsPerPage, itemsPerPage);
 
             //todo:dao审核通过可以看所有数据
 
             //根据标签过滤数据
-            if(IsAuth)
+            if(null != isAuth && isAuth == true)
                 list = list.Where(a => a.AuthType == AuthTypeEnum.审核成功).ToList();
+
+            if (null != isAuth && isAuth == false)
+                list = list.Where(a => a.AuthType != AuthTypeEnum.审核成功).ToList();
 
             var users = list.Select(a => new TeamUser()
                             {
-                                Grade = a.UserNode.ToString(),
+                                Grade = a.UserNode.ToString(),//todo:获取用户等级  0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
                                 UID = a.Uid,
+                                Mail = a.Mail,
+                                Phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId),
                                 RegDate = a.RegDate,
-                                Name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId)
+                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
                             }).ToList();
-            
             model.Users = users;
 
             return InvokeResult.Success(model);
         }
+
+
+        /// <summary>
+        /// 提交团队申请
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response> TeamAuth(string userId)
+        {
+            using var db = new NDatabase();
+            var auditUserId = "e8771b3c-3b05-4830-900d-df2be0a6e9f7";//Dao审核
+
+            var id = await db.SingleOrDefaultAsync<string>("select TeamAuthId from TeamAuth where AuditType = @0 and DIDUserId = @1", TeamAuditEnum.未审核, userId);
+            if (!string.IsNullOrEmpty(id))
+            {
+                return InvokeResult.Fail("请勿重复提交!");
+            }
+
+            var item = new TeamAuth() { 
+                TeamAuthId = Guid.NewGuid().ToString(),
+                AuditType = TeamAuditEnum.未审核,
+                CreateDate = DateTime.Now,
+                DIDUserId = userId,
+                AuditUserId = auditUserId
+            };
+            await db.InsertAsync(item);
+            return InvokeResult.Success("提交成功!");
+        }
+
     }
 }

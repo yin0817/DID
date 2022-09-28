@@ -6,13 +6,13 @@ using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
-namespace DID.Controllers
+namespace DID.Services
 {
     /// <summary>
     /// 社区接口
     /// </summary>
     public interface ICommunityService
-    { 
+    {
         /// <summary>
         /// 设置用户社区选择（未填邀请码）
         /// </summary>
@@ -25,7 +25,7 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<Response<ComSelect>> GetComSelect(string userId);
+        Task<Response<ComSelectRespon>> GetComSelect(string userId);
 
         /// <summary>
         /// 获取已有社区位置
@@ -51,34 +51,43 @@ namespace DID.Controllers
         /// <param name="city"></param>
         /// <param name="area"></param>
         /// <returns></returns>
-        Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area);
+        Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetBackCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetBackCom(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId);
+        Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId, IsEnum isDao, long page, long itemsPerPage);
 
         /// <summary>
         /// 社区申请审核
         /// </summary>
         /// <returns> </returns>
-        Task<Response> AuditCommunity(string communityId, string userId, AuditTypeEnum auditType, string remark);
+        Task<Response> AuditCommunity(string communityId, string userId, AuditTypeEnum auditType, string? remark);
 
         /// <summary>
         /// 查询社区信息
@@ -96,19 +105,31 @@ namespace DID.Controllers
         /// 社区申请
         /// </summary>
         /// <returns> </returns>
-        Task<Response> ApplyCommunity(Community item);
+        Task<Response<string>> ApplyCommunity(Community item);
         /// <summary>
         /// 社区图片上传 1 请上传文件! 2 文件类型错误!
         /// </summary>
         /// <returns></returns>
         Task<Response> UploadImage(IFormFile file);
+        /// <summary>
+        /// 获取社区审核失败信息
+        /// </summary>
+        /// <param name="communityId"></param>
+        /// <returns></returns>
+        Task<Response<List<AuthInfo>>> GetComAuthFail(string communityId);
+
+        /// <summary>
+        /// 查询社区信息
+        /// </summary>
+        /// <returns> </returns>
+        Task<Response<Community>> GetCommunityInfoById(string communityId);
 
     }
     /// <summary>
     /// 社区服务
     /// </summary>
     public class CommunityService : ICommunityService
-{
+    {
         private readonly ILogger<CommunityService> _logger;
 
         /// <summary>
@@ -125,11 +146,30 @@ namespace DID.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<Response<ComSelect>> GetComSelect(string userId)
+        public async Task<Response<ComSelectRespon>> GetComSelect(string userId)
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultAsync<ComSelect>("select * from ComSelect where DIDUserId = @0", userId);
-            return InvokeResult.Success(item);
+            if (null == item)
+                return InvokeResult.Success(new ComSelectRespon());
+
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = 'COUNTRIES'", item.Country);
+
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", item.Province, item.Country);
+
+            var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", item.City, item.Province);
+
+            var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", item.Area, item.City);
+
+
+            var respon = new ComSelectRespon()
+            {
+                country = new Area() { code = item.Country, name = country },
+                province = new Area() { code = item.Province, name = province },
+                city = new Area() { code = item.City, name = city },
+                county = new Area() { code = item.Area, name = area }
+            };
+            return InvokeResult.Success(respon);
         }
 
         /// <summary>
@@ -141,9 +181,30 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             var id = await db.SingleOrDefaultAsync<string>("select ComSelectId from ComSelect where DIDUserId = @0", req.UserId);
-            if(!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrEmpty(id))
                 return InvokeResult.Fail("1"); //请勿重复设置!
-            var item = new ComSelect() { 
+            var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = 'COUNTRIES'", req.Country);
+            var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.Province, req.Country);
+            if (string.IsNullOrEmpty(country) || string.IsNullOrEmpty(province))
+                return InvokeResult.Fail("2"); //位置信息错误!
+
+            if (!string.IsNullOrEmpty(req.City))
+            {
+                var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.City, req.Province);
+                if (string.IsNullOrEmpty(city))
+                    return InvokeResult.Fail("2"); //位置信息错误!
+            }
+
+            if (!string.IsNullOrEmpty(req.Area))
+            {
+                var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.Area, req.City);
+                if (string.IsNullOrEmpty(area))
+                    return InvokeResult.Fail("2"); //位置信息错误!
+            }
+            
+            
+            var item = new ComSelect()
+            {
                 ComSelectId = Guid.NewGuid().ToString(),
                 DIDUserId = req.UserId,
                 Country = req.Country,
@@ -180,7 +241,8 @@ namespace DID.Controllers
             var countys = new Dictionary<string, string>();
             county_list.ForEach(a => countys.Add(a.code, a.name));
 
-            var item = new ComAddrRespon(){
+            var item = new ComAddrRespon()
+            {
                 country_list = country,
                 province_list = provinces,
                 city_list = citys,
@@ -197,7 +259,7 @@ namespace DID.Controllers
         public async Task<Response<int>> GetComNum(string country, string province, string city, string area)
         {
             using var db = new NDatabase();
-            var num = await db.SingleOrDefaultAsync<int>("select count(1) from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4", 
+            var num = await db.SingleOrDefaultAsync<int>("select count(1) from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
                 country, province, city, area, AuthTypeEnum.审核成功);
             return InvokeResult.Success(num);
         }
@@ -206,16 +268,19 @@ namespace DID.Controllers
         /// 获取当前位置社区信息
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area)
+        public async Task<Response<List<ComRespon>>> GetComList(string country, string province, string city, string area, long page, long itemsPerPage)
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Community>("select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
-                country, province, city, area, AuthTypeEnum.审核成功);
+            //var list = await db.FetchAsync<Community>("select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
+            //    country, province, city, area, AuthTypeEnum.审核成功);
+            var list = (await db.PageAsync<Community>(page, itemsPerPage, "select * from Community where Country = @0 and Province = @1 and City = @2 and Area = @3 and AuthType = @4",
+                country, province, city, area, AuthTypeEnum.审核成功)).Items;
 
             var result = new List<ComRespon>();
             foreach (var item in list)
             {
-                result.Add(new ComRespon() { 
+                result.Add(new ComRespon()
+                {
                     Name = item.ComName,
                     Describe = item.ComName,
                     Image = item.Image,
@@ -230,7 +295,7 @@ namespace DID.Controllers
         /// 社区申请
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response> ApplyCommunity(Community item)
+        public async Task<Response<string>> ApplyCommunity(Community item)
         {
             using var db = new NDatabase();
             item.CommunityId = Guid.NewGuid().ToString();
@@ -239,14 +304,14 @@ namespace DID.Controllers
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
                 var authType = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from Community where CommunityId = @0", user.ApplyCommunityId);
-                if(authType != AuthTypeEnum.未审核 && authType != AuthTypeEnum.审核失败)
-                    return InvokeResult.Fail("请勿重复申请!");
+                if (authType != AuthTypeEnum.未审核 && authType != AuthTypeEnum.审核失败)
+                    return InvokeResult.Fail<string>("请勿重复申请!");
             }
             user.ApplyCommunityId = item.CommunityId;
-            
+
             var refUserId = await db.FirstOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", item.DIDUserId);//邀请人
             if (string.IsNullOrEmpty(refUserId))
-                return InvokeResult.Fail("邀请人未找到!");
+                return InvokeResult.Fail<string>("邀请人未找到!");
 
             item.RefDIDUserId = refUserId;
             item.RefCommunityId = await db.FirstOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", refUserId);//邀请人社区
@@ -270,7 +335,10 @@ namespace DID.Controllers
             await db.UpdateAsync(user);
             db.CompleteTransaction();
 
-            return InvokeResult.Success("申请成功!");
+            //Dao审核
+            ToDaoAuth(auth.ComAuthId);
+
+            return InvokeResult.Success<string>(item.CommunityId);
         }
 
         /// <summary>
@@ -281,10 +349,12 @@ namespace DID.Controllers
         {
             using var db = new NDatabase();
             var model = await db.SingleOrDefaultByIdAsync<Community>(item.CommunityId);
-            model.Image = "Images/ComImges/" + item.Image;
+            if (null == model)
+                return InvokeResult.Fail("社区未找到!");
+            model.Image = item.Image;
             model.Describe = item.Describe;
             model.Telegram = item.Telegram;
-            model.Describe = item.Describe;
+            model.Discord = item.Discord;
             model.QQ = item.QQ;
             await db.UpdateAsync(model);
             return InvokeResult.Success("添加成功!");
@@ -297,7 +367,19 @@ namespace DID.Controllers
         public async Task<Response<Community>> GetCommunityInfo(string userId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId); 
+            var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
+
+            return InvokeResult.Success(item);
+        }
+
+        /// <summary>
+        /// 查询社区信息
+        /// </summary>
+        /// <returns> </returns>
+        public async Task<Response<Community>> GetCommunityInfoById(string communityId)
+        {
+            using var db = new NDatabase();
+            var item = await db.SingleOrDefaultByIdAsync<Community>(communityId);
 
             return InvokeResult.Success(item);
         }
@@ -306,12 +388,13 @@ namespace DID.Controllers
         /// 社区申请审核
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response> AuditCommunity(string communityId, string userId, AuditTypeEnum auditType, string remark)
+        public async Task<Response> AuditCommunity(string communityId, string userId, AuditTypeEnum auditType, string? remark)
         {
             using var db = new NDatabase();
-            var authinfo = await db.SingleByIdAsync<Community>(communityId);
+            var authinfo = await db.SingleOrDefaultByIdAsync<Community>(communityId);
             var auth = await db.SingleOrDefaultAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and AuditUserId = @1", communityId, userId);
-
+            if(null == authinfo || null == auth)
+                return InvokeResult.Fail("审核信息未找到!");
             //不会出现重复的记录 每个用户只审核一次
             if (auth.AuditType != AuditTypeEnum.未审核)
                 return InvokeResult.Fail("已审核!");
@@ -328,8 +411,8 @@ namespace DID.Controllers
             {
                 await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
 
-                //更改用户社区信息为自己的社区
-                await db.ExecuteAsync("update UserCommunity set CommunityId = @0 where DIDUserId = @1", communityId, authinfo.DIDUserId);
+                //更改用户社区信息为自己的社区 加入时间
+                await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
@@ -352,6 +435,9 @@ namespace DID.Controllers
                 };
 
                 await db.InsertAsync(nextAuth);
+
+                //Dao审核
+                ToDaoAuth(nextAuth.ComAuthId);
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
@@ -377,12 +463,16 @@ namespace DID.Controllers
         /// 获取已审核审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetAuditedCom(string userId,IsEnum isDao, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -394,7 +484,7 @@ namespace DID.Controllers
                     RefName = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.RefDIDUserId),
                     Address = community.Address,
                     ComName = community.ComName,
-                    Country  = community.Country,
+                    Country = community.Country,
                     Province = community.Province,
                     City = community.City,
                     Area = community.Area,
@@ -407,11 +497,13 @@ namespace DID.Controllers
                     Mail = community.Mail,
                     Phone = community.Phone,
                     QQ = community.QQ,
+                    AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
-                    Telegram = community.Telegram
+                    Telegram = community.Telegram,
+                    Eotc = 10000//调接口查eotc总数
                 };
 
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", item.CommunityId);
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -422,7 +514,8 @@ namespace DID.Controllers
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     });
                 }
                 authinfo.Auths = list;
@@ -435,12 +528,16 @@ namespace DID.Controllers
         /// 获取未审核信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetUnauditedCom(string userId, IsEnum isDao, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -465,11 +562,13 @@ namespace DID.Controllers
                     Mail = community.Mail,
                     Phone = community.Phone,
                     QQ = community.QQ,
+                    AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
-                    Telegram = community.Telegram
+                    Telegram = community.Telegram,
+                    Eotc = 10000//调接口查eotc总数
                 };
 
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", item.CommunityId);
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -480,7 +579,8 @@ namespace DID.Controllers
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     });
                 }
                 authinfo.Auths = list;
@@ -493,12 +593,16 @@ namespace DID.Controllers
         /// 获取打回信息
         /// </summary>
         /// <param name="userId"></param>
+        /// <param name="isDao"></param>
+        /// <param name="page"></param>
+        /// <param name="itemsPerPage"></param>
         /// <returns></returns>
-        public async Task<Response<List<ComAuthRespon>>> GetBackCom(string userId)
+        public async Task<Response<List<ComAuthRespon>>> GetBackCom(string userId,IsEnum isDao, long page, long itemsPerPage)
         {
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
-            var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0", userId);
+            //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0", userId);
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -523,11 +627,13 @@ namespace DID.Controllers
                     Mail = community.Mail,
                     Phone = community.Phone,
                     QQ = community.QQ,
+                    AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
-                    Telegram = community.Telegram
+                    Telegram = community.Telegram,
+                    Eotc = 10000//调接口查eotc总数
                 };
-              
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", item.CommunityId);
+
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -538,7 +644,8 @@ namespace DID.Controllers
                         AuthDate = auth.AuditDate,
                         Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
                         AuditType = auth.AuditType,
-                        Remark = auth.Remark
+                        Remark = auth.Remark,
+                        IsDao = auth.IsDao
                     });
                 }
                 authinfo.Auths = list;
@@ -560,7 +667,7 @@ namespace DID.Controllers
             try
             {
                 var dir = new DirectoryInfo(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "Images/ComImges/" ));
+                    AppDomain.CurrentDomain.BaseDirectory, "Images/ComImges/"));
 
                 //保存目录不存在就创建这个目录
                 if (!dir.Exists)
@@ -575,13 +682,70 @@ namespace DID.Controllers
                     //file.CopyTo(stream);
                 }
                 //return InvokeResult.Success("Images/AuthImges/" + upload.UId + "/" + filename);
-                return InvokeResult.Success(filename);
+                return InvokeResult.Success($"Images/ComImges/{filename}");
             }
             catch (Exception e)
             {
                 _logger.LogError("UploadImage", e);
                 return InvokeResult.Fail("Fail");
             }
+        }
+
+        /// <summary>
+        /// 获取社区审核失败信息
+        /// </summary>
+        /// <param name="communityId"></param>
+        /// <returns></returns>
+        public async Task<Response<List<AuthInfo>>> GetComAuthFail(string communityId)
+        {
+            using var db = new NDatabase();
+            var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", communityId);
+            var list = new List<AuthInfo>();
+            foreach (var auth in auths)
+            {
+                list.Add(new AuthInfo()
+                {
+                    UId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", auth.AuditUserId),
+                    AuditStep = auth.AuditStep,
+                    AuthDate = auth.AuditDate,
+                    Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", auth.AuditUserId),
+                    AuditType = auth.AuditType,
+                    Remark = auth.Remark
+                });
+            }
+            return InvokeResult.Success(list);
+        }
+
+        /// <summary>
+        /// 两小时未审核去Dao审核
+        /// </summary>
+        /// <param name="authId"></param>
+        public void ToDaoAuth(string authId)
+        {
+            //两小时没人审核 自动到Dao审核
+            var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
+            t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
+            {
+                t.Stop(); //先关闭定时器
+                          //todo: Dao审核
+                using var db = new NDatabase();
+                var item = await db.SingleOrDefaultByIdAsync<ComAuth>(authId);
+
+                if (item.AuditType != AuditTypeEnum.未审核)
+                {
+                    item.IsDelete = IsEnum.是;
+                    await db.UpdateAsync(item);
+
+                    item.ComAuthId = Guid.NewGuid().ToString();
+                    item.IsDao = IsEnum.是;
+                    item.AuditUserId = "d389e5db-37d0-40cd-9d8b-0d31a0ef2c12";//Dao在线节点用户编号
+                    item.CreateDate = DateTime.Now;
+                    await db.InsertAsync(item);
+                }
+            });//到达时间的时候执行事件；
+            t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+            t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
+            t.Start(); //启动定时器
         }
     }
 }

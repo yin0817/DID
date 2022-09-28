@@ -1,4 +1,5 @@
 ﻿using DID.Common;
+using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DID.Controllers
 {
     /// <summary>
-    /// 审核认证
+    /// 信用分
     /// </summary>
     [ApiController]
     [Route("api/creditscore")]
@@ -50,12 +51,15 @@ namespace DID.Controllers
         /// <summary>
         /// 获取信用分记录和当前信用分
         /// </summary>
+        /// <param name="page">页数</param>
+        /// <param name="itemsPerPage">每页数量</param>
+        /// <param name="type">类型 0 加分 1 减分</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcreditscore")]
-        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(/*string userId*/)
+        public async Task<Response<GetCreditScoreRespon>> GetCreditScore(long page, long itemsPerPage, TypeEnum type)
         {
-            return await _service.GetCreditScore(_currentUser.UserId);
+            return await _service.GetCreditScore(_currentUser.UserId, page, itemsPerPage, type);
         }
 
     }

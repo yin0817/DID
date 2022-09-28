@@ -17,7 +17,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 用户编号
         /// </summary>
-        public string UserId
+        public string? UserId
         {
             get; set;
         }
@@ -136,7 +136,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 0 未审核 1 审核中 2 审核成功 3 审核失败
         /// </summary>
-        public AuditTypeEnum? ComAuditType
+        public AuthTypeEnum? ComAuditType
         {
             get; set;
         }
@@ -144,6 +144,20 @@ namespace DID.Models.Response
         /// 是否完善信息
         /// </summary>
         public bool? IsImprove
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否有用户审核信息
+        /// </summary>
+        public bool? HasAuth
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 是否有社区审核信息
+        /// </summary>
+        public bool? HasComAuth
         {
             get; set;
         }
