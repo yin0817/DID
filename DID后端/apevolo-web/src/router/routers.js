@@ -45,6 +45,19 @@ export const constantRouterMap = [
     ]
   },
   {
+    path: '/destroy',
+    component: Layout,
+    redirect: '/table',
+    children: [
+      {
+        path: 'destroy/table',
+        component: (resolve) => require(['@/views/destroy'], resolve),
+        name: 'DestroyTable',
+        meta: { title: '销毁hash', icon: 'index', affix: true, noCache: true }
+      }
+    ]
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,
