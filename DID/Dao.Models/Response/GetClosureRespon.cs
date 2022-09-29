@@ -1,15 +1,22 @@
 ﻿using Dao.Entity;
-using Dao.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dao.Models.Request
+namespace Dao.Models.Response
 {
-    public class GetArbitrateInfoReq : DaoBaseReq
+    public class GetClosureRespon
     {
+        /// <summary>
+        /// 编号
+        /// </summary>
+        public string ArbitrateInfoId
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 原告
         /// </summary>
@@ -17,6 +24,15 @@ namespace Dao.Models.Request
         {
             get; set;
         }
+
+        /// <summary>
+        /// 原告编号
+        /// </summary>
+        public string PlaintiffId
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 被告
         /// </summary>
@@ -24,42 +40,45 @@ namespace Dao.Models.Request
         {
             get; set;
         }
+
         /// <summary>
-        /// 订单编号
+        /// 被告编号
         /// </summary>
-        public string OrderId
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 仲裁人数
-        /// </summary>
-        public int Num
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 文字举证
-        /// </summary>
-        public string Memo
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 图片举证
-        /// </summary>
-        public string Images
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
-        /// </summary>
-        public ArbitrateInTypeEnum ArbitrateInType
+        public string DefendantId
         {
             get; set;
         }
 
+        /// <summary>
+        /// 原告票数
+        /// </summary>
+        public int PlaintiffNum
+        {
+            get; set;
+        }
 
+        /// <summary>
+        /// 被告票数
+        /// </summary>
+        public int DefendantNum
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 状态 0 举证中 1 投票中 2 原告胜 3 被告胜
+        /// </summary>
+        public ArbitrateStatusEnum Status
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 奖励或扣除EOTC数量
+        /// </summary>
+        public double EOTC
+        {
+            get; set;
+        }
     }
 }

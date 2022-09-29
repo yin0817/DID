@@ -96,7 +96,8 @@ namespace Dao.Controllers
         [Route("getarbitratedetails")]
         public async Task<Response<GetArbitrateDetailsRespon>> GetArbitrateDetails(GetArbitrateDetailsReq req) 
         {
-            return await _service.GetArbitrateDetails(req.ArbitrateInfoId);
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetArbitrateDetails(req.ArbitrateInfoId, userId);
         }
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace Dao.Controllers
         [Route("addarbitrateinfo")]
         public async Task<Response> AddArbitrateInfo(GetArbitrateInfoReq req)
         {
-            return await _service.AddArbitrateInfo(req.Plaintiff, req.Defendant, req.OrderId, req.Num, req.Memo, req.Images);
+            return await _service.AddArbitrateInfo(req.Plaintiff, req.Defendant, req.OrderId, req.Num, req.Memo, req.Images, req.ArbitrateInType);
         }
 
 
@@ -194,6 +195,94 @@ namespace Dao.Controllers
         {
             var userId = WalletHelp.GetUserId(req);
             return await _service.CancelArbitrate(userId, req.ArbitrateInfoId);
+        }
+
+        /// <summary>
+        /// 获取用户认证信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getuserinfo")]
+        public async Task<Response<RiskUserInfo>> GetUserInfo(string userId)
+        {
+            return await _service.GetUserInfo(userId);
+        }
+
+        /// <summary>
+        /// 获取仲裁消息列表
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getarbitratemessage")]
+        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId)
+        {
+            return await _service.GetArbitrateMessage(userId);
+        }
+
+        /// <summary>
+        /// 获取原被告延期消息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getarbitratedelay")]
+        public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string id, IsEnum isArbitrate)
+        {
+            return await _service.GetArbitrateDelay(id, isArbitrate);
+        }
+
+        /// <summary>
+        /// 获取取消仲裁消息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getcancelarbitrate")]
+        public async Task<Response<GetCancelArbitrateRespon>> GetCancelArbitrate(string id)
+        {
+            return await _service.GetCancelArbitrate(id);
+        }
+
+        /// <summary>
+        /// 获取追加举证消息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getadducelist")]
+        public async Task<Response<GetAdduceListRespon>> GetAdduceList(string id)
+        {
+            return await _service.GetAdduceList(id);
+        }
+
+        /// <summary>
+        /// 获取结案通知
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getclosure")]
+        public async Task<Response<GetClosureRespon>> GetClosure(string id)
+        {
+            return await _service.GetClosure(id);
+        }
+
+        /// <summary>
+        /// 设置消息为已读
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("setmessageisopen")]
+        public async Task<Response> SetMessageIsOpen(string messageId)
+        {
+            return await _service.SetMessageIsOpen(messageId);
+        }
+
+        /// <summary>
+        /// 获取仲裁员是否有未读消息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getmessageisopen")]
+        public async Task<Response<bool>> GetMessageIsOpen(string userId)
+        {
+            return await _service.GetMessageIsOpen(userId);
         }
     }
 }

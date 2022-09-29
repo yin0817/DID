@@ -26,9 +26,25 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
+        /// 原告编号
+        /// </summary>
+        public string PlaintiffId
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 被告
         /// </summary>
         public string Defendant
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告编号
+        /// </summary>
+        public string DefendantId
         {
             get; set;
         }
@@ -88,7 +104,28 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 判决原因
+        /// </summary>
+        public string Reason
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 当前仲裁员投票记录
+        /// </summary>
+        public Vote? UserVote
+        {
+            get; set;
+        }
 
+        /// <summary>
+        /// 奖励或扣除eotc数量
+        /// </summary>
+        public double? EOTC
+        {
+            get; set;
+        }
     }
 
     public class Vote
@@ -111,6 +148,14 @@ namespace Dao.Models.Response
         /// 投票状态 0 未投票 1 原告胜 2 被告胜
         /// </summary>
         public VoteStatusEnum VoteStatus
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 判决原因
+        /// </summary>
+        public string? Reason
         {
             get; set;
         }

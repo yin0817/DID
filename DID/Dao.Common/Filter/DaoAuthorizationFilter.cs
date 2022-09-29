@@ -45,9 +45,27 @@ namespace Dao.Common.ActionFilter
                             };
                         }
                     }
+                    else
+                    {
+                        context.Result = new ContentResult()
+                        {
+                            Content = JsonConvert.SerializeObject(new { Code = 401, Message = "认证失败!" }),
+                            ContentType = "application/json; charset=utf-8",
+                            StatusCode = (int)HttpStatusCode.Unauthorized
+                        };
+                    }
                 }
-
             }
+            else
+            {
+                context.Result = new ContentResult()
+                {
+                    Content = JsonConvert.SerializeObject(new { Code = 401, Message = "认证失败!" }),
+                    ContentType = "application/json; charset=utf-8",
+                    StatusCode = (int)HttpStatusCode.Unauthorized
+                };
+            }
+
             await Task.CompletedTask;
         }
         

@@ -1,15 +1,21 @@
 ﻿using Dao.Entity;
-using Dao.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dao.Models.Request
+namespace Dao.Models.Response
 {
-    public class GetArbitrateInfoReq : DaoBaseReq
+    public class GetAdduceListRespon
     {
+        /// <summary>
+        /// 编号
+        /// </summary>
+        public string ArbitrateInfoId
+        {
+            get; set;
+        }
         /// <summary>
         /// 原告
         /// </summary>
@@ -17,6 +23,23 @@ namespace Dao.Models.Request
         {
             get; set;
         }
+
+        /// <summary>
+        /// 原告编号
+        /// </summary>
+        public string PlaintiffId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告编号
+        /// </summary>
+        public string DefendantId
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 被告
         /// </summary>
@@ -24,24 +47,20 @@ namespace Dao.Models.Request
         {
             get; set;
         }
+
         /// <summary>
-        /// 订单编号
+        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
         /// </summary>
-        public string OrderId
+        public ArbitrateInTypeEnum ArbitrateInType
         {
             get; set;
         }
+
+
         /// <summary>
-        /// 仲裁人数
+        /// 举证人编号
         /// </summary>
-        public int Num
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 文字举证
-        /// </summary>
-        public string Memo
+        public string AdduceUserId
         {
             get; set;
         }
@@ -53,13 +72,11 @@ namespace Dao.Models.Request
             get; set;
         }
         /// <summary>
-        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+        /// 文字举证
         /// </summary>
-        public ArbitrateInTypeEnum ArbitrateInType
+        public string Memo
         {
             get; set;
         }
-
-
     }
 }

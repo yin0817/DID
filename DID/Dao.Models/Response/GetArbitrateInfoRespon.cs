@@ -1,4 +1,5 @@
 ﻿using Dao.Entity;
+using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,9 +27,25 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
+        /// 原告编号
+        /// </summary>
+        public string PlaintiffId
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 被告
         /// </summary>
         public string Defendant
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告编号
+        /// </summary>
+        public string DefendantId
         {
             get; set;
         }
@@ -50,7 +67,7 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
-        /// 状态 0 举证中 1 投票中 2 取消 3 原告胜 4 被告胜
+        /// 状态 0 举证中 1 投票中 2 原告胜 3 被告胜
         /// </summary>
         public ArbitrateStatusEnum Status
         {
@@ -72,5 +89,45 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+        /// </summary>
+        public ArbitrateInTypeEnum ArbitrateInType
+        {
+            get; set;
+        }
+
+        ///// <summary>
+        ///// false 败诉 true 胜诉
+        ///// </summary>
+        //public bool IsVictory
+        //{
+        //    get; set;
+        //}
+        /// <summary>
+        /// 投票状态 0 未投票 1 原告胜 2 被告胜
+        /// </summary>
+        public VoteStatusEnum VoteStatus
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 奖励或扣除EOTC数量
+        /// </summary>
+        public double EOTC
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否取消
+        /// </summary>
+        public IsEnum IsCancel
+        {
+            get; set;
+        }
+
     }
 }

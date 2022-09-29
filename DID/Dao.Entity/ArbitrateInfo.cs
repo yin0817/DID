@@ -14,6 +14,16 @@ namespace Dao.Entity
     public enum ArbitrateStatusEnum { 举证中, 投票中, 原告胜, 被告胜 }
 
     /// <summary>
+    /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+    /// </summary>
+    public enum ArbitrateInTypeEnum { 账户被冻结, 卖家未确认收款, 其他 }
+
+    /// <summary>
+    /// 取消原因 0 与被告方达成和解 1 单方面撤诉
+    /// </summary>
+    public enum CancelReasonEnum { 与被告方达成和解, 单方面撤诉 }
+
+    /// <summary>
     /// 仲裁信息
     /// </summary>
     [PrimaryKey("ArbitrateInfoId", AutoIncrement = false)]
@@ -95,6 +105,22 @@ namespace Dao.Entity
         /// 是否取消
         /// </summary>
         public IsEnum IsCancel
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+        /// </summary>
+        public ArbitrateInTypeEnum ArbitrateInType
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 取消原因 0 与被告方达成和解 1 单方面撤诉
+        /// </summary>
+        public CancelReasonEnum CancelReason
         {
             get; set;
         }
