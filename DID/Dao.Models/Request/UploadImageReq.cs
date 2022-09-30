@@ -7,20 +7,12 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Request
 {
-    public class RemoveRiskReq : DaoBaseReq
+    public class UploadImageReq : DaoBaseReq
     {
         /// <summary>
-        /// 编号
+        /// 类型
         /// </summary>
-        public string UserRiskId
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// 认证图片
-        /// </summary>
-        public string? Images
+        public string Type
         {
             get; set;
         }

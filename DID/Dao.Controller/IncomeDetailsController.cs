@@ -55,9 +55,9 @@ namespace Dao.Controllers
         /// <param name="itemsPerPage">每页数量</param>
         [HttpPost]
         [Route("getincomedetails")]
-        public async Task<Response<List<IncomeDetailsRespon>>> GetIncomeDetails(DaoBaseReq req, long page, long itemsPerPage)
+        public async Task<Response<List<IncomeDetailsRespon>>> GetIncomeDetails(DaoBasePageReq req)
         {
-            return await _service.GetIncomeDetails(req, page, itemsPerPage);
+            return await _service.GetIncomeDetails(req, req.Page, req.ItemsPerPage);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Dao.Models.Base;
+using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,20 +8,13 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Request
 {
-    public class RemoveRiskReq : DaoBaseReq
+    public class GetArbitrateDelayReq : DaoBaseReq
     {
-        /// <summary>
-        /// 编号
-        /// </summary>
-        public string UserRiskId
+        public string Id
         {
             get; set;
         }
-
-        /// <summary>
-        /// 认证图片
-        /// </summary>
-        public string? Images
+        public IsEnum IsArbitrate
         {
             get; set;
         }

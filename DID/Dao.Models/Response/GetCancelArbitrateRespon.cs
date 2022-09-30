@@ -59,7 +59,7 @@ namespace Dao.Models.Response
         /// <summary>
         /// 取消原因 0 与被告方达成和解 1 单方面撤诉
         /// </summary>
-        public CancelReasonEnum Reason
+        public string? Reason
         {
             get; set;
         }

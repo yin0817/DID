@@ -55,16 +55,16 @@ namespace Dao.Controllers
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        [HttpPost]
-        [Route("uploadimage")]
-        public async Task<Response> UploadImage(string type)
-        {
-            var files = Request.Form.Files;
-            if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
-            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
+        //[HttpPost]
+        //[Route("uploadimage")]
+        //public async Task<Response> UploadImage(string type)
+        //{
+        //    var files = Request.Form.Files;
+        //    if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
+        //    if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
 
-            return await _service.UploadImage(files[0],type);
-        }
+        //    return await _service.UploadImage(files[0],type);
+        //}
 
         /// <summary>
         /// 获取工单列表
@@ -86,9 +86,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getworkorder")]
-        public async Task<Response<GetWorkOrderRespon>> GetWorkOrder(string workOrderId)
+        public async Task<Response<GetWorkOrderRespon>> GetWorkOrder(GetWorkOrderReq req)
         { 
-            return await _service.GetWorkOrder(workOrderId);
+            return await _service.GetWorkOrder(req.WorkOrderId);
         }
 
         /// <summary>

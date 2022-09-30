@@ -27,6 +27,8 @@ namespace Dao.Controllers
 
         private readonly IArbitrateService _service;
 
+        
+
         /// <summary>
         /// 
         /// </summary>
@@ -82,7 +84,7 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getarbitrateinfo")]
-        public async Task<Response<List<GetArbitrateInfoRespon>>> GetArbitrateInfo()
+        public async Task<Response<List<GetArbitrateInfoRespon>>> GetArbitrateInfo(DaoBaseReq req)
         {
             return await _service.GetArbitrateInfo();
         }
@@ -203,9 +205,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getuserinfo")]
-        public async Task<Response<RiskUserInfo>> GetUserInfo(string userId)
+        public async Task<Response<RiskUserInfo>> GetUserInfo(DaoBaseByIdReq req)
         {
-            return await _service.GetUserInfo(userId);
+            return await _service.GetUserInfo(req.Id);
         }
 
         /// <summary>
@@ -214,20 +216,22 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getarbitratemessage")]
-        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId)
+        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(DaoBaseReq req)
         {
+            var userId = WalletHelp.GetUserId(req);
             return await _service.GetArbitrateMessage(userId);
         }
 
         /// <summary>
-        /// 获取原被告延期消息
+        /// 获取延期消息
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         [Route("getarbitratedelay")]
-        public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string id, IsEnum isArbitrate)
+        public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(GetArbitrateDelayReq req)
         {
-            return await _service.GetArbitrateDelay(id, isArbitrate);
+
+            return await _service.GetArbitrateDelay(req.Id, req.IsArbitrate);
         }
 
         /// <summary>
@@ -236,9 +240,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getcancelarbitrate")]
-        public async Task<Response<GetCancelArbitrateRespon>> GetCancelArbitrate(string id)
+        public async Task<Response<GetCancelArbitrateRespon>> GetCancelArbitrate(DaoBaseByIdReq req)
         {
-            return await _service.GetCancelArbitrate(id);
+            return await _service.GetCancelArbitrate(req.Id);
         }
 
         /// <summary>
@@ -247,9 +251,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getadducelist")]
-        public async Task<Response<GetAdduceListRespon>> GetAdduceList(string id)
+        public async Task<Response<GetAdduceListRespon>> GetAdduceList(DaoBaseByIdReq req)
         {
-            return await _service.GetAdduceList(id);
+            return await _service.GetAdduceList(req.Id);
         }
 
         /// <summary>
@@ -258,9 +262,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getclosure")]
-        public async Task<Response<GetClosureRespon>> GetClosure(string id)
+        public async Task<Response<GetClosureRespon>> GetClosure(DaoBaseByIdReq req)
         {
-            return await _service.GetClosure(id);
+            return await _service.GetClosure(req.Id);
         }
 
         /// <summary>
@@ -269,9 +273,9 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("setmessageisopen")]
-        public async Task<Response> SetMessageIsOpen(string messageId)
+        public async Task<Response> SetMessageIsOpen(DaoBaseByIdReq req)
         {
-            return await _service.SetMessageIsOpen(messageId);
+            return await _service.SetMessageIsOpen(req.Id);
         }
 
         /// <summary>
@@ -280,9 +284,23 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getmessageisopen")]
-        public async Task<Response<bool>> GetMessageIsOpen(string userId)
+        public async Task<Response<bool>> GetMessageIsOpen(DaoBaseReq req)
         {
+            var userId = WalletHelp.GetUserId(req);
             return await _service.GetMessageIsOpen(userId);
         }
+
+        /// <summary>
+        /// 获取被告待处理消息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getwaitmessage")]
+        public async Task<Response<int>> GetWaitMessage(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetWaitMessage(userId);
+        }
+
     }
 }

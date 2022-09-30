@@ -11,6 +11,14 @@ namespace Dao.Models.Response
     public class GetArbitrateMessageRespon
     {
         /// <summary>
+        /// 编号
+        /// </summary>
+        public string ArbitrateMessageId
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 消息类型 0 申请延期 1 追加举证 2 仲裁取消
         /// </summary>
         public MessageTypeEnum MessageType

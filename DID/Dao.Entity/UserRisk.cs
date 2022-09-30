@@ -86,5 +86,13 @@ namespace Dao.Entity
         {
             get; set;
         }
+
+        /// <summary>
+        /// 审核图片
+        /// </summary>
+        public string? Images
+        {
+            get; set;
+        }
     }
 }

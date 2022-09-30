@@ -57,7 +57,7 @@ namespace Dao.Entity
         /// <summary>
         /// 投票日期
         /// </summary>
-        public DateTime VoteDate
+        public DateTime? VoteDate
         {
             get; set;
         }

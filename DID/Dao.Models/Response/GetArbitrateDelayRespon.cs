@@ -67,7 +67,7 @@ namespace Dao.Models.Response
         /// <summary>
         /// 原因 0  举证时间不足 1 核实信息还在审核中 （仲裁员）2 举证不足,无法进行判决 3 部分举证不全
         /// </summary>
-        public ReasonEnum Reason
+        public string? Reason
         {
             get; set;
         }

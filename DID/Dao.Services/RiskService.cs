@@ -121,7 +121,6 @@ namespace Dao.Services
                         Reason = req.Reason,
                         CreateDate = DateTime.Now,
                         IsDelete = IsEnum.否
-
                     })
                 );
 
@@ -223,6 +222,7 @@ namespace Dao.Services
             if (item.AuthStatus == RiskStatusEnum.核对成功 && item.AuditUserId == userId)
             {
                 item.IsRemoveRisk = IsEnum.是;
+                item.Images = req.Images;
                 await db.UpdateAsync(item);
 
                 var list = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0", item.DIDUserId);

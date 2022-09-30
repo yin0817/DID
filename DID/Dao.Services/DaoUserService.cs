@@ -137,11 +137,12 @@ namespace Dao.Services
             }
 
 
-            return InvokeResult.Success<GetDaoInfoRespon>(new GetDaoInfoRespon() { 
+            return InvokeResult.Success(new GetDaoInfoRespon() { 
                 DaoEOTC = user.DaoEOTC,
                 IsExamine = user.IsExamine,
                 IsArbitrate = user.IsArbitrate,
-                RiskLevel = user.RiskLevel
+                RiskLevel = user.RiskLevel,
+                AuthType = user.AuthType
             });
         }
     }

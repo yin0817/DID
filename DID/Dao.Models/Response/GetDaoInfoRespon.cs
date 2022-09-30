@@ -40,5 +40,13 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// 认证状态
+        /// </summary>
+        public AuthTypeEnum AuthType
+        {
+            get; set;
+        }
     }
 }

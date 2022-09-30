@@ -129,5 +129,12 @@ namespace Dao.Models.Response
             get; set;
         }
 
+        /// <summary>
+        /// 是否提交延期申请
+        /// </summary>
+        public bool HasDelay
+        {
+            get; set;
+        }
     }
 }
