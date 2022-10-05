@@ -6,55 +6,40 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Response
 {
-    public class RiskUserInfo
+    public class GetAuditorRespon
     {
         /// <summary>
-        /// 用户姓名
+        /// 姓名
         /// </summary>
-        public string Name
+        public string? Name
         {
             get; set;
         }
         /// <summary>
-        /// 手机号
+        /// 审核员编号
         /// </summary>
-        public string PhoneNum
+        public string? Number
         {
             get; set;
         }
         /// <summary>
-        /// 证件号
+        /// 创建日期 默认为当前时间
         /// </summary>
-        public string IdCard
+        public DateTime? CreateDate
         {
             get; set;
         }
         /// <summary>
-        /// 人像面
+        /// 审核收益
         /// </summary>
-        public string? PortraitImage
+        public double EOTC
         {
             get; set;
         }
         /// <summary>
-        /// 国徽面
+        /// 审核次数
         /// </summary>
-        public string? NationalImage
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 手持证件照
-        /// </summary>
-        public string? HandHeldImage
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// 认证图片
-        /// </summary>
-        public string? Image
+        public int ExamineNum
         {
             get; set;
         }

@@ -36,6 +36,20 @@ namespace Dao.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Response<GetDaoInfoRespon>> GetDaoInfo(string userId);
+
+        /// <summary>
+        /// 获取审核员信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response<GetAuditorRespon>> GetAuditor(string userId);
+
+        /// <summary>
+        /// 解除审核员身份
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response> RelieveAuditor(string userId);
     }
 
     /// <summary>
@@ -68,13 +82,16 @@ namespace Dao.Services
             {
                 return InvokeResult.Fail("用户信息未找到!");
             }
+            if(user.AuthType != AuthTypeEnum.审核成功)
+                return InvokeResult.Fail("用户未认证!");
+            if (user.EOTC < 5000)
+                return InvokeResult.Fail("质押EOTC数量不足!");
             if (user.IsArbitrate == IsEnum.是)
                 return InvokeResult.Fail("请勿重复设置!");
+
+
             user.IsArbitrate = IsEnum.是;
                 
-           
-
-
             var date = DateTime.Now.ToString("yyyyMMddHHmmss");
             var nums = await db.FetchAsync<string>("select Number from UserArbitrate order by Number Desc");
 
@@ -113,14 +130,88 @@ namespace Dao.Services
             {
                 return InvokeResult.Fail("用户信息未找到!");
             }
+            if (user.AuthType != AuthTypeEnum.审核成功)
+                return InvokeResult.Fail("用户未认证!");
+            if (user.EOTC < 5000)
+                return InvokeResult.Fail("质押EOTC数量不足!");
             if (user.IsExamine == IsEnum.是)
                 return InvokeResult.Fail("请勿重复设置!");
             user.IsExamine = IsEnum.是;
+
+            var date = DateTime.Now.ToString("yyyyMMddHHmmss");
+            var nums = await db.FetchAsync<string>("select Number from UserArbitrate order by Number Desc");
+
+            var number = "";
+            if (nums.Count > 0 && nums[0]?.Substring(0, 14) == date)
+                number = date + (Convert.ToInt32(nums[0].Substring(14, nums[0].Length - 14)) + 1);
+            else
+                number = date + 1;
+
+            var model = new UserExamine()
+            {
+                CreateDate = DateTime.Now,
+                DIDUserId = userId,
+                UserExamineId = Guid.NewGuid().ToString(),
+                Number = number
+            };
+
+            db.BeginTransaction();
+            await db.UpdateAsync(user);
+            await db.InsertAsync(model);
+            db.CompleteTransaction();
 
             await db.UpdateAsync(user);
 
             return InvokeResult.Success("设置成功!");
         }
+
+        /// <summary>
+        /// 获取审核员信息
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response<GetAuditorRespon>> GetAuditor(string userId)
+        {
+            var db = new NDatabase();
+
+            var model = await db.SingleOrDefaultAsync<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
+
+
+
+            return InvokeResult.Success(new GetAuditorRespon
+            {
+                ExamineNum = model.ExamineNum,
+                CreateDate = model.CreateDate,
+                EOTC = model.EOTC,
+                Number = model.Number,
+                Name = WalletHelp.GetName(userId)
+            });
+        }
+
+
+        /// <summary>
+        /// 解除审核员身份
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response> RelieveAuditor(string userId)
+        {
+            var db = new NDatabase();
+
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            user.IsExamine = IsEnum.否;
+
+            var model = await db.SingleOrDefaultAsync<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
+            model.IsDelete = IsEnum.是;
+
+            db.BeginTransaction();
+            await db.UpdateAsync(user);
+            await db.UpdateAsync(model);
+            db.CompleteTransaction();
+
+            return InvokeResult.Success("解除成功!");
+        }
+
 
         /// <summary>
         /// 获取Dao用户信息
@@ -135,7 +226,6 @@ namespace Dao.Services
             {
                 return InvokeResult.Fail<GetDaoInfoRespon>("用户信息未找到!");
             }
-
 
             return InvokeResult.Success(new GetDaoInfoRespon() { 
                 DaoEOTC = user.DaoEOTC,

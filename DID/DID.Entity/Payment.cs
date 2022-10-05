@@ -7,7 +7,7 @@ namespace DID.Entitys
     /// </summary>
     public enum PayType { 现金支付, 银行卡, 支付宝, 微信支付 }
     /// <summary>
-    /// 是否删除 0 否 1 是
+    ///  0 否 1 是
     /// </summary>
     public enum IsEnum { 否, 是 }
 

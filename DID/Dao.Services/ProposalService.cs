@@ -22,9 +22,9 @@ namespace Dao.Services
         /// <summary>
         /// 获取提案详情
         /// </summary>
-        /// <param name="proposalId"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response<GetProposalRespon>> GetProposal(string proposalId, DaoBaseReq wallet);
+        Task<Response<GetProposalRespon>> GetProposal(DaoBaseByIdReq req);
 
         /// <summary>
         /// 获取提案列表
@@ -47,7 +47,7 @@ namespace Dao.Services
         /// <param name="proposalId"></param>
         /// <param name="req"></param>
         /// <returns></returns>
-        Task<Response> CancelProposal(DaoBaseReq req, string proposalId);
+        Task<Response> CancelProposal(DaoBaseByIdReq req);
 
         /// <summary>
         /// 投票
@@ -80,11 +80,17 @@ namespace Dao.Services
         /// <returns></returns>
         public async Task<Response> AddProposal(ProposalReq req)
         {
-            //todo: 10000EOTC 才能提案
+           
 
             using var db = new NDatabase();
             var walletId = WalletHelp.GetWalletId(req);
             var userId = WalletHelp.GetUserId(req);
+            //10000EOTC 才能提案
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return InvokeResult.Fail("用户信息未找到!");
+            if(user.EOTC < 10000)
+                return InvokeResult.Fail("质押EOTC数量不足!");
             var item = new Proposal
             {
                 ProposalId = Guid.NewGuid().ToString(),
@@ -106,10 +112,10 @@ namespace Dao.Services
         /// <param name="proposalId"></param>
         /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response<GetProposalRespon>> GetProposal(string proposalId, DaoBaseReq req)
+        public async Task<Response<GetProposalRespon>> GetProposal(DaoBaseByIdReq req)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
+            var item = await db.SingleOrDefaultByIdAsync<Proposal>(req.Id);
             if(null == item)
                 return InvokeResult.Fail<GetProposalRespon>("提案信息未找到!");
 
@@ -119,7 +125,7 @@ namespace Dao.Services
                "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0", req.WalletAddress, req.Otype, req.Sign);
 
             var userVoteId = await db.SingleOrDefaultAsync<string>("select UserVoteId from UserVote where DIDUserId = @0 and ProposalId = @1",
-                userId, proposalId);
+                userId, req.Id);
 
 
             var model = new GetProposalRespon()
@@ -129,7 +135,7 @@ namespace Dao.Services
                 State = item.State,
                 CreateDate = item.CreateDate,
                 Summary = item.Summary,
-                ProposalId = proposalId,
+                ProposalId = req.Id,
                 FavorVotes = item.FavorVotes,
                 OpposeVotes = item.OpposeVotes,
                 PeopleNum = item.PeopleNum,
@@ -188,11 +194,11 @@ namespace Dao.Services
         /// <param name="req"></param>
         /// <param name="proposalId"></param>
         /// <returns></returns>
-        public async Task<Response> CancelProposal(DaoBaseReq req,string proposalId)
+        public async Task<Response> CancelProposal(DaoBaseByIdReq req)
         {
             var walletId = WalletHelp.GetWalletId(req);
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultByIdAsync<Proposal>(proposalId);
+            var item = await db.SingleOrDefaultByIdAsync<Proposal>(req.Id);
             if (null == item)
                 return InvokeResult.Fail("提案信息未找到!");
             if (item.WalletId != walletId)

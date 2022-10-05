@@ -76,5 +76,31 @@ namespace Dao.Controllers
             var userId = WalletHelp.GetUserId(req);
             return await _service.GetDaoInfo(userId);
         }
+        /// <summary>
+        /// 获取审核员信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getauditor")]
+        public async Task<Response<GetAuditorRespon>> GetAuditor(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetAuditor(userId);
+        }
+
+        /// <summary>
+        /// 解除审核员身份
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("relieveauditor")]
+        public async Task<Response> RelieveAuditor(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.RelieveAuditor(userId);
+        }
+
     }
 }

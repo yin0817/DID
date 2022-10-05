@@ -204,6 +204,8 @@ namespace Dao.Services
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultByIdAsync<UserRisk>(req.UserRiskId);
             item.AuthStatus = req.AuthStatus;
+            if (!string.IsNullOrEmpty(req.Images))
+                item.Images = req.Images;
             await db.UpdateAsync(item);
 
             return InvokeResult.Success("修改成功!");
@@ -222,7 +224,7 @@ namespace Dao.Services
             if (item.AuthStatus == RiskStatusEnum.核对成功 && item.AuditUserId == userId)
             {
                 item.IsRemoveRisk = IsEnum.是;
-                item.Images = req.Images;
+                //item.Images = req.Images;
                 await db.UpdateAsync(item);
 
                 var list = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0", item.DIDUserId);
@@ -269,6 +271,7 @@ namespace Dao.Services
             model.NationalImage = auths[0].NationalImage;
             model.HandHeldImage = auths[0].HandHeldImage;
 
+            model.Image = item.Images;
             return InvokeResult.Success(model);
         }
     }

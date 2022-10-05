@@ -4,15 +4,15 @@ using NPoco;
 namespace Dao.Entity
 {
     /// <summary>
-    /// 仲裁员信息表
+    /// 审核员信息表
     /// </summary>
-    [PrimaryKey("UserArbitrateId", AutoIncrement = false)]
-    public class UserArbitrate
+    [PrimaryKey("UserExamineId", AutoIncrement = false)]
+    public class UserExamine
     {
         /// <summary>
         /// 编号
         /// </summary>
-        public string UserArbitrateId
+        public string UserExamineId
         {
             get; set;
         }
@@ -25,7 +25,7 @@ namespace Dao.Entity
         }
 
         /// <summary>
-        /// 仲裁员编号
+        /// 审核员编号
         /// </summary>
         public string Number
         {
@@ -53,16 +53,9 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
-        /// 仲裁次数
+        /// 审核次数
         /// </summary>
-        public int ArbitrateNum
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 仲裁胜利次数
-        /// </summary>
-        public int VictoryNum
+        public int ExamineNum
         {
             get; set;
         }

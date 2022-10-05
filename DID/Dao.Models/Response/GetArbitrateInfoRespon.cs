@@ -34,6 +34,15 @@ namespace Dao.Models.Response
             get; set;
         }
 
+
+        /// <summary>
+        /// 原告Uid
+        /// </summary>
+        public string PlaintiffUId
+        {
+            get; set;
+        }
+
         /// <summary>
         /// 被告
         /// </summary>
@@ -46,6 +55,14 @@ namespace Dao.Models.Response
         /// 被告编号
         /// </summary>
         public string DefendantId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告Uid
+        /// </summary>
+        public string DefendantUId
         {
             get; set;
         }

@@ -196,7 +196,7 @@ namespace Dao.Controllers
         public async Task<Response> CancelArbitrate(CancelArbitrateReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _service.CancelArbitrate(userId, req.ArbitrateInfoId);
+            return await _service.CancelArbitrate(userId, req.ArbitrateInfoId, req.CancelReason);
         }
 
         /// <summary>
@@ -300,6 +300,19 @@ namespace Dao.Controllers
         {
             var userId = WalletHelp.GetUserId(req);
             return await _service.GetWaitMessage(userId);
+        }
+
+        /// <summary>
+        /// 添加支付信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("addarbitratepay")]
+        public async Task<Response> AddArbitratePay(AddArbitratePayReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.AddArbitratePay(req, userId);
         }
 
     }

@@ -182,24 +182,24 @@ namespace DID.Services
             using var db = new NDatabase();
             var id = await db.SingleOrDefaultAsync<string>("select ComSelectId from ComSelect where DIDUserId = @0", req.UserId);
             if (!string.IsNullOrEmpty(id))
-                return InvokeResult.Fail("1"); //请勿重复设置!
+                return InvokeResult.Fail("请勿重复设置!"); //请勿重复设置!
             var country = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = 'COUNTRIES'", req.Country);
             var province = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.Province, req.Country);
             if (string.IsNullOrEmpty(country) || string.IsNullOrEmpty(province))
-                return InvokeResult.Fail("2"); //位置信息错误!
+                return InvokeResult.Fail("位置信息错误!"); //位置信息错误!
 
             if (!string.IsNullOrEmpty(req.City))
             {
                 var city = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.City, req.Province);
                 if (string.IsNullOrEmpty(city))
-                    return InvokeResult.Fail("2"); //位置信息错误!
+                    return InvokeResult.Fail("位置信息错误!"); //位置信息错误!
             }
 
             if (!string.IsNullOrEmpty(req.Area))
             {
                 var area = await db.SingleOrDefaultAsync<string>("select name from area where code = @0 and pcode = @1", req.Area, req.City);
                 if (string.IsNullOrEmpty(area))
-                    return InvokeResult.Fail("2"); //位置信息错误!
+                    return InvokeResult.Fail("位置信息错误!"); //位置信息错误!
             }
             
             
@@ -301,6 +301,9 @@ namespace DID.Services
             item.CommunityId = Guid.NewGuid().ToString();
 
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+            //质押5000EOTC
+            if(user.EOTC < 5000)
+                return InvokeResult.Fail<string>("质押EOTC数量不足!");
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
                 var authType = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from Community where CommunityId = @0", user.ApplyCommunityId);
@@ -400,7 +403,7 @@ namespace DID.Services
                 return InvokeResult.Fail("已审核!");
 
             auth.AuditType = auditType;
-            auth.Remark = remark;
+            auth.Remark = remark; 
             auth.AuditDate = DateTime.Now;
 
             db.BeginTransaction();

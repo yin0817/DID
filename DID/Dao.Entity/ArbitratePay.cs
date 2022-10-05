@@ -16,7 +16,7 @@ namespace Dao.Entity
         /// <summary>
         /// 编号
         /// </summary>
-        public string ArbitratePayId
+        public string? ArbitratePayId
         {
             get; set;
         }

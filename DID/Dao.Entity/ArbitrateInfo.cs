@@ -14,9 +14,9 @@ namespace Dao.Entity
     public enum ArbitrateStatusEnum { 举证中, 投票中, 原告胜, 被告胜 }
 
     /// <summary>
-    /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+    /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他 3 仲裁异议
     /// </summary>
-    public enum ArbitrateInTypeEnum { 账户被冻结, 卖家未确认收款, 其他 }
+    public enum ArbitrateInTypeEnum { 账户被冻结, 卖家未确认收款, 其他, 仲裁异议 }
 
     /// <summary>
     /// 取消原因 0 与被告方达成和解 1 单方面撤诉

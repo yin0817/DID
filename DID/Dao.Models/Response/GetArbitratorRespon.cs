@@ -43,5 +43,12 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 仲裁胜利次数
+        /// </summary>
+        public int VictoryNum
+        {
+            get; set;
+        }
     }
 }

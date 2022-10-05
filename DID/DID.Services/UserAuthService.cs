@@ -2,6 +2,7 @@
 using DID.Entitys;
 using DID.Models;
 using DID.Models.Base;
+using DID.Models.Request;
 using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -87,13 +88,16 @@ namespace DID.Services
     {
         private readonly ILogger<UserAuthService> _logger;
 
+        private readonly ICreditScoreService _csservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public UserAuthService(ILogger<UserAuthService> logger)
+        public UserAuthService(ILogger<UserAuthService> logger, ICreditScoreService csservice)
         {
             _logger = logger;
+            _csservice = csservice;
         }
 
         /// <summary>
@@ -125,12 +129,35 @@ namespace DID.Services
             if (auth.AuditStep == AuditStepEnum.抽审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核成功);
+                //加信用分 用户+8 邀请人+1 节点+1
+                var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
+                await _csservice.CreditScore(new CreditScoreReq { Fraction = 8, Remarks ="完成强关系链认证", Type=0, Uid =  user.Uid});
+
+                var refuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", user.RefUserId);
+                await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = refuser.Uid });
+
+                //审核节点 +1
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
+
+                foreach (var item in auths)
+                {
+                    if (item.IsDao == IsEnum.否 && item.AuditStep == AuditStepEnum.二审)
+                    {
+                        var authuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.AuditUserId);
+                        await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = authuser.Uid });
+                    }
+                    if (item.IsDao == IsEnum.否 && item.AuditStep == AuditStepEnum.抽审)
+                    {
+                        var authuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.AuditUserId);
+                        await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = authuser.Uid });
+                    }
+                }
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
                 //修改用户审核状态
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核失败);
-                //todo: 审核失败 扣分
+                //todo: 审核失败 扣分  
             }
 
             //下一步审核

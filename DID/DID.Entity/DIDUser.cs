@@ -10,6 +10,11 @@ namespace DID.Entitys
     /// 风险等级 0 低风险 1 中风险 2 高风险
     /// </summary>s
     public enum RiskLevelEnum { 低风险, 中风险, 高风险 }
+
+    /// <summary>
+    /// 用户等级 0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
+    /// </summary>
+    public enum UserNodeEnum { 交易用户, 信用节点, 实时节点, 中级节点, 高级节点 }
     /// <summary>
     /// 用户信息表
     /// </summary>
@@ -85,7 +90,7 @@ namespace DID.Entitys
         /// <summary>
         /// 用户节点
         /// </summary>
-        public int UserNode
+        public UserNodeEnum UserNode
         {
             get; set;
         }
@@ -182,6 +187,15 @@ namespace DID.Entitys
         /// Dao总收益
         /// </summary>
         public double DaoEOTC
+        {
+            get; set;
+        }
+
+
+        /// <summary>
+        /// 质押EOTC数量
+        /// </summary>
+        public double EOTC
         {
             get; set;
         }

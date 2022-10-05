@@ -1,4 +1,5 @@
 ﻿using Dao.Entity;
+using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,22 @@ namespace Dao.Models.Response
         /// 原告编号
         /// </summary>
         public string PlaintiffId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 原告Uid
+        /// </summary>
+        public string PlaintiffUId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 被告Uid
+        /// </summary>
+        public string DefendantUId
         {
             get; set;
         }
@@ -90,6 +107,14 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
+        /// 创建时间
+        /// </summary>
+        public DateTime CreateDate
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 状态 0 举证中 1 投票中 2 取消 3 原告胜 4 被告胜
         /// </summary>
         public ArbitrateStatusEnum Status
@@ -123,6 +148,14 @@ namespace Dao.Models.Response
         /// 奖励或扣除eotc数量
         /// </summary>
         public double? EOTC
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否取消
+        /// </summary>
+        public IsEnum IsCancel
         {
             get; set;
         }

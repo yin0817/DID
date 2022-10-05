@@ -111,6 +111,14 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Response> TeamAuth(string userId);
+
+
+        /// <summary>
+        /// 获取用户质押数量
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<Response<double>> GetUserEOTC(string userId);
     }
     /// <summary>
     /// 审核认证服务
@@ -517,10 +525,10 @@ namespace DID.Services
             using var db = new NDatabase();
             var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0", item.WalletAddress, item.Otype, item.Sign);
             if(null == wallet)
-                return InvokeResult.Fail("1");//钱包验证错误!
+                return InvokeResult.Fail("钱包验证错误!");//钱包验证错误!
             var user = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where Mail = @0 and IsLogout = 0", item.Mail);
             if(!string.IsNullOrEmpty(user))
-                return InvokeResult.Fail("2");//邮箱已注册!
+                return InvokeResult.Fail("邮箱已注册!");//邮箱已注册!
             await db.ExecuteAsync("update DIDUser set mail = @0 where DIDUserId = @1", item.Mail, userId);
             return InvokeResult.Success("修改成功!");
         }
@@ -598,6 +606,8 @@ namespace DID.Services
                 var userLogout = await db.SingleOrDefaultByIdAsync<UserLogout>(user.UserLogoutId);
                 userLogout.IsCancel = IsEnum.是;
                 await db.UpdateAsync(userLogout);
+                user.UserLogoutId = null;
+                await db.UpdateAsync(user);
             }
             else
             {
@@ -695,6 +705,21 @@ namespace DID.Services
             };
             await db.InsertAsync(item);
             return InvokeResult.Success("提交成功!");
+        }
+
+        /// <summary>
+        /// 获取用户质押数量
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Response<double>> GetUserEOTC(string userId)
+        {
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return InvokeResult.Fail<double>("用户信息未找到!");
+
+            return InvokeResult.Success(user.EOTC);
         }
 
     }

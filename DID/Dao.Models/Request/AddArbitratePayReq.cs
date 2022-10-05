@@ -8,26 +8,26 @@ using System.Threading.Tasks;
 
 namespace Dao.Models.Request
 {
-    public class UserRiskStatusReq : DaoBaseReq
+    public class AddArbitratePayReq : DaoBaseReq
     {
         /// <summary>
-        /// 用户风控编号
+        /// 仲裁编号
         /// </summary>
-        public string UserRiskId
+        public string ArbitrateInfoId
         {
             get; set;
         }
         /// <summary>
-        /// 审核状态 0 未核对 1 核对成功  2 核对失败
+        /// eotc数量
         /// </summary>
-        public RiskStatusEnum AuthStatus
+        public double EOTC
         {
             get; set;
         }
         /// <summary>
-        /// 认证图片
+        /// 备注
         /// </summary>
-        public string? Images
+        public string? Remark
         {
             get; set;
         }

@@ -1,4 +1,5 @@
-﻿using Dao.Models.Base;
+﻿using Dao.Entity;
+using Dao.Models.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,13 @@ namespace Dao.Models.Request
         /// 仲裁编号
         /// </summary>
         public string ArbitrateInfoId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 取消原因 0 与被告方达成和解 1 单方面撤诉
+        /// </summary>
+        public CancelReasonEnum CancelReason
         {
             get; set;
         }

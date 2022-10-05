@@ -30,7 +30,7 @@ namespace DID.Services
         Task<Response<GetCreditScoreRespon>> GetCreditScore(string userId, long page, long itemsPerPage, TypeEnum type);
     }
     /// <summary>
-    /// 审核认证服务
+    /// 信用分服务
     /// </summary>
     public class CreditScoreService : ICreditScoreService
     {
@@ -55,7 +55,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where Uid = @0 and IsLogout = 0", req.Uid);
             if(null == user)
-                return InvokeResult.Fail("2");//用户未找到!
+                return InvokeResult.Fail("用户未找到!");//用户未找到!
 
             var item = new CreditScoreHistory
             {
@@ -73,7 +73,7 @@ namespace DID.Services
             else
             {
                 if(user.CreditScore < req.Fraction)
-                    return InvokeResult.Fail("3");//信用分不足!
+                    return InvokeResult.Fail("信用分不足!");//信用分不足!
                 await db.ExecuteAsync("update DIDUser set CreditScore = CreditScore - @1  where DIDUserId = @0", user.DIDUserId, item.Fraction);
             }
             var insert = await db.InsertAsync(item);

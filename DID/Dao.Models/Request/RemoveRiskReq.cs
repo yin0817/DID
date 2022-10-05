@@ -20,9 +20,9 @@ namespace Dao.Models.Request
         /// <summary>
         /// 认证图片
         /// </summary>
-        public string? Images
-        {
-            get; set;
-        }
+        //public string? Images
+        //{
+        //    get; set;
+        //}
     }
 }

@@ -9,6 +9,10 @@ using DID.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Net;
+using System.Net.Http.Headers;
 
 namespace DID.Controllers
 {
@@ -265,6 +269,39 @@ namespace DID.Controllers
         public async Task<Response<List<GetRiskList>>> GetRiskList()
         {
             return await _riskservice.GetRiskList(_currentUser.UserId);
+        }
+
+        /// <summary>
+        /// WebApi返回图片
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("getimage")]
+        public IActionResult GetImage(string path)
+        {
+
+            var bmp = WaterMarkHelp.AddWaterMark(path, "4654643144");
+            MemoryStream ms = new MemoryStream();
+            try
+            {
+                bmp.Save(ms, ImageFormat.Png);
+            }
+            finally
+            {
+                //显式释放资源 
+                bmp.Dispose();
+            }
+            return new FileContentResult(ms.ToArray(), "image/jpg");
+        }
+
+        /// <summary>
+        /// 获取用户质押数量
+        /// </summary>
+        [HttpGet]
+        [Route("getusereotc")]
+        public async Task<Response<double>> GetUserEOTC()
+        {
+            return await _service.GetUserEOTC(_currentUser.UserId);
         }
     }
 }

@@ -80,5 +80,12 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 投票截止日期
+        /// </summary>
+        public DateTime VoteDate
+        {
+            get; set;
+        }
     }
 }

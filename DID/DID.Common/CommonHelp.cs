@@ -156,6 +156,25 @@ namespace DID.Common
             }
             return image;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="UId"></param>
+        /// <param name="image"></param>
+        /// <returns></returns>
+        //public static Image AddWaterMark(string UId, Image image)
+        //{
+        //    //创建一个image对象
+        //    var myGraphic = Graphics.FromImage(image);                                         //创建Graphic对象，核心的类
+        //    var sourceString = $"{DateTime.Today:yyyy-MM-dd}";                               //水印内容(今天日期)
+        //    var font = new Font("Arial", 23);                                                // 水印字体
+        //    var size = myGraphic.MeasureString(sourceString, font);                          //水印的尺寸
+        //    myGraphic.DrawString(sourceString, font, System.Drawing.Brushes.Red,             //把我们上面给水印定义好的属性放进去，并给水印添加个红色字体
+        //        new PointF(image.Width - size.Width - 30, image.Height - size.Height - 30));     //计算好水印的位置（根据宽高做个减法）
+        //    myGraphic.Dispose();                                                             //释放myGraphic
+        //    return image;
+        //}
         /// <summary>
         /// 字符串MD5加密
         /// </summary>
@@ -194,5 +213,9 @@ namespace DID.Common
             }
             return str;
         }
+
+        #region
+        #endregion
+
     }
 }
