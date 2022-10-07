@@ -26,6 +26,10 @@ import 'highlight.js/styles/atom-one-dark.css'
 import App from './App'
 import store from './store'
 import router from './router/routers'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 import './assets/icons' // icon
 import './router/index' // permission control
@@ -41,6 +45,8 @@ Vue.use(Element, {
 })
 
 Vue.config.productionTip = false
+
+Vue.prototype.$dayjs = dayjs
 
 new Vue({
   el: '#app',
