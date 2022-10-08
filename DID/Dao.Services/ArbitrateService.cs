@@ -334,7 +334,8 @@ namespace Dao.Services
                 DefendantId = item.Defendant,
                 DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", item.Defendant),
                 PlaintiffUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", item.Plaintiff),
-                IsCancel = item.IsCancel
+                IsCancel = item.IsCancel,
+                ArbitrateInType = item.ArbitrateInType
             };
 
             var users = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus > 0 ", item.ArbitrateInfoId);//已投票记录
@@ -415,15 +416,30 @@ namespace Dao.Services
             };
 
             //todo: 获取仲裁投票用户编号
-            var userIds = new List<string>();
-            userIds.Add("e8771b3c-3b05-4830-900d-df2be0a6e9f7");
-            userIds.Add("d389e5db-37d0-40cd-9d8b-0d31a0ef2c12");
-            userIds.Add("61d14a4f-c45f-4b13-a957-5bcaff9b3324");
-            userIds.Add("7e88d292-7454-4e26-821a-b4e6049a7a95");
-            userIds.Add("2a5bf1dd-e15b-40f4-94bb-b68cee2bbaf9");
+            var list = new List<string>();
+
+            var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and DIDUserId != @1 and IsArbitrate = 1 and IsLogout = 0", defendantUser.DIDUserId, plaintiffUser.DIDUserId);
+            if(userIds.Count < num)
+                return InvokeResult.Fail("仲裁员人数不足!");
+            for (var i = 0; i < num; i++)
+            {
+                var random = 0;
+                do
+                {
+                    random = new Random().Next(userIds.Count);
+                } while (list.Exists(a => a == userIds[random].DIDUserId));
+                list.Add(userIds[random].DIDUserId);
+            }
+
+            //var userIds = new List<string>();
+            //userIds.Add("e8771b3c-3b05-4830-900d-df2be0a6e9f7");
+            //userIds.Add("d389e5db-37d0-40cd-9d8b-0d31a0ef2c12");
+            //userIds.Add("61d14a4f-c45f-4b13-a957-5bcaff9b3324");
+            //userIds.Add("7e88d292-7454-4e26-821a-b4e6049a7a95");
+            //userIds.Add("2a5bf1dd-e15b-40f4-94bb-b68cee2bbaf9");
 
             var votes = new List<ArbitrateVote>();
-            userIds.ForEach(a =>
+            list.ForEach(a =>
             {
                 votes.Add(new ArbitrateVote
                 {
@@ -578,6 +594,8 @@ namespace Dao.Services
             var arbitrate = await db.SingleOrDefaultByIdAsync<ArbitrateInfo>(arbitrateInfoId);
             if (null == arbitrate)
                 return InvokeResult.Fail("信息未找到!");
+            if (DateTime.Now < arbitrate.AdduceDate)
+                return InvokeResult.Fail("举证中!");
             if (DateTime.Now > arbitrate.VoteDate)
                 return InvokeResult.Fail("投票已截止!");
 
@@ -1011,6 +1029,27 @@ namespace Dao.Services
             var info = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateInfo where Status = 2 and Defendant = @0 and IsCancel = 0", userId);
 
             return InvokeResult.Success(info);
+        }
+
+        /// <summary>
+        /// 发送消息
+        /// </summary>
+        /// <param name="userIds"></param>
+        /// <param name="type"></param>
+        /// <param name="associatedId"></param>
+        public void SendMessage(List<string> userIds, MessageTypeEnum type, string associatedId)
+        {
+            using var db = new NDatabase();
+            var models = userIds.Select(a => new ArbitrateMessage
+            {
+                ArbitrateMessageId = Guid.NewGuid().ToString(),
+                AssociatedId = associatedId,
+                CreateDate = DateTime.Now,
+                MessageType = type,
+                UserId = a,
+                IsOpen = IsEnum.否
+            }).ToList();
+            db.Insert(models);
         }
     }
 }

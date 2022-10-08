@@ -48,5 +48,21 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// 邮箱
+        /// </summary>
+        public string? Mail
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// UId
+        /// </summary>
+        public int? Uid
+        {
+            get; set;
+        }
     }
 }

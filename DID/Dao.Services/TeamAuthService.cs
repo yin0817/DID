@@ -124,8 +124,14 @@ namespace Dao.Services
             await db.UpdateAsync(item);
 
             if (type == TeamAuditEnum.审核通过)
-            { 
+            {
                 //todo:发送邮件
+                var users = await db.FirstOrDefaultAsync<DIDUser>(";with temp as \n" +
+                       "(select * from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
+                       "union all \n" +
+                       "select * from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
+                       "select * from temp", item.DIDUserId);
+
             }
 
             return InvokeResult.Success("审核成功!");

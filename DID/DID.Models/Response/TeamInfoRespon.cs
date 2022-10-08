@@ -55,9 +55,9 @@ namespace DID.Models.Response
         }
 
         /// <summary>
-        /// 用户等级描述
+        /// 用户节点
         /// </summary>
-        public string Grade
+        public UserNodeEnum UserNode
         {
             get; set;
         }

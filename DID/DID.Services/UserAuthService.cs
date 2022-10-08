@@ -131,10 +131,10 @@ namespace DID.Services
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核成功);
                 //加信用分 用户+8 邀请人+1 节点+1
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
-                await _csservice.CreditScore(new CreditScoreReq { Fraction = 8, Remarks ="完成强关系链认证", Type=0, Uid =  user.Uid});
+                _csservice.CreditScore(new CreditScoreReq { Fraction = 8, Remarks ="完成强关系链认证", Type= TypeEnum.加分, Uid =  user.Uid});
 
                 var refuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", user.RefUserId);
-                await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = refuser.Uid });
+                _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "强关系链认证（审核）", Type = TypeEnum.加分, Uid = refuser.Uid });
 
                 //审核节点 +1
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
@@ -144,12 +144,12 @@ namespace DID.Services
                     if (item.IsDao == IsEnum.否 && item.AuditStep == AuditStepEnum.二审)
                     {
                         var authuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.AuditUserId);
-                        await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = authuser.Uid });
+                        _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "强关系链认证（审核）", Type = TypeEnum.加分, Uid = authuser.Uid });
                     }
                     if (item.IsDao == IsEnum.否 && item.AuditStep == AuditStepEnum.抽审)
                     {
                         var authuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.AuditUserId);
-                        await _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "完成强关系链认证", Type = 0, Uid = authuser.Uid });
+                        _csservice.CreditScore(new CreditScoreReq { Fraction = 1, Remarks = "强关系链认证（审核）", Type = TypeEnum.加分, Uid = authuser.Uid });
                     }
                 }
             }
@@ -158,16 +158,43 @@ namespace DID.Services
                 //修改用户审核状态
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核失败);
                 //todo: 审核失败 扣分  
+                if (auth.AuditType == AuditTypeEnum.恶意提交)
+                {
+                    var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
+
+                    for (var i = 0; i < auths.Count - 1; i++)
+                    {
+                        var authuser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", auths[i].AuditUserId);
+                        _csservice.CreditScore(new CreditScoreReq { Fraction = 3, Remarks = "强关系链认证(恶意提交)", Type = TypeEnum.减分, Uid = authuser.Uid });
+                    }
+
+                    //恶意提交3次 禁用账号
+                    var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
+                    user.AuthFail += 1;
+                    if (user.AuthFail >= 3)
+                        user.IsDisable = IsEnum.是;
+                    await db.UpdateAsync(user);
+                }
             }
 
             //下一步审核
             if (auth.AuditStep == AuditStepEnum.初审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
+                //上级节点审核
+                var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
+                var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
+
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and DIDUserId not in (@1) and IsLogout = 0 ", ++user.UserNode, authUserIds);
+                var random = new Random().Next(auths.Count);
+                var authUserId = auths[random].DIDUserId;
+                if(string.IsNullOrEmpty(authUserId))
+                    return InvokeResult.Success("审核失败,未找到上级节点!");
+
                 var nextAuth = new Auth()
                 {
                     AuthId = Guid.NewGuid().ToString(),
                     UserAuthInfoId = userAuthInfoId,
-                    AuditUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId),//推荐人审核                                                                                //HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage,
+                    AuditUserId = authUserId,                                                                             
                     CreateDate = DateTime.Now,
                     AuditType = AuditTypeEnum.未审核,
                     AuditStep = AuditStepEnum.二审
@@ -175,26 +202,35 @@ namespace DID.Services
                 //人像照处理
                 var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
                 img = CommonHelp.WhiteGraphics(img, new Rectangle((int)(img.Width * 0.6), 0, (int)(img.Width * 0.4), img.Height));//遮住右边40%
-                nextAuth.PortraitImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                 img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
                 //国徽面处理
                 var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
                 img1 = CommonHelp.WhiteGraphics(img1, new Rectangle((int)(img1.Width * 0.6), 0, (int)(img1.Width * 0.4), img1.Height));//遮住右边40%
-                nextAuth.NationalImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                 img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
                 
                 await db.InsertAsync(nextAuth);
 
                 //去Dao审核
-                ToDaoAuth(nextAuth.AuthId);
+                ToDaoAuth(nextAuth, authinfo.CreatorId!);
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
+                //中高级节点审核
+                var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
+                var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 3 or UserNode = 4) and IsLogout = 0 and DIDUserId not in (@0)", authUserIds);
+                var random = new Random().Next(auths.Count);
+                var authUserId = auths[random].DIDUserId;
+                if (string.IsNullOrEmpty(authUserId))
+                    return InvokeResult.Success("审核失败,未找到中高级节点!");
+
                 var nextAuth = new Auth()
                 {
                     AuthId = Guid.NewGuid().ToString(),
                     UserAuthInfoId = userAuthInfoId,
-                    AuditUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId),//推荐人审核                                                                                //HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage,
+                    AuditUserId = authUserId,//推荐人审核                                                                              
                     CreateDate = DateTime.Now,
                     AuditType = AuditTypeEnum.未审核,
                     AuditStep = AuditStepEnum.抽审
@@ -202,12 +238,12 @@ namespace DID.Services
                 //人像照处理
                 var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
                 img = CommonHelp.MaSaiKeGraphics(img, 8);//随机30%马赛克
-                nextAuth.PortraitImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                 img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
                 //国徽面处理
                 var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
                 img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
-                nextAuth.NationalImage = "Images/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                 img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
 
                 await db.InsertAsync(nextAuth);
@@ -252,7 +288,7 @@ namespace DID.Services
                     authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
                     authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                else if (item.AuditStep == AuditStepEnum.初审)
+                else if (item.AuditStep == AuditStepEnum.抽审)
                 {
                     authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
                     authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
@@ -271,7 +307,6 @@ namespace DID.Services
                         Remark = auth.Remark,
                         IsDao = auth.IsDao
                     }) ;
-                
                 }
                 authinfo.Auths = list;
                 result.Add(authinfo);
@@ -423,7 +458,7 @@ namespace DID.Services
             try
             {
                 var dir = new DirectoryInfo(Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "Images/AuthImges/" + userId + "/"));
+                    AppDomain.CurrentDomain.BaseDirectory, "Auth/AuthImges/" + userId + "/"));
                 
                 //保存目录不存在就创建这个目录
                 if (!dir.Exists)
@@ -465,9 +500,11 @@ namespace DID.Services
             //var list = await db.SingleOrDefaultAsync<string>("select UserAuthInfoId from DIDUSer where Uid =@0", info.CreatorId);
             //if(!string.IsNullOrEmpty(list))
             //    return InvokeResult.Fail("请勿重复提交!");
-            var str = await db.SingleOrDefaultAsync<AuthTypeEnum>("select AuthType from DIDUser where DIDUserId = @0", info.CreatorId);
-            if (str != AuthTypeEnum.未审核 && str != AuthTypeEnum.审核失败)
-                return InvokeResult.Fail("4");//请勿重复提交!
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", info.CreatorId);
+            if (user.AuthType != AuthTypeEnum.未审核 && user.AuthType != AuthTypeEnum.审核失败)
+                return InvokeResult.Fail("请勿重复提交!");//请勿重复提交!
+            if(user.IsDisable == IsEnum.是)
+                return InvokeResult.Fail("用户已被禁用!");//请勿重复提交!
 
             var auth = new Auth
             {
@@ -482,12 +519,12 @@ namespace DID.Services
             //人像照处理
             var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.PortraitImage));
             img = CommonHelp.WhiteGraphics(img, new Rectangle(0, 0, (int)(img.Width * 0.4), img.Height));//遮住左边40%
-            auth.PortraitImage = "Images/AuthImges/" + info.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+            auth.PortraitImage = "Auth/AuthImges/" + info.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
             img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, auth.PortraitImage));
             //国徽面处理
             var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage));
             img1 = CommonHelp.WhiteGraphics(img1, new Rectangle(0, 0, (int)(img1.Width * 0.4), img1.Height));//遮住左边40%
-            auth.NationalImage = "Images/AuthImges/" + info.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+            auth.NationalImage = "Auth/AuthImges/" + info.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
             img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, auth.NationalImage));
 
             db.BeginTransaction();
@@ -497,7 +534,7 @@ namespace DID.Services
             db.CompleteTransaction();
 
             //去Dao审核
-            ToDaoAuth(auth.AuthId);
+            ToDaoAuth(auth, info.CreatorId!);
 
             return InvokeResult.Success("提交成功!");
         }
@@ -564,8 +601,9 @@ namespace DID.Services
         /// <summary>
         /// 两小时未审核去Dao审核
         /// </summary>
-        /// <param name="authId"></param>
-        public void ToDaoAuth(string authId)
+        /// <param name="item">审核记录</param>
+        /// <param name="userId">创建用户</param>
+        public void ToDaoAuth(Auth item,string userId)
         {
             //两小时没人审核 自动到Dao审核
             var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
@@ -575,16 +613,21 @@ namespace DID.Services
                 t.Stop(); //先关闭定时器
                           //todo: Dao审核
                 using var db = new NDatabase();
-                var item = await db.SingleOrDefaultByIdAsync<Auth>(authId);
+                //var item = await db.SingleOrDefaultByIdAsync<Auth>(authId);
 
                 if (item.AuditType != AuditTypeEnum.未审核)
                 {
                     item.IsDelete = IsEnum.是;
                     await db.UpdateAsync(item);
 
+                    //随机Dao审核员审核
+                    var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and IsExamine = 1 and IsLogout = 0", userId);
+                    var random = new Random().Next(userIds.Count);
+                    var auditUserId =  userIds[random].DIDUserId;
+
                     item.AuthId = Guid.NewGuid().ToString();
                     item.IsDao = IsEnum.是;
-                    item.AuditUserId = "d389e5db-37d0-40cd-9d8b-0d31a0ef2c12";//Dao在线节点用户编号
+                    item.AuditUserId = auditUserId;//Dao在线节点用户编号
                     item.CreateDate = DateTime.Now;
                     await db.InsertAsync(item);
                 }

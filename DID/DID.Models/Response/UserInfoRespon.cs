@@ -115,7 +115,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 用户节点
         /// </summary>
-        public int? UserNode
+        public UserNodeEnum UserNode
         {
             get; set;
         }

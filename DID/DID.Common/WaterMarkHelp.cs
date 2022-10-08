@@ -12,14 +12,13 @@ namespace DID.Common
     /// </summary>
     public class WaterMarkHelp
     {
-        private static List<Mat> planes = new List<Mat>();
-        private static List<Mat> allPlanes = new List<Mat>();
+        
         public static Mat addImageWatermarkWithText(string imagePath, string watermarkText)
         {
-            planes.Clear();
-            allPlanes.Clear();
+            List<Mat> planes = new List<Mat>();
+            List<Mat> allPlanes = new List<Mat>();
             Mat complexImage = Cv2.ImRead(imagePath);
-            Mat padded = splitSrc(complexImage);
+            Mat padded = splitSrc(complexImage, allPlanes);
             padded.ConvertTo(padded, MatType.CV_32F);
             planes.Add(padded);
             planes.Add(Mat.Zeros(padded.Size(), MatType.CV_32F));
@@ -37,7 +36,7 @@ namespace DID.Common
             return antitransformImage(complexImage, allPlanes);
         }
 
-        private static Mat splitSrc(Mat mat)
+        private static Mat splitSrc(Mat mat, List<Mat> allPlanes)
         {
             mat = optimizeImageDim(mat);
             Cv2.Split(mat, out Mat[] mv);
@@ -92,21 +91,21 @@ namespace DID.Common
             return lastImage;
         }
 
-        public static Mat getImageWatermarkWithText(Mat image)
-        {
-            List<Mat> planes = new List<Mat>();
-            Mat complexImage = new Mat();
-            Mat padded = splitSrc(image);
-            padded.ConvertTo(padded, MatType.CV_32F);
-            planes.Add(padded);
-            planes.Add(Mat.Zeros(padded.Size(), MatType.CV_32F));
-            Cv2.Merge(planes.ToArray(), complexImage);
-            // dft
-            Cv2.Dft(complexImage, complexImage);
-            Mat magnitude = createOptimizedMagnitude(complexImage);
-            planes.Clear();
-            return magnitude;
-        }
+        //public static Mat getImageWatermarkWithText(Mat image)
+        //{
+        //    List<Mat> planes = new List<Mat>();
+        //    Mat complexImage = new Mat();
+        //    Mat padded = splitSrc(image);
+        //    padded.ConvertTo(padded, MatType.CV_32F);
+        //    planes.Add(padded);
+        //    planes.Add(Mat.Zeros(padded.Size(), MatType.CV_32F));
+        //    Cv2.Merge(planes.ToArray(), complexImage);
+        //    // dft
+        //    Cv2.Dft(complexImage, complexImage);
+        //    Mat magnitude = createOptimizedMagnitude(complexImage);
+        //    planes.Clear();
+        //    return magnitude;
+        //}
 
         private static Mat createOptimizedMagnitude(Mat complexImage)
         {
@@ -157,6 +156,30 @@ namespace DID.Common
             //Mat testimage = Cv2.ImRead("stzz-out.jpg");
             //Mat watermarkImg = getImageWatermarkWithText(testimage);
             //Cv2.ImWrite("stzz-watermark.jpg", watermarkImg);
+        }
+
+        /// <summary>
+        /// Bitmap 转base64
+        /// </summary>
+        /// <param name="bmp"></param>
+        /// <returns></returns>
+        public static string ImgToBase64String(System.Drawing.Bitmap bmp)
+        {
+            try
+            {
+                MemoryStream ms = new MemoryStream();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                byte[] arr = new byte[ms.Length];
+                ms.Position = 0;
+                ms.Read(arr, 0, (int)ms.Length);
+                ms.Close();
+                String strbaser64 = Convert.ToBase64String(arr);
+                return strbaser64;
+            }
+            catch (Exception ex)
+            {
+                return "";
+            }
         }
     }
 }

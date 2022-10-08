@@ -186,7 +186,8 @@ if (!Directory.Exists(upload)) Directory.CreateDirectory(upload);
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(upload), //用于定位资源的文件系统
-    RequestPath = new PathString("/Images") //请求地址
+    RequestPath = new PathString("/Images" +
+    "") //请求地址
 });
 
 //限流

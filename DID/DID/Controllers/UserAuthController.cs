@@ -43,8 +43,8 @@ namespace DID.Controllers
         public async Task<Response> UploadImage()
         {
             var files = Request.Form.Files;
-            if (files.Count == 0) return InvokeResult.Fail("1");//请上传文件!
-            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("2");//文件类型错误!
+            if (files.Count == 0) return InvokeResult.Fail("请上传文件!");//请上传文件!
+            if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("文件类型错误!");//文件类型错误!
             return await _service.UploadImage(files[0], _currentUser.UserId);
         }
 
@@ -63,13 +63,13 @@ namespace DID.Controllers
             //    return InvokeResult.Fail("2");//证件号错误!
 
             info.CreatorId = _currentUser.UserId;
-            info.PortraitImage = !info.PortraitImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.PortraitImage : info.PortraitImage;
-            info.NationalImage = !info.NationalImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.NationalImage : info.NationalImage;
-            info.HandHeldImage = !info.HandHeldImage!.StartsWith("Images/AuthImges/") ? "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage : info.HandHeldImage;
+            info.PortraitImage = !info.PortraitImage!.StartsWith("Auth/AuthImges/") ? "Auth/AuthImges/" + info.CreatorId + "/" + info.PortraitImage : info.PortraitImage;
+            info.NationalImage = !info.NationalImage!.StartsWith("Auth/AuthImges/") ? "Auth/AuthImges/" + info.CreatorId + "/" + info.NationalImage : info.NationalImage;
+            info.HandHeldImage = !info.HandHeldImage!.StartsWith("Auth/AuthImges/") ? "Auth/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage : info.HandHeldImage;
             if (!System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.PortraitImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.NationalImage)) || 
                 !System.IO.File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, info.HandHeldImage)))
-                return InvokeResult.Fail("3");//请上传认证图片!
+                return InvokeResult.Fail("请上传认证图片!");//请上传认证图片!
             return await _service.UploadUserInfo(info);
         }
 

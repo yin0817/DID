@@ -339,7 +339,7 @@ namespace DID.Services
             db.CompleteTransaction();
 
             //Dao审核
-            ToDaoAuth(auth.ComAuthId);
+            ToDaoAuth(auth, item.DIDUserId!);
 
             return InvokeResult.Success<string>(item.CommunityId);
         }
@@ -427,11 +427,20 @@ namespace DID.Services
             //下一步审核
             if (auth.AuditStep == AuditStepEnum.初审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
+                //上级节点审核
+                var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
+                var auditUserIds = await db.FetchAsync<ComAuth>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and IsLogout = 0 and DIDUserId not in (@0)", ++user.UserNode, auditUserIds);
+                var random = new Random().Next(auths.Count);
+                var authUserId = auths[random].DIDUserId;
+                if (string.IsNullOrEmpty(authUserId))
+                    return InvokeResult.Success("审核失败,未找到上级节点!");
+
                 var nextAuth = new ComAuth()
                 {
                     ComAuthId = Guid.NewGuid().ToString(),
                     CommunityId = communityId,
-                    AuditUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId),//推荐人审核 
+                    AuditUserId = authUserId,
                     CreateDate = DateTime.Now,
                     AuditType = AuditTypeEnum.未审核,
                     AuditStep = AuditStepEnum.二审
@@ -440,15 +449,24 @@ namespace DID.Services
                 await db.InsertAsync(nextAuth);
 
                 //Dao审核
-                ToDaoAuth(nextAuth.ComAuthId);
+                ToDaoAuth(nextAuth, authinfo.DIDUserId!);
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
+                //中高级节点审核
+                var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
+                var auditUserIds = await db.FetchAsync<ComAuth>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 3 or UserNode = 4)  and IsLogout = 0 and DIDUserId not in (@0)", auditUserIds);
+                var random = new Random().Next(auths.Count);
+                var authUserId = auths[random].DIDUserId;
+                if (string.IsNullOrEmpty(authUserId))
+                    return InvokeResult.Success("审核失败,未找到中高级节点!");
+
                 var nextAuth = new ComAuth()
                 {
                     ComAuthId = Guid.NewGuid().ToString(),
                     CommunityId = communityId,
-                    AuditUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", userId),//推荐人审核 
+                    AuditUserId = authUserId,
                     CreateDate = DateTime.Now,
                     AuditType = AuditTypeEnum.未审核,
                     AuditStep = AuditStepEnum.抽审
@@ -722,8 +740,9 @@ namespace DID.Services
         /// <summary>
         /// 两小时未审核去Dao审核
         /// </summary>
-        /// <param name="authId"></param>
-        public void ToDaoAuth(string authId)
+        /// <param name="item"></param>
+        /// <param name="userId"></param>
+        public void ToDaoAuth(ComAuth item, string userId)
         {
             //两小时没人审核 自动到Dao审核
             var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
@@ -732,7 +751,11 @@ namespace DID.Services
                 t.Stop(); //先关闭定时器
                           //todo: Dao审核
                 using var db = new NDatabase();
-                var item = await db.SingleOrDefaultByIdAsync<ComAuth>(authId);
+
+                //随机Dao审核员审核
+                var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and IsExamine = 1 and IsLogout = 0", userId);
+                var random = new Random().Next(userIds.Count);
+                var auditUserId = userIds[random].DIDUserId;
 
                 if (item.AuditType != AuditTypeEnum.未审核)
                 {
@@ -741,7 +764,7 @@ namespace DID.Services
 
                     item.ComAuthId = Guid.NewGuid().ToString();
                     item.IsDao = IsEnum.是;
-                    item.AuditUserId = "d389e5db-37d0-40cd-9d8b-0d31a0ef2c12";//Dao在线节点用户编号
+                    item.AuditUserId = auditUserId;//Dao在线节点用户编号
                     item.CreateDate = DateTime.Now;
                     await db.InsertAsync(item);
                 }

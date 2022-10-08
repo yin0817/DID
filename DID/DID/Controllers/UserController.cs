@@ -131,16 +131,17 @@ namespace DID.Controllers
         /// 获取验证码 1 邮箱格式错误!
         /// </summary>
         /// <param name="mail"></param>
+        /// <param name="type">0 注册验证码 1 验证码</param>
         /// <returns></returns>
         [HttpGet]
         [Route("getcode")]
         [AllowAnonymous]
-        public async Task<Response> GetCode(string mail)
+        public async Task<Response> GetCode(string mail,int type)
         {
             if (!CommonHelp.IsMail(mail))
                 //return InvokeResult.Fail<string>("1");//邮箱格式错误!
                 return InvokeResult.Fail<string>("邮箱格式错误!");
-            return await _service.GetCode(mail);
+            return await _service.GetCode(mail, type);
         }
 
         /// <summary>
@@ -272,26 +273,13 @@ namespace DID.Controllers
         }
 
         /// <summary>
-        /// WebApi返回图片
+        /// 获取认证图片
         /// </summary>
         [HttpGet]
-        [AllowAnonymous]
-        [Route("getimage")]
-        public IActionResult GetImage(string path)
+        [Route("getauthimage")]
+        public IActionResult GetAuthImage(string path)
         {
-
-            var bmp = WaterMarkHelp.AddWaterMark(path, "4654643144");
-            MemoryStream ms = new MemoryStream();
-            try
-            {
-                bmp.Save(ms, ImageFormat.Png);
-            }
-            finally
-            {
-                //显式释放资源 
-                bmp.Dispose();
-            }
-            return new FileContentResult(ms.ToArray(), "image/jpg");
+            return _service.GetAuthImage(path, _currentUser.UserId);
         }
 
         /// <summary>

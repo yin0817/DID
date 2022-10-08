@@ -176,8 +176,6 @@ namespace Dao.Services
 
             var model = await db.SingleOrDefaultAsync<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
 
-
-
             return InvokeResult.Success(new GetAuditorRespon
             {
                 ExamineNum = model.ExamineNum,
@@ -232,8 +230,12 @@ namespace Dao.Services
                 IsExamine = user.IsExamine,
                 IsArbitrate = user.IsArbitrate,
                 RiskLevel = user.RiskLevel,
-                AuthType = user.AuthType
+                AuthType = user.AuthType,
+                Mail = user.Mail,
+                Uid = user.Uid
             });
         }
+
+
     }
 }

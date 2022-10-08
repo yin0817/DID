@@ -82,6 +82,13 @@ namespace DID.Models.Response
             get; set;
         }
         /// <summary>
+        /// 初审类型 0 未审核 1 审核通过  2 信息不全 3 信息有误 4 证件照片有误 5 证件照片不清晰
+        /// </summary>
+        //public AuditTypeEnum AuditType
+        //{
+        //    get; set;
+        //}
+        /// <summary>
         /// 审批记录
         /// </summary>
         public List<AuthInfo>? Auths

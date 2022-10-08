@@ -93,7 +93,7 @@ namespace Dao.Entity
         /// <summary>
         /// 处理记录
         /// </summary>
-        public string Record
+        public string? Record
         {
             get; set;
         }

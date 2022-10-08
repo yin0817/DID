@@ -90,7 +90,7 @@ namespace Dao.Common
         public static string GetName(string userId)
         {
             using var db = new NDatabase();
-            var name = db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
+            var name = db.SingleOrDefault<string>("select b.Name from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
                 "where a.DIDUserId = @0", userId);
 
             return name ?? "未认证";
@@ -104,7 +104,7 @@ namespace Dao.Common
         public static string GetPhone(string userId)
         {
             using var db = new NDatabase();
-            var phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId " +
+            var phone = db.SingleOrDefault<string>("select b.PhoneNum from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
                 "where a.DIDUserId = @0", userId);
 
             return phone;

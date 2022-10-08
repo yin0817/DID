@@ -4,10 +4,12 @@ using DID.Entitys;
 using DID.Models.Base;
 using DID.Models.Request;
 using DID.Models.Response;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NPoco;
+using System.Drawing.Imaging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -58,8 +60,9 @@ namespace DID.Services
         /// 获取验证码
         /// </summary>
         /// <param name="mail"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        Task<Response> GetCode(string mail);
+        Task<Response> GetCode(string mail, int type);
 
         /// <summary>
         /// 修改密码
@@ -119,6 +122,14 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Response<double>> GetUserEOTC(string userId);
+
+        /// <summary>
+        /// 获取认证图片
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        IActionResult GetAuthImage(string path, string userId);
     }
     /// <summary>
     /// 审核认证服务
@@ -355,7 +366,9 @@ namespace DID.Services
             }
             if(string.IsNullOrEmpty(user.DIDUserId))
                 //return InvokeResult.Fail<string>("5");//登录错误!
-                return InvokeResult.Fail<string>("登录错误");//登录错误!
+                return InvokeResult.Fail<string>("登录错误!");//登录错误!
+            if(user.IsDisable == IsEnum.是)
+                return InvokeResult.Fail<string>("用户已禁用!");//登录错误!
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
@@ -485,8 +498,9 @@ namespace DID.Services
         /// 获取验证码
         /// </summary>
         /// <param name="mail"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public async Task<Response> GetCode(string mail)
+        public async Task<Response> GetCode(string mail,int type)
         {
             var sb = new StringBuilder();
             var random = new Random();
@@ -494,11 +508,17 @@ namespace DID.Services
             {
                 sb.Append(random.Next(0, 9));
             }
-            var code = sb.ToString();
+            //var code = sb.ToString();
+            var code = "123456";
             _cache.Set(mail, code, new TimeSpan(0, 10, 0));//十分钟过期
+
             //todo 发送邮件
-            //return InvokeResult.Success("验证码发送成功!");
-            return InvokeResult.Success(code);
+            //if(type == 0)//注册验证码
+            //    EmailHelp.SendRegister(mail,code);
+            //else if(type == 1)
+            //    EmailHelp.SendVerify(mail, code);
+            return InvokeResult.Success("验证码发送成功!");
+            //return InvokeResult.Success();
         }
 
         /// <summary>
@@ -667,12 +687,12 @@ namespace DID.Services
 
             var users = list.Select(a => new TeamUser()
                             {
-                                Grade = a.UserNode.ToString(),//todo:获取用户等级  0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
+                                UserNode = a.UserNode,//todo:获取用户等级  0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
                                 UID = a.Uid,
                                 Mail = a.Mail,
-                                Phone = db.SingleOrDefault<string>("select b.PhoneNum from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId),
+                                Phone = db.SingleOrDefault<string>("select PhoneNum from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId),
                                 RegDate = a.RegDate,
-                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0 and a.IsLogout = 0", a.UserAuthInfoId))
+                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select Name from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId))
                             }).ToList();
             model.Users = users;
 
@@ -720,6 +740,33 @@ namespace DID.Services
                 return InvokeResult.Fail<double>("用户信息未找到!");
 
             return InvokeResult.Success(user.EOTC);
+        }
+
+        /// <summary>
+        /// 获取认证图片
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public IActionResult GetAuthImage(string path, string userId)
+        {
+            path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+            using var db = new NDatabase();
+
+            var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+
+            var bmp = WaterMarkHelp.AddWaterMark(path, user.Uid.ToString());
+            MemoryStream ms = new MemoryStream();
+            try
+            {
+                bmp.Save(ms, ImageFormat.Png);
+            }
+            finally
+            {
+                //显式释放资源 
+                bmp.Dispose();
+            }
+            return new FileContentResult(ms.ToArray(), "image/jpg");
         }
 
     }

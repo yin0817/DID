@@ -206,12 +206,14 @@ namespace Dao.Services
                 var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
                 model.HandleWalletId = walletId;
                 model.WorkOrderStatus = req.WorkOrderStatus;
+                model.Record = req.Record;
                 await db.UpdateAsync(model);
             }
             else if(req.WorkOrderStatus == WorkOrderStatusEnum.已处理)
             {
                 var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
                 model.WorkOrderStatus = req.WorkOrderStatus;
+                model.Record = req.Record;
                 await db.UpdateAsync(model);
             }
             else if (req.WorkOrderStatus == WorkOrderStatusEnum.待处理)
@@ -219,6 +221,7 @@ namespace Dao.Services
                 var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
                 model.WorkOrderStatus = req.WorkOrderStatus;
                 model.HandleWalletId = "";
+                model.Record = req.Record;
                 await db.UpdateAsync(model);
             }
 

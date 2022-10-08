@@ -159,6 +159,15 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+
+        /// <summary>
+        /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
+        /// </summary>
+        public ArbitrateInTypeEnum ArbitrateInType
+        {
+            get; set;
+        }
     }
 
     public class Vote

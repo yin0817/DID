@@ -93,7 +93,7 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             //var list = await db.FetchAsync<CreditScoreHistory>("select * from CreditScoreHistory where DIDUserId=@0", userId);
-            var list = (await db.PageAsync<CreditScoreHistory>(page, itemsPerPage, "select * from CreditScoreHistory where DIDUserId=@0 and Type = @1", userId, type)).Items;
+            var list = (await db.PageAsync<CreditScoreHistory>(page, itemsPerPage, "select * from CreditScoreHistory where DIDUserId=@0 and Type = @1 order by CreateDate Desc", userId, type)).Items;
             var fraction = await db.SingleOrDefaultAsync<int>("select CreditScore from DIDUser where DIDUserId = @0", userId);
 
             return InvokeResult.Success(new GetCreditScoreRespon { CreditScore = fraction, Items = list });

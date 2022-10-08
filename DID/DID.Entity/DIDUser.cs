@@ -12,9 +12,9 @@ namespace DID.Entitys
     public enum RiskLevelEnum { 低风险, 中风险, 高风险 }
 
     /// <summary>
-    /// 用户等级 0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
+    /// 用户等级 0 普通用户 1交易用户 2 用节点 3 实时节点 4 中级节点 5 高级节点
     /// </summary>
-    public enum UserNodeEnum { 交易用户, 信用节点, 实时节点, 中级节点, 高级节点 }
+    public enum UserNodeEnum { 普通用户, 交易用户, 信用节点, 实时节点, 中级节点, 高级节点 }
     /// <summary>
     /// 用户信息表
     /// </summary>
@@ -220,6 +220,22 @@ namespace DID.Entitys
         /// 风险等级 0 低风险 1 中风险 2 高风险
         /// </summary>
         public RiskLevelEnum RiskLevel
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否禁用 0 否 1 是
+        /// </summary>
+        public IsEnum IsDisable
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 3次恶意提交禁用账号
+        /// </summary>
+        public int AuthFail
         {
             get; set;
         }

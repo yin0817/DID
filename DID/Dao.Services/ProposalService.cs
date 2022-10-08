@@ -229,11 +229,12 @@ namespace Dao.Services
             if (!string.IsNullOrEmpty(userVoteId))
                 return InvokeResult.Fail<int>("请勿重复投票!");
 
-            var mail = await db.SingleOrDefaultAsync<string>("select b.Mail from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
-                "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0",
-                req.WalletAddress, req.Otype, req.Sign);
+            //var mail = await db.SingleOrDefaultAsync<string>("select b.Mail from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
+            //    "where a.WalletAddress = @0 and a.Otype = @1 and a.Sign = @2 and a.IsLogout = 0 and a.IsDelete = 0",
+            //    req.WalletAddress, req.Otype, req.Sign);
             //todo: 通过用户邮箱获取用户票数
-            var voteNum = 1;
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            var voteNum = (int)(user.EOTC / 100);
 
             var item = await db.SingleOrDefaultByIdAsync<Proposal>(req.ProposalId);
             if(null == item)

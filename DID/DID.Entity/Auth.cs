@@ -3,9 +3,8 @@
 namespace DID.Entitys
 {
     /// <summary>
-    /// 审核类型 0 未审核 1 审核通过  2 信息不全 3 信息有误 4 证件照片有误 5 证件照片不清晰
-    /// </summary>
-    public enum AuditTypeEnum { 未审核, 审核通过, 信息不全, 信息有误, 证件照片有误, 证件照片不清晰 }
+    /// 审核类型 0 未审核 1 审核通过  2 恶意提交 3 信息有误 
+    public enum AuditTypeEnum { 未审核, 审核通过, 恶意提交, 信息有误 }
 
     /// <summary>
     /// 审核步骤 0 初审  1 二审 2 抽审 3 Dao
@@ -70,13 +69,13 @@ namespace DID.Entitys
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateDate
+        public DateTime CreateDate 
         {
             get; set;
         }
 
         /// <summary>
-        /// 初审类型 0 未审核 1 审核通过  2 信息不全 3 信息有误 4 证件照片有误 5 证件照片不清晰
+        /// 审核类型 0 未审核 1 审核通过  2 恶意提交 3 信息有误 
         /// </summary>
         public AuditTypeEnum AuditType
         {

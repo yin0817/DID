@@ -8,6 +8,7 @@ using Dao.Services;
 using DID.Common;
 using DID.Entitys;
 using DID.Models.Base;
+using DID.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -27,15 +28,19 @@ namespace Dao.Controllers
 
         private readonly IDaoUserService _service;
 
+        private readonly IUserService _userservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="service"></param>
-        public DaoUserController(ILogger<DaoUserController> logger, IDaoUserService service)
+        /// <param name="userservice"></param>
+        public DaoUserController(ILogger<DaoUserController> logger, IDaoUserService service, IUserService userservice)
         {
             _logger = logger;
             _service = service;
+            _userservice = userservice;
         }
 
         /// <summary>
@@ -102,5 +107,26 @@ namespace Dao.Controllers
             return await _service.RelieveAuditor(userId);
         }
 
+        /// <summary>
+        /// 获取用户质押数量
+        /// </summary>
+        [HttpPost]
+        [Route("getusereotc")]
+        public async Task<Response<double>> GetUserEOTC(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _userservice.GetUserEOTC(userId);
+        }
+
+        /// <summary>
+        /// 获取认证图片
+        /// </summary>
+        [HttpPost]
+        [Route("getauthimage")]
+        public IActionResult GetAuthImage(GetAuthImageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return _userservice.GetAuthImage(req.Path, userId);
+        }
     }
 }
