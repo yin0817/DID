@@ -1,4 +1,5 @@
-﻿using DID.Common;
+﻿using Dao.Entity;
+using DID.Common;
 using DID.Entitys;
 using DID.Models;
 using DID.Models.Base;
@@ -67,7 +68,7 @@ namespace DID.Services
         /// <param name="auditType"></param>
         /// <param name="remark"></param>
         /// <returns></returns>
-        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark);
+        Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark, bool isDao = false);
         /// <summary>
         /// 获取用户审核成功信息
         /// </summary>
@@ -107,8 +108,9 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <param name="auditType"></param>
         /// <param name="remark"></param>
+        /// <param name="isDao"></param>
         /// <returns></returns>
-        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark)
+        public async Task<Response> AuditInfo(string userAuthInfoId, string userId, AuditTypeEnum auditType, string? remark, bool isDao)
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleByIdAsync<UserAuthInfo>(userAuthInfoId);
@@ -251,8 +253,32 @@ namespace DID.Services
                 //去Dao审核
                 //ToDaoAuth(nextAuth.AuthId);
             }
-           
             db.CompleteTransaction();
+
+            //奖励EOTC 10
+            if (isDao)
+            {
+                var detail = new IncomeDetails()
+                {
+                    IncomeDetailsId = Guid.NewGuid().ToString(),
+                    CreateDate = DateTime.Now,
+                    EOTC = 10,
+                    Remarks = "处理审核",
+                    Type = IDTypeEnum.处理审核,
+                    DIDUserId = userId
+                };
+                var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+
+                db.BeginTransaction();
+                db.Insert(detail);
+                user.DaoEOTC += 10;
+                db.Update(user);
+                var userExamine = db.SingleOrDefault<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
+                userExamine.EOTC += 10;
+                userExamine.ExamineNum += 1;
+                db.Update(userExamine);
+                db.CompleteTransaction();
+            }
 
             return InvokeResult.Success("审核成功!");
         }
@@ -621,7 +647,9 @@ namespace DID.Services
                     await db.UpdateAsync(item);
 
                     //随机Dao审核员审核
-                    var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and IsExamine = 1 and IsLogout = 0", userId);
+                    var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and IsExamine = 1 and IsLogout = 0 and IsEnable = 1", userId);
+                    if (userIds.Count == 0)
+                        _logger.LogError("身份认证审核(没有找到审核员)");
                     var random = new Random().Next(userIds.Count);
                     var auditUserId =  userIds[random].DIDUserId;
 

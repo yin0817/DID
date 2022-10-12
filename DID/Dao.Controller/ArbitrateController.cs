@@ -216,10 +216,10 @@ namespace Dao.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("getarbitratemessage")]
-        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(DaoBaseReq req)
+        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(GetArbitrateMessageReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _service.GetArbitrateMessage(userId);
+            return await _service.GetArbitrateMessage(userId, req.IsArbitrate);
         }
 
         /// <summary>
@@ -230,8 +230,8 @@ namespace Dao.Controllers
         [Route("getarbitratedelay")]
         public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(GetArbitrateDelayReq req)
         {
-
-            return await _service.GetArbitrateDelay(req.Id, req.IsArbitrate);
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetArbitrateDelay(userId, req.Id, req.IsArbitrate);
         }
 
         /// <summary>
@@ -279,15 +279,15 @@ namespace Dao.Controllers
         }
 
         /// <summary>
-        /// 获取仲裁员是否有未读消息
+        /// 获取是否有未读消息 0 原被告 1 仲裁员
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         [Route("getmessageisopen")]
-        public async Task<Response<bool>> GetMessageIsOpen(DaoBaseReq req)
+        public async Task<Response<int>> GetMessageIsOpen(GetArbitrateMessageReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _service.GetMessageIsOpen(userId);
+            return await _service.GetMessageIsOpen(userId, req.IsArbitrate);
         }
 
         /// <summary>

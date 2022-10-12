@@ -74,12 +74,12 @@ namespace Dao.Services
                 WalletId = WalletHelp.GetWalletId(req),
                 DIDUserId = userId
             };
-            var user = await db.SingleOrDefaultByIdAsync<DIDUser>(userId);
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
 
             db.BeginTransaction();
             await db.InsertAsync(item);
             user.DaoEOTC += req.EOTC;
-            await db.UpdateAsync(item);
+            await db.UpdateAsync(user);
             db.CompleteTransaction();
 
             return InvokeResult.Success("添加成功");

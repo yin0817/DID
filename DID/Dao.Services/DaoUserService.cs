@@ -50,6 +50,14 @@ namespace Dao.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Response> RelieveAuditor(string userId);
+
+        /// <summary>
+        /// 是否启用Dao审核仲裁权限
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="isEnable"></param>
+        /// <returns></returns>
+        Task<Response> SetDaoEnable(string userId, IsEnum isEnable);
     }
 
     /// <summary>
@@ -232,8 +240,29 @@ namespace Dao.Services
                 RiskLevel = user.RiskLevel,
                 AuthType = user.AuthType,
                 Mail = user.Mail,
-                Uid = user.Uid
+                Uid = user.Uid,
+                UserId = userId,
+                IsEnable = user.IsEnable
             });
+        }
+
+        /// <summary>
+        /// 是否启用Dao审核仲裁权限
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="isEnable"></param>
+        /// <returns></returns>
+        public async Task<Response> SetDaoEnable(string userId, IsEnum isEnable)
+        {
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+            {
+                return InvokeResult.Fail("用户信息未找到!");
+            }
+            user.IsEnable = isEnable;
+            await db.UpdateAsync(user);
+            return InvokeResult.Success("设置成功!");
         }
 
 

@@ -153,6 +153,14 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
+        /// 当前用户是否延期
+        /// </summary>
+        public IsEnum HasDelay
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 是否取消
         /// </summary>
         public IsEnum IsCancel
@@ -165,6 +173,14 @@ namespace Dao.Models.Response
         /// 仲裁事件 0 账户被冻结 1 卖家未确认收款 2 其他
         /// </summary>
         public ArbitrateInTypeEnum ArbitrateInType
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 投票状态 0 未投票 1 原告胜 2 被告胜
+        /// </summary>
+        public VoteStatusEnum? VoteStatus
         {
             get; set;
         }

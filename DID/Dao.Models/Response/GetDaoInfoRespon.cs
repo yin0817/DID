@@ -64,5 +64,21 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// UserId
+        /// </summary>
+        public string? UserId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否启用Dao审核仲裁权限 0 否 1 是
+        /// </summary>
+        public IsEnum IsEnable
+        {
+            get; set;
+        }
     }
 }

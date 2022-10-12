@@ -1,5 +1,6 @@
 ﻿using Dao.Models.Base;
 using DID.Common;
+using DID.Entitys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
@@ -33,9 +34,9 @@ namespace Dao.Common.ActionFilter
 
                         //Dao验证钱包地址
                         using var db = new NDatabase();
-                        var walletId = await db.SingleOrDefaultAsync<string>("select WalletId from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
+                        var wallet = await db.SingleOrDefaultAsync<Wallet>("select * from Wallet where WalletAddress = @0 and Otype = @1 and Sign = @2 and IsLogout = 0 and IsDelete = 0",
                                                                             walletAddress, otype, sign);
-                        if (string.IsNullOrEmpty(walletId))
+                        if (null == wallet)
                         {
                             context.Result = new ContentResult()
                             {
@@ -43,6 +44,13 @@ namespace Dao.Common.ActionFilter
                                 ContentType = "application/json; charset=utf-8",
                                 StatusCode = (int)HttpStatusCode.Unauthorized
                             };
+                        }
+                        else
+                        {
+                            //更新在线时间
+                            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", wallet!.DIDUserId);
+                            user.LoginDate = DateTime.Now;
+                            await db.UpdateAsync(user);
                         }
                     }
                     else

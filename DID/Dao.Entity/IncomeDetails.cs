@@ -18,7 +18,10 @@ namespace Dao.Entity
         /// <summary>
         /// 
         /// </summary>
-        处理审核 
+        处理审核 ,
+
+        提案投票 ,
+        创建提案
     }
     /// <summary>
     /// 收益明细

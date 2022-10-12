@@ -94,7 +94,7 @@ namespace Dao.Controllers
         public async Task<Response> AuditInfo(DaoAuditInfoReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _authservice.AuditInfo(req.UserAuthInfoId, userId, req.AuditType, req.Remark);
+            return await _authservice.AuditInfo(req.UserAuthInfoId, userId, req.AuditType, req.Remark, true);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Dao.Controllers
         public async Task<Response> AuditCommunity(DaoAuditCommunityReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _comservice.AuditCommunity(req.CommunityId, userId, req.AuditType, req.Remark);
+            return await _comservice.AuditCommunity(req.CommunityId, userId, req.AuditType, req.Remark, true);
         }
 
         /// <summary>

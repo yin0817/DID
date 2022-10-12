@@ -6,6 +6,8 @@ using Dao.Models.Response;
 using DID.Common;
 using DID.Entitys;
 using DID.Models.Base;
+using DID.Models.Request;
+using DID.Services;
 using Microsoft.Extensions.Logging;
 using NPoco;
 
@@ -119,13 +121,13 @@ namespace Dao.Services
         /// 获取仲裁消息列表
         /// </summary>
         /// <returns></returns>
-        Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId);
+        Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId, IsEnum isArbitrate);
 
         /// <summary>
         /// 获取原被告延期消息
         /// </summary>
         /// <returns></returns>
-        Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string id, IsEnum isArbitrate);
+        Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string userId, string id, IsEnum isArbitrate);
 
         /// <summary>
         /// 获取取消仲裁消息
@@ -155,7 +157,7 @@ namespace Dao.Services
         /// 获取仲裁员是否有未读消息
         /// </summary>
         /// <returns></returns>
-        Task<Response<bool>> GetMessageIsOpen(string userId);
+        Task<Response<int>> GetMessageIsOpen(string userId, IsEnum isArbitrate);
 
         /// <summary>
         /// 获取被告待处理消息
@@ -179,13 +181,17 @@ namespace Dao.Services
     {
         private readonly ILogger<ArbitrateService> _logger;
 
+        private readonly ICreditScoreService _csservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public ArbitrateService(ILogger<ArbitrateService> logger)
+        /// <param name="csservice"></param>
+        public ArbitrateService(ILogger<ArbitrateService> logger, ICreditScoreService csservice)
         {
             _logger = logger;
+            _csservice = csservice;
         }
         /// <summary>
         /// 添加支付信息
@@ -218,7 +224,8 @@ namespace Dao.Services
             var db = new NDatabase();
 
             var model = await db.SingleOrDefaultAsync<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", userId);
-
+            if (null == model)
+                return InvokeResult.Fail<GetArbitratorRespon>("未找到仲裁员信息!");
 
             return InvokeResult.Success(new GetArbitratorRespon
             {
@@ -297,8 +304,8 @@ namespace Dao.Services
                     Status = a.Status,
                     Defendant = WalletHelp.GetName(a.Defendant),
                     Plaintiff = WalletHelp.GetName(a.Plaintiff),
-                    DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
-                    PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                    DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                    PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.原告胜),
                     AdduceDate = a.AdduceDate,
                     VoteDate = a.VoteDate,
                     PlaintiffId = a.Plaintiff,
@@ -328,8 +335,8 @@ namespace Dao.Services
                 Status = item.Status,
                 Defendant = WalletHelp.GetName(item.Defendant),
                 Plaintiff = WalletHelp.GetName(item.Plaintiff),
-                DefendantNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", item.ArbitrateInfoId, VoteStatusEnum.被告胜),
-                PlaintiffNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", item.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                DefendantNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", item.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                PlaintiffNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", item.ArbitrateInfoId, VoteStatusEnum.原告胜),
                 PlaintiffId = item.Plaintiff,
                 DefendantId = item.Defendant,
                 DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", item.Defendant),
@@ -338,7 +345,7 @@ namespace Dao.Services
                 ArbitrateInType = item.ArbitrateInType
             };
 
-            var users = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus > 0 ", item.ArbitrateInfoId);//已投票记录
+            var users = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus > 0 and IsDelete = 0", item.ArbitrateInfoId);//已投票记录
 
             var votes = new List<Vote>();
 
@@ -354,12 +361,14 @@ namespace Dao.Services
             });
             model.Votes = votes;
 
+            model.VoteStatus = await db.SingleOrDefaultAsync<VoteStatusEnum>("select VoteStatus from ArbitrateVote where ArbitrateInfoId = @0 and VoteUserId = @1", item.ArbitrateInfoId, userId);
+
             //举证记录
-            var adduce = await db.FetchAsync<AdduceList>("select * from AdduceList where ArbitrateInfoId = @0", arbitrateInfoId);
+            var adduce = await db.FetchAsync<AdduceList>("select * from AdduceList where ArbitrateInfoId = @0 order by CreateDate Desc", arbitrateInfoId);
             model.Adduce = adduce;
 
             //当前仲裁员判决
-            var useradduce = await db.SingleOrDefaultAsync<ArbitrateVote>("select * from ArbitrateVote where  ArbitrateInfoId = @0 and VoteUserId = @1", arbitrateInfoId, userId);
+            var useradduce = await db.SingleOrDefaultAsync<ArbitrateVote>("select * from ArbitrateVote where  ArbitrateInfoId = @0 and VoteUserId = @1 and IsDelete = 0", arbitrateInfoId, userId);
             if (null != useradduce)
             {
                 model.UserVote = new Vote
@@ -370,10 +379,10 @@ namespace Dao.Services
                     Reason = useradduce.Reason
                 };
             }
-
             model.EOTC = 100;
 
-
+            var delay = await db.SingleOrDefaultAsync<ArbitrateDelay>("select * from ArbitrateDelay where ArbitrateInfoId = @0 and DelayUserId = @1", arbitrateInfoId, userId);
+            model.HasDelay = null == delay ? IsEnum.否 : IsEnum.是;
 
             return InvokeResult.Success(model);
         }
@@ -405,20 +414,20 @@ namespace Dao.Services
             {
                 ArbitrateInfoId = Guid.NewGuid().ToString(),
                 CreateDate = DateTime.Now,
-                AdduceDate = DateTime.Now.AddDays(3),
+                AdduceDate = DateTime.Now.AddMinutes(5),//AddDays(3),
                 Defendant = defendantUser.DIDUserId,
                 OrderId = orderId,
                 Plaintiff = plaintiffUser.DIDUserId,
                 Number = num,
                 Status = ArbitrateStatusEnum.举证中,
-                VoteDate = DateTime.Now.AddDays(6),
+                VoteDate = DateTime.Now.AddMinutes(10),//AddDays(6),
                 ArbitrateInType = type
             };
 
             //todo: 获取仲裁投票用户编号
             var list = new List<string>();
 
-            var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and DIDUserId != @1 and IsArbitrate = 1 and IsLogout = 0", defendantUser.DIDUserId, plaintiffUser.DIDUserId);
+            var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and DIDUserId != @1 and IsArbitrate = 1 and IsEnable = 1 and IsLogout = 0", defendantUser.DIDUserId, plaintiffUser.DIDUserId);
             if(userIds.Count < num)
                 return InvokeResult.Fail("仲裁员人数不足!");
             for (var i = 0; i < num; i++)
@@ -456,11 +465,14 @@ namespace Dao.Services
             {
                 AdduceListId = Guid.NewGuid().ToString(),
                 ArbitrateInfoId = item.ArbitrateInfoId,
-                AdduceUserId = plaintiff,
+                AdduceUserId = plaintiffUser.DIDUserId,
                 CreateDate = DateTime.Now,
                 Images = images,
                 Memo = memo
             };
+
+            //发送消息
+            SendMessage(new List<string> { defendantUser.DIDUserId }, MessageTypeEnum.被告消息, item.ArbitrateInfoId, IsEnum.否);
 
             db.BeginTransaction();
             await db.InsertAsync(item);
@@ -469,7 +481,8 @@ namespace Dao.Services
             db.CompleteTransaction();
 
             //默认3天举证时间
-            ToDelay(item.ArbitrateInfoId, 4320000);
+            //ToDelay(item.ArbitrateInfoId, 3 * 24 * 3600 * 1000);
+            ToDelay(item.ArbitrateInfoId, 5 * 60 * 1000);
 
             return InvokeResult.Success("提交成功!");
         }
@@ -498,13 +511,14 @@ namespace Dao.Services
                     Defendant = WalletHelp.GetName(a.Defendant),
                     Plaintiff = WalletHelp.GetName(a.Plaintiff),
                     ArbitrateInType = a.ArbitrateInType,
-                    DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
-                    PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                    DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                    PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.原告胜),
                     IsCancel = a.IsCancel,
                     PlaintiffId = a.Plaintiff,
                     DefendantId = a.Defendant,
-                    DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0",a.Defendant),
+                    DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", a.Defendant),
                     PlaintiffUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", a.Plaintiff),
+                    HasDelay = db.SingleOrDefault<ArbitrateDelay>("select * from ArbitrateDelay where ArbitrateInfoId = @0 and DelayUserId = @1", a.ArbitrateInfoId, userId) == null ? IsEnum.否 : IsEnum.是
                 };
             }).ToList();
 
@@ -520,9 +534,9 @@ namespace Dao.Services
             using var db = new NDatabase();
             var items = new List<ArbitrateVote>();
             if (type == 0)//待仲裁
-                items = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where VoteStatus = 0 and VoteUserId = @0 and IsDelete = 0", userId);
+                items = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where VoteStatus = 0 and VoteUserId = @0 and IsDelete = 0 order by CreateDate Desc", userId);
             else
-                items = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where (VoteStatus > 0 or IsDelete = 0) and VoteUserId = @0", userId);//已仲裁
+                items = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where (VoteStatus > 0 or IsDelete = 1) and VoteUserId = @0 order by CreateDate Desc", userId);//已仲裁
 
             var list = new List<GetArbitrateInfoRespon>();
             items.ForEach(a =>
@@ -541,14 +555,14 @@ namespace Dao.Services
                         ArbitrateInType = model.ArbitrateInType,
                         Defendant = WalletHelp.GetName(model.Defendant),
                         Plaintiff = WalletHelp.GetName(model.Plaintiff),
-                        DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
-                        PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                        DefendantNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.被告胜),
+                        PlaintiffNum = db.SingleOrDefault<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", a.ArbitrateInfoId, VoteStatusEnum.原告胜),
                         IsCancel = model.IsCancel,
                         VoteStatus = a.VoteStatus,
                         PlaintiffId = model.Plaintiff,
                         DefendantId = model.Defendant,
                         EOTC = 100,//EOTC数量
-                        HasDelay = delay == null
+                        HasDelay = delay == null ? IsEnum.否 : IsEnum.是
                     });
                 }
             });
@@ -599,37 +613,92 @@ namespace Dao.Services
             if (DateTime.Now > arbitrate.VoteDate)
                 return InvokeResult.Fail("投票已截止!");
 
-            var vote = await db.SingleOrDefaultAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteUserId = @1", arbitrateInfoId, userId);
+            var vote = await db.SingleOrDefaultAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteUserId = @1 and IsDelete = 0", arbitrateInfoId, userId);
             if (null == vote)
                 return InvokeResult.Fail("信息未找到!");
 
             vote.VoteStatus = status;
             vote.VoteDate = DateTime.Now;
             vote.Reason = reason;
-
             await db.UpdateAsync(vote);
 
-            //todo 
-            //var list = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0", arbitrateInfoId);
-            //var num = 0;//原告票数
-            //list.Select(a => a.VoteStatus == VoteStatusEnum.原告胜 ? num++ : num);
+            var model = await db.SingleOrDefaultAsync<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", userId);
+            if(null == model)
+                return InvokeResult.Fail("仲裁员信息未找到!");
+            model.ArbitrateNum += 1;
+            await db.UpdateAsync(model);
 
-            //if (num > list.Count / 2)
-            //{
-            //    var delay = await db.SingleOrDefaultByIdAsync<ArbitrateDelay>(delayVote.ArbitrateDelayId);
-            //    var model = await db.SingleOrDefaultByIdAsync<ArbitrateInfo>(delay.ArbitrateInfoId);
-            //    model.AdduceDate.AddDays(delay.Days);
-            //    await db.UpdateAsync(model);
-            //}
+            //提前结束
+            var votes = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", arbitrateInfoId, VoteStatusEnum.未投票);
+            if (votes.Count == 0)
+            {
+                var uservotes = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0", arbitrateInfoId);//全部投票信息
+                //原告票数
+                var ynum = uservotes.Where(a => a.VoteStatus == VoteStatusEnum.原告胜).Count();
+                //被告票数
+                var bnum = uservotes.Where(a => a.VoteStatus == VoteStatusEnum.被告胜).Count();
+                //原告胜
+                if (ynum > arbitrate.Number / 2)
+                {
+                    arbitrate.Status = ArbitrateStatusEnum.原告胜;
+                }
+
+                //被告胜
+                if (bnum > arbitrate.Number / 2)
+                {
+                    arbitrate.Status = ArbitrateStatusEnum.被告胜;
+                }
+                //发送结案通知
+                if (arbitrate.Status == ArbitrateStatusEnum.原告胜 || arbitrate.Status == ArbitrateStatusEnum.被告胜)
+                {
+                    SendMessage(new List<string> { arbitrate.Plaintiff, arbitrate.Defendant }, MessageTypeEnum.结案通知, arbitrateInfoId, IsEnum.否);
+                    SendMessage(uservotes.Select(a => a.VoteUserId).ToList(), MessageTypeEnum.结案通知, arbitrateInfoId, IsEnum.是);
+                }
+                arbitrate.VoteDate = DateTime.Now;
+                await db.UpdateAsync(arbitrate);
+
+                //仲裁员仲裁胜利次数+1
+                uservotes.ForEach(a =>
+                {
+                    if (a.VoteStatus == (arbitrate.Status == ArbitrateStatusEnum.原告胜 ? VoteStatusEnum.原告胜 : VoteStatusEnum.被告胜) )
+                    {
+                        var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
+                        
+                        model.VictoryNum += 1;
+                        db.Update(model);
+                        //奖励EOTC
+                        var detail = new IncomeDetails()
+                        {
+                            IncomeDetailsId = Guid.NewGuid().ToString(),
+                            CreateDate = DateTime.Now,
+                            EOTC = 20,
+                            Remarks = "仲裁处理",
+                            Type = IDTypeEnum.处理仲裁,
+                            DIDUserId = a.VoteUserId
+                        };
+                        var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", a.VoteUserId);
+
+                        db.BeginTransaction();
+                        db.Insert(detail);
+                        user.DaoEOTC += 20;
+                        db.Update(user);
+                        db.CompleteTransaction();
+                    }    
+                });
+
+                //关闭定时器
+                t1.Stop();
+            }
 
             return InvokeResult.Success("判决成功!");
         }
 
 
         //3天默认时间
-        private System.Timers.Timer t = new();//实例化Timer类，设置间隔时间为10000毫秒；
+        private static System.Timers.Timer t = new();//实例化Timer类，设置间隔时间为10000毫秒；
         //3天仲裁时间
-        private readonly System.Timers.Timer t1 = new(3 * 24 * 3600 * 1000);
+        //private readonly System.Timers.Timer t1 = new(3 * 24 * 3600 * 1000);
+        private static System.Timers.Timer t1 = new(5 * 60 * 1000);
 
         /// <summary>
         /// 举证定时器 
@@ -649,57 +718,149 @@ namespace Dao.Services
                 using var db = new NDatabase();
                 var item = db.SingleOrDefaultById<ArbitrateInfo>(arbitrateInfoId);
 
-                item.Status = ArbitrateStatusEnum.投票中;
-                db.Update(item);
-
-                t1.Elapsed += new System.Timers.ElapsedEventHandler((object? source, System.Timers.ElapsedEventArgs e) =>
+                if (DateTime.Now >= item.AdduceDate)
                 {
-                    t1.Stop(); //先关闭定时器
-                    using var db = new NDatabase();
-                    var item = db.SingleOrDefaultById<ArbitrateInfo>(arbitrateInfoId);
 
-                    //限时未出结果 未投票用户扣分 加入新人
-                    if (item.Status == ArbitrateStatusEnum.投票中)
+                    item.Status = ArbitrateStatusEnum.投票中;
+                    db.Update(item);
+                    t1.Elapsed += new System.Timers.ElapsedEventHandler((object? source, System.Timers.ElapsedEventArgs e) =>
                     {
-                        var votes = db.Fetch<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", arbitrateInfoId, VoteStatusEnum.未投票);
+                        t1.Stop(); //先关闭定时器
+                        using var db = new NDatabase();
+                        var item = db.SingleOrDefaultById<ArbitrateInfo>(arbitrateInfoId);
+                        var uservotes = db.Fetch<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0", arbitrateInfoId);//全部投票信息
+                                                                                                                                                            //原告票数
+                        var ynum = uservotes.Where(a => a.VoteStatus == VoteStatusEnum.原告胜).Count();
+                        //被告票数
+                        var bnum = uservotes.Where(a => a.VoteStatus == VoteStatusEnum.被告胜).Count();
+
+                        //原告胜
+                        if (ynum > item.Number / 2)
+                        {
+                            item.Status = ArbitrateStatusEnum.原告胜;
+                        }
+
+                        //被告胜
+                        if (bnum > item.Number / 2)
+                        {
+                            item.Status = ArbitrateStatusEnum.被告胜;
+                        }
+
+                        var votes = db.Fetch<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", arbitrateInfoId, VoteStatusEnum.未投票);
 
                         votes.ForEach(a =>
                         {
                             var userId = a.VoteUserId;
-                            //todo: 扣分
+                            //todo: 扣分 扣EOTC
+                            var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+                            _csservice.CreditScore(new CreditScoreReq { Fraction = 3, Remarks = "仲裁到时未投票", Type = TypeEnum.减分, Uid = user.Uid });
+
                             a.IsDelete = IsEnum.是;
-                            db.UpdateAsync(a);
+                            db.Update(a);
 
-                            //新的投票对象
-                            var newvote = new ArbitrateVote
+                            //更新延期状态
+                            var delay = db.SingleOrDefault<ArbitrateDelay>("select * from ArbitrateDelay where IsArbitrate = 1 and ArbitrateInfoId = @0", arbitrateInfoId);
+                            if (null != delay)
                             {
-                                ArbitrateVoteId = Guid.NewGuid().ToString(),
-                                ArbitrateInfoId = item.ArbitrateInfoId,
-                                CreateDate = DateTime.Now,
-                                VoteStatus = VoteStatusEnum.未投票,
-                                VoteUserId = a.VoteUserId
-                            };
-
-                            db.Insert(newvote);
-
-                            var item1 = db.SingleOrDefaultById<ArbitrateInfo>(arbitrateInfoId);
-
-                            item1.VoteDate = item1.VoteDate.AddDays(3);//投票时间延长3天
-                            db.Update(item1);
+                                delay.Status = 2;
+                                db.Update(delay);
+                            }
+                                
                         });
 
-                    }
+                        //发送结案通知
+                        if (item.Status == ArbitrateStatusEnum.原告胜 || item.Status == ArbitrateStatusEnum.被告胜)
+                        {
+                            SendMessage(new List<string> { item.Plaintiff, item.Defendant }, MessageTypeEnum.结案通知, arbitrateInfoId, IsEnum.否);
+                            SendMessage(uservotes.Where(a => a.IsDelete == IsEnum.否).Select(a => a.ArbitrateInfoId).ToList(), MessageTypeEnum.结案通知, arbitrateInfoId, IsEnum.是);
 
-                    db.Update(item);
-                });
-                t1.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
-                t1.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
-                t1.Start(); //启动定时器
+                            //仲裁员仲裁胜利次数+1
+                            uservotes.ForEach(a =>
+                            {
+                                if (a.VoteStatus == (item.Status == ArbitrateStatusEnum.原告胜 ? VoteStatusEnum.原告胜 : VoteStatusEnum.被告胜))
+                                {
+                                    var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
+
+                                    model.VictoryNum += 1;
+                                    db.Update(model);
+
+                                    //奖励EOTC
+                                    var detail = new IncomeDetails()
+                                    {
+                                        IncomeDetailsId = Guid.NewGuid().ToString(),
+                                        CreateDate = DateTime.Now,
+                                        EOTC = 20,
+                                        Remarks = "仲裁处理",
+                                        Type = IDTypeEnum.处理仲裁,
+                                        DIDUserId = a.VoteUserId
+                                    };
+                                    var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", a.VoteUserId);
+
+                                    db.BeginTransaction();
+                                    db.Insert(detail);
+                                    user.DaoEOTC += 20;
+                                    db.Update(user);
+                                    db.CompleteTransaction();
+                                }
+                            });
+                        }
+
+                        //限时未出结果 未投票用户扣分 加入新人
+                        if (item.Status == ArbitrateStatusEnum.投票中)
+                        {
+                            var allvotes = db.Fetch<string>("select VoteUserId from ArbitrateVote where ArbitrateInfoId = @0", arbitrateInfoId);
+                            var list = new List<string>();
+                            var userIds = db.Fetch<DIDUser>("select * from DIDUser where DIDUserId != @0 and DIDUserId != @1 and IsArbitrate = 1 and IsLogout = 0 and IsEnable = 1 and DIDUserId not in (@2)",
+                                item.Defendant, item.Plaintiff, allvotes);
+
+                            for (var i = 0; i < votes.Count; i++)
+                            {
+                                var random = 0;
+                                do
+                                {
+                                    random = new Random().Next(userIds.Count);
+                                } while (list.Exists(a => a == userIds[random].DIDUserId));
+                                list.Add(userIds[random].DIDUserId);
+                            }
+                            list.ForEach(a =>
+                            {
+                                //新的投票对象
+                                var newvote = new ArbitrateVote
+                                {
+                                    ArbitrateVoteId = Guid.NewGuid().ToString(),
+                                    ArbitrateInfoId = item.ArbitrateInfoId,
+                                    CreateDate = DateTime.Now,
+                                    VoteStatus = VoteStatusEnum.未投票,
+                                    VoteUserId = a
+                                };
+
+                                db.Insert(newvote);
+                            });
+
+                            //item.VoteDate = item.VoteDate.AddDays(3);//投票时间延长3天
+                            item.VoteDate = item.VoteDate.AddMinutes(5);//投票时间延长3天
+                            db.Update(item);
+                            //重新启动投票定时器
+                            t1.AutoReset = false;
+                            t1.Enabled = true;
+                            t1.Start();
+                        }
+
+                        db.Update(item);
+                    });
+                    t1.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
+                    t1.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
+                    t1.Start(); //启动定时器
+                }
+                else
+                {
+                    var time = (int)(item.AdduceDate - DateTime.Now).TotalMilliseconds;
+                    ToDelay(arbitrateInfoId, time);
+                }
             });//到达时间的时候执行事件；
             t.AutoReset = false;//设置是执行一次（false）还是一直执行(true)；
             t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
             t.Start(); //启动定时器
-
         }
 
         /// <summary>
@@ -709,7 +870,7 @@ namespace Dao.Services
         public async Task<Response> ArbitrateDelay(string arbitrateInfoId, string userId, ReasonEnum reason, string explain, int day, IsEnum isArbitrate)
         {
             using var db = new NDatabase();
-
+            db.BeginTransaction();
             var item = new ArbitrateDelay
             {
                 ArbitrateDelayId = Guid.NewGuid().ToString(),
@@ -721,25 +882,51 @@ namespace Dao.Services
                 Reason = reason,
                 IsArbitrate = isArbitrate
             };
-
-            //todo: 获取仲裁投票用户编号
-            var userIds = await db.FetchAsync<string>("select VoteUserId from ArbitrateVote where ArbitrateInfoId = @0", arbitrateInfoId);
-            var votes = new List<DelayVote>();
-            userIds.ForEach(a =>
-            {
-                votes.Add(new DelayVote
-                {
-                    DelayVoteId = Guid.NewGuid().ToString(),
-                    ArbitrateDelayId = item.ArbitrateDelayId,
-                    CreateDate = DateTime.Now,
-                    Status = DelayVoteStatus.未投票,
-                    VoteUserId = a
-                });
-            });
-
-            db.BeginTransaction();
             await db.InsertAsync(item);
-            await db.InsertBatchAsync(votes);
+            //原被告 支付成功直接延期
+            if (isArbitrate == IsEnum.否)
+            {
+                //todo:验证是否支付成功
+                var model = await db.SingleOrDefaultByIdAsync<ArbitrateInfo>(arbitrateInfoId);
+                model.AdduceDate = model.AdduceDate.AddDays(day);
+                model.VoteDate = model.VoteDate.AddDays(day);
+                model.Status = ArbitrateStatusEnum.举证中;
+                await db.UpdateAsync(model);
+                item.Status = 1;
+                await db.UpdateAsync(item);
+                //var time = (int)(model.AdduceDate - DateTime.Now).TotalMilliseconds;
+                //ToDelay(arbitrateInfoId, time);
+
+                //发送延期成功消息(原告，被告)
+                if(userId == model.Plaintiff)
+                    SendMessage(new List<string> { model.Defendant }, MessageTypeEnum.申请延期, item.ArbitrateDelayId, IsEnum.否);
+                else
+                    SendMessage(new List<string> { model.Plaintiff }, MessageTypeEnum.申请延期, item.ArbitrateDelayId, IsEnum.否);
+            }
+
+            if (isArbitrate == IsEnum.是)
+            {
+                //todo: 获取仲裁投票用户编号 发起人默认同意
+                var userIds = await db.FetchAsync<string>("select VoteUserId from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0 and VoteUserId != @1", arbitrateInfoId, userId);
+                var votes = new List<DelayVote>();
+                userIds.ForEach(a =>
+                {
+                    votes.Add(new DelayVote
+                    {
+                        DelayVoteId = Guid.NewGuid().ToString(),
+                        ArbitrateDelayId = item.ArbitrateDelayId,
+                        CreateDate = DateTime.Now,
+                        Status = DelayVoteStatus.未投票,
+                        VoteUserId = a
+                    });
+                });
+                await db.InsertBatchAsync(votes);
+                //发送延期投票消息
+                SendMessage(userIds, MessageTypeEnum.申请延期, item.ArbitrateDelayId, IsEnum.是);
+            }
+
+            
+            
             db.CompleteTransaction();
 
             return InvokeResult.Success("申请成功!");
@@ -755,24 +942,42 @@ namespace Dao.Services
             using var db = new NDatabase();
 
             var delayVote = await db.SingleOrDefaultByIdAsync<DelayVote>(delayVoteId);
-            delayVote.Status = DelayVoteStatus.同意;
+            if(null == delayVote)
+                return InvokeResult.Fail("投票记录未找到!");
+            delayVote.Status = status;
             await db.UpdateAsync(delayVote);
 
             var list = await db.FetchAsync<DelayVote>("select * from DelayVote where ArbitrateDelayId = @0", delayVote.ArbitrateDelayId);
-            var num = 0;//同意票数
-            list.Select(a => a.Status == DelayVoteStatus.同意 ? num++ : num);
+            var num = 1;//同意票数（提交人默认同意）
 
-            if (num > list.Count / 2)
+            list.ForEach(a => { if (a.Status == DelayVoteStatus.同意) num++;});
+
+            if (status == DelayVoteStatus.同意 && (num - 1) <= (list.Count + 1) / 2 && num > (list.Count + 1) / 2)
             {
                 var delay = await db.SingleOrDefaultByIdAsync<ArbitrateDelay>(delayVote.ArbitrateDelayId);
                 var model = await db.SingleOrDefaultByIdAsync<ArbitrateInfo>(delay.ArbitrateInfoId);
-                model.AdduceDate.AddDays(delay.Days);
+                model.AdduceDate = DateTime.Now.AddDays(delay.Days);
+                model.VoteDate = DateTime.Now.AddDays(delay.Days);
                 model.Status = ArbitrateStatusEnum.举证中;
                 await db.UpdateAsync(model);
+                delay.Status = 1;
+                await db.UpdateAsync(delay);
+
+                var votes = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0", delay.ArbitrateInfoId);
+                foreach (var i in votes)
+                {
+                    i.VoteDate = null;
+                    i.Reason = null;
+                    i.VoteStatus = VoteStatusEnum.未投票;
+                    await db.UpdateAsync(i);
+                }
 
                 //延期
-                var time = (model.AdduceDate - DateTime.Now).Milliseconds;
-                ToDelay(delay.ArbitrateInfoId, time);
+                //var time = (model.AdduceDate - DateTime.Now).Milliseconds;
+                //ToDelay(delay.ArbitrateInfoId, delay.Days * 24 * 60 * 3600 * 1000);
+
+                //发送延期成功消息(原告，被告)
+                SendMessage(new List<string> { model.Plaintiff, model.Defendant}, MessageTypeEnum.申请延期, delayVote.ArbitrateDelayId, IsEnum.否);
             }
             return InvokeResult.Success("投票成功!");
         }
@@ -801,6 +1006,13 @@ namespace Dao.Services
                 Memo = memo
             };
 
+            //发送消息原被告
+            var id = userId == arbitrate.Defendant ? arbitrate.Plaintiff : arbitrate.Defendant;
+            SendMessage(new List<string> { id }, MessageTypeEnum.追加举证, adduce.AdduceListId, IsEnum.否);
+            //仲裁员
+            var userIds = await db.FetchAsync<string>("select VoteUserId from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0", arbitrateInfoId);
+            SendMessage(userIds, MessageTypeEnum.追加举证, adduce.AdduceListId, IsEnum.是);
+
             await db.InsertAsync(adduce);
             return InvokeResult.Success("添加成功!");
         }
@@ -822,7 +1034,18 @@ namespace Dao.Services
 
             arbitrate.IsCancel = IsEnum.是;
             arbitrate.CancelReason = reason;
+            arbitrate.VoteDate = DateTime.Now;
             await db.UpdateAsync(arbitrate);
+
+            //关闭定时器
+            t.Stop();
+            t1.Stop();
+            //发送消息被告
+            SendMessage(new List<string> { arbitrate.Defendant }, MessageTypeEnum.仲裁取消, arbitrateInfoId, IsEnum.否);
+            //仲裁员
+            var userIds = await db.FetchAsync<string>("select VoteUserId from ArbitrateVote where ArbitrateInfoId = @0 and IsDelete = 0", arbitrateInfoId);
+            SendMessage(userIds, MessageTypeEnum.仲裁取消, arbitrateInfoId, IsEnum.是);
+
             return InvokeResult.Success("取消成功!");
         }
 
@@ -831,11 +1054,11 @@ namespace Dao.Services
         /// 获取仲裁消息列表
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId)
+        public async Task<Response<List<GetArbitrateMessageRespon>>> GetArbitrateMessage(string userId, IsEnum isArbitrate)
         {
             using var db = new NDatabase();
 
-            var list = await db.FetchAsync<ArbitrateMessage>("select * from ArbitrateMessage where UserId = @0 order by CreateDate", userId);
+            var list = await db.FetchAsync<ArbitrateMessage>("select * from ArbitrateMessage where UserId = @0 and IsArbitrate = @1 order by CreateDate Desc", userId, isArbitrate);
 
             var items = new List<GetArbitrateMessageRespon>();
             list.ForEach(a =>
@@ -890,12 +1113,13 @@ namespace Dao.Services
         /// 获取原被告延期消息
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string id, IsEnum isArbitrate)
+        public async Task<Response<GetArbitrateDelayRespon>> GetArbitrateDelay(string userId, string id, IsEnum isArbitrate)
         {
             using var db = new NDatabase();
 
             var model = await db.SingleOrDefaultByIdAsync<ArbitrateDelay>(id);
             var info = await db.SingleOrDefaultByIdAsync<ArbitrateInfo>(model.ArbitrateInfoId);
+            var delayVote = await db.SingleOrDefaultAsync<DelayVote>("select * from DelayVote where ArbitrateDelayId = @0 and VoteUserId = @1", id, userId);
             var respon = new GetArbitrateDelayRespon
             {
                 ArbitrateInfoId = model.ArbitrateInfoId,
@@ -904,10 +1128,13 @@ namespace Dao.Services
                 Defendant = WalletHelp.GetName(info.Defendant),
                 DefendantId = info.Defendant,
                 Plaintiff = WalletHelp.GetName(info.Plaintiff),
-                PlaintiffId = info.Defendant,
+                PlaintiffId = info.Plaintiff,
                 DelayUserId = model.DelayUserId,
                 Explain = model.Explain,
-                Reason = Enum.GetName(model.Reason)
+                Reason = Enum.GetName(model.Reason),
+                Status = delayVote?.Status,
+                DelayVoteId = delayVote?.DelayVoteId,
+                DelayStatus = model.Status
             };
 
             if (isArbitrate == IsEnum.是)
@@ -980,8 +1207,8 @@ namespace Dao.Services
                 Status = info.Status,
                 Defendant = WalletHelp.GetName(info.Defendant),
                 Plaintiff = WalletHelp.GetName(info.Plaintiff),
-                DefendantNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", id, VoteStatusEnum.被告胜),
-                PlaintiffNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1", id, VoteStatusEnum.被告胜),
+                DefendantNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", id, VoteStatusEnum.被告胜),
+                PlaintiffNum = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus = @1 and IsDelete = 0", id, VoteStatusEnum.原告胜),
                 PlaintiffId = info.Plaintiff,
                 DefendantId = info.Defendant,
                 EOTC = 100,
@@ -999,24 +1226,25 @@ namespace Dao.Services
         {
             using var db = new NDatabase();
             var info = await db.SingleOrDefaultByIdAsync<ArbitrateMessage>(messageId);
-
+            if(null == info)
+                return InvokeResult.Fail("消息未找到!");
             info.IsOpen = IsEnum.是;
             await db.UpdateAsync(info);
             return InvokeResult.Success("设置成功!");
         }
 
         /// <summary>
-        /// 获取仲裁员是否有未读消息
+        /// 获取是否有未读消息
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<bool>> GetMessageIsOpen(string userId)
+        public async Task<Response<int>> GetMessageIsOpen(string userId, IsEnum isArbitrate)
         {
             using var db = new NDatabase();
-            var info = await db.FetchAsync<ArbitrateMessage>("select * from ArbitrateMessage where UserId = @0 and IsOpen = 0", userId);
+            var info = await db.SingleOrDefaultAsync<int>("select count(*) from ArbitrateMessage where UserId = @0 and IsOpen = 0 and IsArbitrate = @1", userId, isArbitrate);
 
-            if(info.Count > 0)
-                return InvokeResult.Success(true);
-            return InvokeResult.Success(false);
+            //if(info.Count > 0)
+            //    return InvokeResult.Success(true);
+            return InvokeResult.Success(info);
         }
 
         /// <summary>
@@ -1037,7 +1265,8 @@ namespace Dao.Services
         /// <param name="userIds"></param>
         /// <param name="type"></param>
         /// <param name="associatedId"></param>
-        public void SendMessage(List<string> userIds, MessageTypeEnum type, string associatedId)
+        /// <param name="isArbitrate"></param>
+        public async void SendMessage(List<string> userIds, MessageTypeEnum type, string associatedId, IsEnum isArbitrate)
         {
             using var db = new NDatabase();
             var models = userIds.Select(a => new ArbitrateMessage
@@ -1047,9 +1276,11 @@ namespace Dao.Services
                 CreateDate = DateTime.Now,
                 MessageType = type,
                 UserId = a,
-                IsOpen = IsEnum.否
+                IsOpen = IsEnum.否,
+                IsArbitrate = isArbitrate
             }).ToList();
-            db.Insert(models);
+            if(models.Count > 0)
+                await db.InsertBatchAsync(models);
         }
     }
 }

@@ -128,5 +128,18 @@ namespace Dao.Controllers
             var userId = WalletHelp.GetUserId(req);
             return _userservice.GetAuthImage(req.Path, userId);
         }
+
+        /// <summary>
+        /// 是否启用Dao审核仲裁权限
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("setdaoenable")]
+        public async Task<Response> SetDaoEnable(SetDaoEnableReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.SetDaoEnable(userId, req.IsEnable);
+        }
     }
 }

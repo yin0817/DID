@@ -46,7 +46,7 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
-        /// 仲裁收益
+        /// 审核收益
         /// </summary>
         public double EOTC
         {

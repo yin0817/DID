@@ -85,5 +85,13 @@ namespace Dao.Entity
         {
             get; set;
         }
+
+        /// <summary>
+        /// 是否延期成功 
+        /// </summary>
+        public int Status
+        {
+            get; set;
+        }
     }
 }

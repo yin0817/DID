@@ -708,7 +708,14 @@ namespace DID.Services
         public async Task<Response> TeamAuth(string userId)
         {
             using var db = new NDatabase();
-            var auditUserId = "e8771b3c-3b05-4830-900d-df2be0a6e9f7";//Dao审核
+
+            //随机Dao审核员审核
+            var userIds = await db.FetchAsync<DIDUser>("select * from DIDUser where DIDUserId != @0 and IsExamine = 1 and IsLogout = 0 and IsEnable = 1", userId);
+            if(userIds.Count == 0)
+                return InvokeResult.Fail("没有审核员!");
+            var random = new Random().Next(userIds.Count);
+            var auditUserId = userIds[random].DIDUserId;
+            
 
             var id = await db.SingleOrDefaultAsync<string>("select TeamAuthId from TeamAuth where AuditType = @0 and DIDUserId = @1", TeamAuditEnum.未审核, userId);
             if (!string.IsNullOrEmpty(id))

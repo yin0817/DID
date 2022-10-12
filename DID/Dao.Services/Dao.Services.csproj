@@ -17,6 +17,7 @@
     <ProjectReference Include="..\Dao.Models\Dao.Models.csproj" />
     <ProjectReference Include="..\DID.Common\DID.Common.csproj" />
     <ProjectReference Include="..\DID.Models\DID.Models.csproj" />
+    <ProjectReference Include="..\DID.Services\DID.Services.csproj" />
   </ItemGroup>
 
 </Project>

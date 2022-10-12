@@ -253,6 +253,24 @@ namespace Dao.Services
             {
                 if (item.FavorVotes > item.OpposeVotes)
                     item.State = StateEnum.已通过;
+
+                //奖励EOTC 创建提案100
+                var detail = new IncomeDetails()
+                {
+                    IncomeDetailsId = Guid.NewGuid().ToString(),
+                    CreateDate = DateTime.Now,
+                    EOTC = 100,
+                    Remarks = "创建提案",
+                    Type = IDTypeEnum.创建提案,
+                    DIDUserId = item.DIDUserId
+                };
+                var user1 = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+
+                db.BeginTransaction();
+                db.Insert(detail);
+                user.DaoEOTC += 20;
+                db.Update(user1);
+                db.CompleteTransaction();
             }
 
             var userVote = new UserVote() { 

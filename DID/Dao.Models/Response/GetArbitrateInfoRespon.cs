@@ -149,7 +149,7 @@ namespace Dao.Models.Response
         /// <summary>
         /// 是否提交延期申请
         /// </summary>
-        public bool HasDelay
+        public IsEnum HasDelay
         {
             get; set;
         }

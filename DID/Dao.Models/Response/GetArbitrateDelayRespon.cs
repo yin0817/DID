@@ -1,4 +1,5 @@
 ﻿using Dao.Entity;
+using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,6 +98,30 @@ namespace Dao.Models.Response
         /// 仲裁员编号
         /// </summary>
         public string? Number
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 状态 0 未投票 1 不同意 2 同意
+        /// </summary>
+        public DelayVoteStatus? Status
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 编号
+        /// </summary>
+        public string? DelayVoteId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否延期成功
+        /// </summary>
+        public int DelayStatus
         {
             get; set;
         }

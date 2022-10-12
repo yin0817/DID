@@ -11,7 +11,7 @@ namespace Dao.Entity
     /// <summary>
     /// 消息类型 0 申请延期 1 追加举证 2 仲裁取消 3 结案通知
     /// </summary>
-    public enum MessageTypeEnum {  申请延期, 追加举证, 仲裁取消 , 结案通知}
+    public enum MessageTypeEnum {  申请延期, 追加举证, 仲裁取消 , 结案通知, 被告消息}
     [PrimaryKey("ArbitrateMessageId", AutoIncrement = false)]
     public class ArbitrateMessage
     {
@@ -55,6 +55,14 @@ namespace Dao.Entity
         /// 是否打开 0 否 1 是
         /// </summary>
         public IsEnum IsOpen
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 是否为仲裁员消息
+        /// </summary>
+        public IsEnum IsArbitrate
         {
             get; set;
         }
