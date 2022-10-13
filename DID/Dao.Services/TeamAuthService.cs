@@ -1,4 +1,5 @@
 ﻿using Dao.Common;
+using Dao.Models.Request;
 using Dao.Models.Response;
 using DID.Common;
 using DID.Entity;
@@ -126,12 +127,24 @@ namespace Dao.Services
             if (type == TeamAuditEnum.审核通过)
             {
                 //todo:发送邮件
-                var users = await db.FirstOrDefaultAsync<DIDUser>(";with temp as \n" +
-                       "(select * from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
-                       "union all \n" +
-                       "select * from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
-                       "select * from temp", item.DIDUserId);
-
+                var users = await db.FetchAsync<TeamUser>(";with temp as \n" +
+                            "(select *,0 Level from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
+                            "union all \n" +
+                            "select a.*,temp.Level+1 Level from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId WHERE temp.Level < 6 and a.IsLogout = 0)\n" +
+                            "select * from temp", item.DIDUserId);
+                var str = "";
+                users.ForEach(a =>
+                {
+                    var Name = CommonHelp.GetName(db.SingleOrDefault<string>("select Name from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId!))??"未认证";
+                    str += "<tr>";
+                    str += "<td>" + Name + "</td>";
+                    str += "<td>" + a.Mail + "</td>";
+                    str += "<td>" + a.Level + "</td>";
+                    str += "</tr>";
+                });
+                if(users.Count > 0)
+                    EmailHelp.SendTeamInfo("625022186@qq.com", str);
+                    //EmailHelp.SendTeamInfo(users[0].Mail, str);
             }
 
             return InvokeResult.Success("审核成功!");

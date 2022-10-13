@@ -32,4 +32,36 @@ namespace Dao.Models.Request
             get; set;
         }
     }
+
+    public class TeamUser
+    {
+        /// <summary>
+        /// 用户编号
+        /// </summary>
+        public string DIDUserId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 邮箱
+        /// </summary>
+        public string Mail
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 认证编号
+        /// </summary>
+        public string? UserAuthInfoId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 层级
+        /// </summary>
+        public string Level
+        {
+            get; set;
+        }
+    }
 }

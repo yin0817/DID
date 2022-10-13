@@ -665,6 +665,7 @@ namespace Dao.Services
                         var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
                         
                         model.VictoryNum += 1;
+                        model.EOTC += 20;
                         db.Update(model);
                         //奖励EOTC
                         var detail = new IncomeDetails()
@@ -782,6 +783,7 @@ namespace Dao.Services
                                     var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
 
                                     model.VictoryNum += 1;
+                                    model.EOTC += 20;
                                     db.Update(model);
 
                                     //奖励EOTC
