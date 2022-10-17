@@ -48,6 +48,9 @@ builder.Host
     builder.RegisterAssemblyTypes(Assembly.Load("Dao.Services"))
    .Where(t => t.Name.EndsWith("Service"))
    .AsImplementedInterfaces();
+    builder.RegisterAssemblyTypes(Assembly.Load("App.Services"))
+  .Where(t => t.Name.EndsWith("Service"))
+  .AsImplementedInterfaces();
 });
 #endregion
 
@@ -102,10 +105,16 @@ builder.Services.AddSwaggerGen(options =>
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Entity.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Models.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"Dao.Services.xml"), true);
+
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Common.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Entity.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Models.xml"), true);
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"DID.Services.xml"), true);
+
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"App.Controllers.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"App.Entity.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"App.Models.xml"), true);
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"App.Services.xml"), true);
 });
 #endregion
 
