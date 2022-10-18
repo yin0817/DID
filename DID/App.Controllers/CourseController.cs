@@ -14,7 +14,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/course")]
-    [AllowAnonymous]
     public class CourseController : Controller
     {
         private readonly ILogger<CourseController> _logger;
@@ -56,7 +55,7 @@ namespace App.Controllers
         /// 添加课程
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("course")]
         public async Task<Response> AddCourse(AddCourseReq req)
         {
@@ -66,7 +65,7 @@ namespace App.Controllers
         /// 更新课程
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("course")]
         public async Task<Response> UpdateCourse(Course req)
         {

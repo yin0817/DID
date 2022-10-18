@@ -14,7 +14,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/notice")]
-    [AllowAnonymous]
     public class NoticeController : Controller
     {
         private readonly ILogger<NoticeController> _logger;
@@ -56,7 +55,7 @@ namespace App.Controllers
         /// 添加公告
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("notice")]
         public async Task<Response> AddNotice(AddNoticeReq req)
         {
@@ -66,7 +65,7 @@ namespace App.Controllers
         /// 更新公告
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("notice")]
         public async Task<Response> UpdateNotice(Notice req)
         {

@@ -63,7 +63,7 @@ namespace App.Services
         public async Task<Response<List<Notice>>> GetNotice()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Notice>("selece * from Notice where IsDelete = 0 order by CreateDate Desc");
+            var list = await db.FetchAsync<Notice>("select * from App_Notice where IsDelete = 0 order by CreateDate Desc");
 
             return InvokeResult.Success(list);
         }

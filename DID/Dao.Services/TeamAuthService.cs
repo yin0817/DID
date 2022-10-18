@@ -143,8 +143,8 @@ namespace Dao.Services
                     str += "</tr>";
                 });
                 if(users.Count > 0)
-                    EmailHelp.SendTeamInfo("625022186@qq.com", str);
-                    //EmailHelp.SendTeamInfo(users[0].Mail, str);
+                    //EmailHelp.SendTeamInfo("625022186@qq.com", str);
+                    EmailHelp.SendTeamInfo(users[0].Mail, str);
             }
 
             return InvokeResult.Success("审核成功!");

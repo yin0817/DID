@@ -15,7 +15,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/order")]
-    [AllowAnonymous]
     public class OrderController : Controller
     {
         private readonly ILogger<OrderController> _logger;
@@ -60,7 +59,7 @@ namespace App.Controllers
         /// 添加订单
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("order")]
         public async Task<Response> AddOrder(AddOrderReq req)
         {
@@ -70,7 +69,7 @@ namespace App.Controllers
         /// 更新订单
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("order")]
         public async Task<Response> UpdateOrder(Order req)
         {

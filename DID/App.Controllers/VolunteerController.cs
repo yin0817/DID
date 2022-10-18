@@ -14,7 +14,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/volunteer")]
-    [AllowAnonymous]
     public class VolunteerController : Controller
     {
         private readonly ILogger<VolunteerController> _logger;
@@ -56,7 +55,7 @@ namespace App.Controllers
         /// 添加自愿者
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("volunteer")]
         public async Task<Response> AddVolunteer(AddVolunteerReq req)
         {
@@ -66,7 +65,7 @@ namespace App.Controllers
         /// 更新自愿者
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("volunteer")]
         public async Task<Response> UpdateVolunteer(Volunteer req)
         {

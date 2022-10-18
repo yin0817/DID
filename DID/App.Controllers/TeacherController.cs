@@ -14,7 +14,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/teacher")]
-    [AllowAnonymous]
     public class TeacherController : Controller
     {
         private readonly ILogger<TeacherController> _logger;
@@ -56,7 +55,7 @@ namespace App.Controllers
         /// 添加老师
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("teacher")]
         public async Task<Response> AddTeacher(AddTeacherReq req)
         {
@@ -66,7 +65,7 @@ namespace App.Controllers
         /// 更新老师
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("teacher")]
         public async Task<Response> UpdateTeacher(Teacher req)
         {

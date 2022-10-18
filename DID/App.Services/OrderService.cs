@@ -5,6 +5,7 @@ using App.Models.Request;
 using DID.Common;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
+using Snowflake.Core;
 
 namespace App.Services
 {
@@ -63,7 +64,7 @@ namespace App.Services
         public async Task<Response<List<Order>>> GetOrder()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Order>("selece * from Order where IsDelete = 0");
+            var list = await db.FetchAsync<Order>("select * from App_Order where IsDelete = 0");
 
             return InvokeResult.Success(list);
         }
@@ -88,13 +89,15 @@ namespace App.Services
         {
             using var db = new NDatabase();
             var model = new Order {
-                OrderId = Guid.NewGuid().ToString(),
+                OrderId = new IdWorker(1, 1).NextId().ToString(),
+                Rid = req.Rid,
                 Name = req.Name,
                 CreateDate = DateTime.Now,
                 DIDUserId = userId,
                 OrderType = req.OrderType,
                 Phone = req.Phone,
-                Wechat = req.Wechat
+                Wechat = req.Wechat,
+                Quantity = req.Quantity
             };
             await db.InsertAsync(model);
 

@@ -46,5 +46,12 @@ namespace App.Models.Request
         {
             get; set;
         }
+        /// <summary>
+        /// 数量
+        /// </summary>
+        public int Quantity
+        {
+            get; set;
+        }
     }
 }

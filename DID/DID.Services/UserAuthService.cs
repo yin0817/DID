@@ -185,8 +185,8 @@ namespace DID.Services
                 //上级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
                 var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
-
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and DIDUserId not in (@1) and IsLogout = 0 ", ++user.UserNode, authUserIds);
+                authUserIds.Add(authinfo.CreatorId!);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and DIDUserId not in (@1) and IsLogout = 0 ", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, authUserIds);
                 var random = new Random().Next(auths.Count);
                 var authUserId = auths[random].DIDUserId;
                 if(string.IsNullOrEmpty(authUserId))
@@ -222,7 +222,8 @@ namespace DID.Services
                 //中高级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
                 var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 3 or UserNode = 4) and IsLogout = 0 and DIDUserId not in (@0)", authUserIds);
+                authUserIds.Add(authinfo.CreatorId!);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 4 or UserNode = 5) and IsLogout = 0 and DIDUserId not in (@0)", authUserIds);
                 var random = new Random().Next(auths.Count);
                 var authUserId = auths[random].DIDUserId;
                 if (string.IsNullOrEmpty(authUserId))
@@ -296,7 +297,7 @@ namespace DID.Services
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType != 0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1 order by CreateDate Desc", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0",item.UserAuthInfoId);
@@ -306,18 +307,24 @@ namespace DID.Services
                 //基本信息处理
                 if (item.AuditStep == AuditStepEnum.初审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
                 }
                 else if (item.AuditStep == AuditStepEnum.二审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
                 else if (item.AuditStep == AuditStepEnum.抽审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 7)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    if (authinfo.IdCard.Length > 7)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
@@ -363,18 +370,24 @@ namespace DID.Services
                 //基本信息处理
                 if (item.AuditStep == AuditStepEnum.初审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
                 }
                 else if (item.AuditStep == AuditStepEnum.二审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                else if (item.AuditStep == AuditStepEnum.初审)
+                else if (item.AuditStep == AuditStepEnum.抽审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 7)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    if (authinfo.IdCard.Length > 7)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
@@ -421,18 +434,24 @@ namespace DID.Services
                 //基本信息处理
                 if (item.AuditStep == AuditStepEnum.初审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(0, 4).Insert(0, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(0, 4).Insert(0, "****");
                 }
                 else if (item.AuditStep == AuditStepEnum.二审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 4)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(authinfo.PhoneNum.Length - 4, 4).Insert(authinfo.PhoneNum.Length - 4, "****");
+                    if (authinfo.IdCard.Length > 4)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                else if (item.AuditStep == AuditStepEnum.初审)
+                else if (item.AuditStep == AuditStepEnum.抽审)
                 {
-                    authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
-                    authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
+                    if (authinfo.PhoneNum.Length > 7)
+                        authinfo.PhoneNum = authinfo.PhoneNum.Remove(3, 4).Insert(3, "****");
+                    if (authinfo.IdCard.Length > 7)
+                        authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
                 var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", item.UserAuthInfoId);
                 var list = new List<AuthInfo>();
@@ -582,7 +601,7 @@ namespace DID.Services
             item.RefUid = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId" +
                 " where a.DIDUserId = (select RefUserId from DIDUser where DIDUserId = @0)", userId);
             item.Mail = await db.SingleOrDefaultAsync<string>("select Mail from DIDUser where DIDUserId =@0", userId);
-            var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep", authinfo.UserAuthInfoId);
+            var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", authinfo.UserAuthInfoId);
             var list = new List<AuthInfo>();
             foreach (var auth in auths)
             {
@@ -617,7 +636,7 @@ namespace DID.Services
             item.NationalImage = authinfo.NationalImage;
             item.PortraitImage = authinfo.PortraitImage;
             item.HandHeldImage = authinfo.HandHeldImage;
-            var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep Desc", authinfo.UserAuthInfoId);
+            var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep Desc", authinfo.UserAuthInfoId);
             if (auths == null) InvokeResult.Success("1");//认证信息未找到!
             item.Remark = auths[0].Remark;
             item.AuditType = auths[0].AuditType;
@@ -632,7 +651,7 @@ namespace DID.Services
         public void ToDaoAuth(Auth item,string userId)
         {
             //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
+            var t = new System.Timers.Timer(5 * 60 * 1000);//实例化Timer类，设置间隔时间为10000毫秒；
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 
@@ -641,7 +660,7 @@ namespace DID.Services
                 using var db = new NDatabase();
                 //var item = await db.SingleOrDefaultByIdAsync<Auth>(authId);
 
-                if (item.AuditType != AuditTypeEnum.未审核)
+                if (item.AuditType == AuditTypeEnum.未审核)
                 {
                     item.IsDelete = IsEnum.是;
                     await db.UpdateAsync(item);
@@ -657,6 +676,7 @@ namespace DID.Services
                     item.IsDao = IsEnum.是;
                     item.AuditUserId = auditUserId;//Dao在线节点用户编号
                     item.CreateDate = DateTime.Now;
+                    item.IsDelete = IsEnum.否;
                     await db.InsertAsync(item);
                 }
             });//到达时间的时候执行事件；

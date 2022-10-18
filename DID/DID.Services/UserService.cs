@@ -189,9 +189,11 @@ namespace DID.Services
             {
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
                 var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
-                userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
-
+                userRespon.IsImprove = !string.IsNullOrEmpty(community.Telegram);
             }
+
+            if (!string.IsNullOrEmpty(user.UserLogoutId))
+                userRespon.HasLogout = true;
 
             return InvokeResult.Success(userRespon);
         }
@@ -244,7 +246,7 @@ namespace DID.Services
             {
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
                 var community = await db.SingleOrDefaultByIdAsync<Community>(user.ApplyCommunityId);
-                userRespon.IsImprove = !string.IsNullOrEmpty(community.Image);
+                userRespon.IsImprove = !string.IsNullOrEmpty(community.Telegram);
                 userRespon.ComAuditType = community.AuthType;
             }
 
@@ -253,6 +255,9 @@ namespace DID.Services
 
             var comauth = await db.SingleOrDefaultAsync<int>("select count(*) from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = 0", userId);
             userRespon.HasComAuth = comauth > 0;
+
+            if (!string.IsNullOrEmpty(user.UserLogoutId))
+                userRespon.HasLogout = true;
 
             return InvokeResult.Success(userRespon);
         }
@@ -276,13 +281,13 @@ namespace DID.Services
             }
             if (!string.IsNullOrEmpty(user.Telegram))
                 sql.Append("Telegram = @0, ", user.Telegram);
-            //if(!string.IsNullOrEmpty(user.Country))
+            if(!string.IsNullOrEmpty(user.Country))
                 sql.Append("Country = @0, ", user.Country);
-            //if (!string.IsNullOrEmpty(user.Province))
+            if (!string.IsNullOrEmpty(user.Province))
                 sql.Append("Province = @0, ", user.Province);
-            //if (!string.IsNullOrEmpty(user.City))
+            if (!string.IsNullOrEmpty(user.City))
                 sql.Append("City = @0, ", user.City);
-            //if (!string.IsNullOrEmpty(user.Area))
+            if (!string.IsNullOrEmpty(user.Area))
                 sql.Append("Area = @0, ", user.Area);
             sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", user.UserId);
 
@@ -294,7 +299,8 @@ namespace DID.Services
                 if (user.RefUserId == user.UserId)
                     return InvokeResult.Fail("邀请码错误!");
                 var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
-                if (!string.IsNullOrEmpty(communityId))
+                var userCommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.UserId);
+                if (!string.IsNullOrEmpty(communityId) && string.IsNullOrEmpty(userCommunityId))
                 {
                     var userCom = new UserCommunity()
                     {
@@ -508,15 +514,15 @@ namespace DID.Services
             {
                 sb.Append(random.Next(0, 9));
             }
-            //var code = sb.ToString();
-            var code = "123456";
+            var code = sb.ToString();
+            //var code = "123456";
             _cache.Set(mail, code, new TimeSpan(0, 10, 0));//十分钟过期
 
             //todo 发送邮件
-            //if(type == 0)//注册验证码
-            //    EmailHelp.SendRegister(mail,code);
-            //else if(type == 1)
-            //    EmailHelp.SendVerify(mail, code);
+            if (type == 0)//注册验证码
+                EmailHelp.SendRegister(mail, code);
+            else if (type == 1)
+                EmailHelp.SendVerify(mail, code);
             return InvokeResult.Success("验证码发送成功!");
             //return InvokeResult.Success();
         }
@@ -555,7 +561,7 @@ namespace DID.Services
 
         //48小时后注销
         //private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
-        private readonly System.Timers.Timer t = new(60000);
+        private readonly System.Timers.Timer t = new(5 * 60 * 1000);
         /// <summary>
         /// 用户注销
         /// </summary>

@@ -372,7 +372,7 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
-
+            
             return InvokeResult.Success(item);
         }
 
@@ -430,8 +430,9 @@ namespace DID.Services
             {
                 //上级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
-                var auditUserIds = await db.FetchAsync<ComAuth>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and IsLogout = 0 and DIDUserId not in (@0)", ++user.UserNode, auditUserIds);
+                var auditUserIds = await db.FetchAsync<string>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
+                auditUserIds.Add(authinfo.DIDUserId!);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and IsLogout = 0 and DIDUserId not in (@1)", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, auditUserIds);
                 var random = new Random().Next(auths.Count);
                 var authUserId = auths[random].DIDUserId;
                 if (string.IsNullOrEmpty(authUserId))
@@ -456,8 +457,9 @@ namespace DID.Services
             {
                 //中高级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
-                var auditUserIds = await db.FetchAsync<ComAuth>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 3 or UserNode = 4)  and IsLogout = 0 and DIDUserId not in (@0)", auditUserIds);
+                var auditUserIds = await db.FetchAsync<string>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
+                auditUserIds.Add(authinfo.DIDUserId!);
+                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 4 or UserNode = 5)  and IsLogout = 0 and DIDUserId not in (@0)", auditUserIds);
                 var random = new Random().Next(auths.Count);
                 var authUserId = auths[random].DIDUserId;
                 if (string.IsNullOrEmpty(authUserId))
@@ -519,7 +521,7 @@ namespace DID.Services
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType != 0", userId);
-            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1 order by CreateDate Desc", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -785,7 +787,7 @@ namespace DID.Services
                 var random = new Random().Next(userIds.Count);
                 var auditUserId = userIds[random].DIDUserId;
 
-                if (item.AuditType != AuditTypeEnum.未审核)
+                if (item.AuditType == AuditTypeEnum.未审核)
                 {
                     item.IsDelete = IsEnum.是;
                     await db.UpdateAsync(item);
@@ -794,6 +796,7 @@ namespace DID.Services
                     item.IsDao = IsEnum.是;
                     item.AuditUserId = auditUserId;//Dao在线节点用户编号
                     item.CreateDate = DateTime.Now;
+                    item.IsDelete = IsEnum.否;
                     await db.InsertAsync(item);
                 }
             });//到达时间的时候执行事件；

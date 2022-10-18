@@ -14,7 +14,6 @@ namespace App.Controllers
     /// </summary>
     [ApiController]
     [Route("api/clsystem")]
-    [AllowAnonymous]
     public class CLSystemController : Controller
     {
         private readonly ILogger<CLSystemController> _logger;
@@ -56,7 +55,7 @@ namespace App.Controllers
         /// 添加禅论系统
         /// </summary>
         /// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("clsystem")]
         public async Task<Response> AddCLSystem(AddCLSystemReq req)
         {
@@ -66,7 +65,7 @@ namespace App.Controllers
         /// 更新禅论系统
         /// </summary>
         /// <returns></returns>
-        [HttpPost]
+        [HttpPut]
         [Route("clsystem")]
         public async Task<Response> UpdateCLSystem(CLSystem req)
         {

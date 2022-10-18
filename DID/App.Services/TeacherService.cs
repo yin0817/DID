@@ -63,7 +63,7 @@ namespace App.Services
         public async Task<Response<List<Teacher>>> GetTeacher()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Teacher>("selece * from Teacher where IsDelete = 0");
+            var list = await db.FetchAsync<Teacher>("select * from App_Teacher where IsDelete = 0");
 
             return InvokeResult.Success(list);
         }

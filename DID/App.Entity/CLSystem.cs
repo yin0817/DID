@@ -11,7 +11,7 @@ namespace App.Entity
     /// 禅论系统表
     /// </summary>
     [TableName("App_CLSystem")]
-    [PrimaryKey("CLSystemtemId", AutoIncrement = false)]
+    [PrimaryKey("CLSystemId", AutoIncrement = false)]
     public class CLSystem
     {
         /// <summary>

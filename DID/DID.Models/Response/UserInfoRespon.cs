@@ -161,5 +161,12 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 是否提交注销
+        /// </summary>
+        public bool HasLogout
+        {
+            get; set;
+        }
     }
 }
