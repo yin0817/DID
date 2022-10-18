@@ -1,6 +1,7 @@
 ﻿
 using App.Entity;
 using App.Models.Request;
+using App.Models.Respon;
 using App.Services;
 using DID.Models.Base;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +47,7 @@ namespace App.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("coursebyid")]
-        public async Task<Response<Course>> GetCourse(string id)
+        public async Task<Response<GetCourseRespon>> GetCourse(string id)
         {
             return await _service.GetCourse(id);
         }

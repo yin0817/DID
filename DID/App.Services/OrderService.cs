@@ -2,6 +2,7 @@
 
 using App.Entity;
 using App.Models.Request;
+using App.Models.Respon;
 using DID.Common;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
@@ -23,12 +24,27 @@ namespace App.Services
         /// 获取订单信息
         /// </summary>
         /// <returns></returns>
-        Task<Response<Order>> GetOrder(string id);
+        Task<Response<GetOrderRespon>> GetOrder(string id);
+        /// <summary>
+        /// 获取订单信息
+        /// </summary>
+        /// <returns></returns>
+        Task<Response<List<GetOrderByUserIdRespon>>> GetOrderByUserId(string userId, StatusEnum? status);
         /// <summary>
         /// 添加订单信息
         /// </summary>
         /// <returns></returns>
         Task<Response> AddOrder(AddOrderReq req,string userId);
+        /// <summary>
+        /// 支付订单
+        /// </summary>
+        /// <returns></returns>
+        Task<Response> PayOrder(string orderid, string userId);
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        /// <returns></returns>
+        Task<Response> CancelOrder(string orderid, string userId);
         /// <summary>
         /// 更新订单信息
         /// </summary>
@@ -73,12 +89,42 @@ namespace App.Services
         /// 获取订单信息
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<Order>> GetOrder(string id)
+        public async Task<Response<GetOrderRespon>> GetOrder(string id)
         {
             using var db = new NDatabase();
-            var model = await db.SingleOrDefaultByIdAsync<Order>(id);
+            var model = await db.SingleOrDefaultAsync<GetOrderRespon>("select * from App_Order where OrderId = @0", id);
+            if(null == model)
+                return InvokeResult.Fail<GetOrderRespon>("订单信息未找到!");
+            if (model.OrderType == OrderTypeEnum.课程)
+                model.Course = db.SingleOrDefaultById<Course>(model.Rid);
+            if (model.OrderType == OrderTypeEnum.系统)
+                model.CLSystem = db.SingleOrDefaultById<CLSystem>(model.Rid);
+            model.Volunteer = db.SingleOrDefaultById<Volunteer>(model.VolunteerId);
 
             return InvokeResult.Success(model);
+        }
+
+        /// <summary>
+        /// 获取订单信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response<List<GetOrderByUserIdRespon>>> GetOrderByUserId(string userId, StatusEnum? status)
+        {
+            using var db = new NDatabase();
+            var list = new List<GetOrderByUserIdRespon>();
+            if (null == status)
+                list = await db.FetchAsync<GetOrderByUserIdRespon>("select * from App_Order where DIDUserId = @0 and IsDelete = 0", userId);
+            else
+                list = await db.FetchAsync<GetOrderByUserIdRespon>("select * from App_Order where DIDUserId = @0 and IsDelete = 0 and Status = @1", userId, status);
+
+            list.ForEach(a => {
+                if (a.OrderType == OrderTypeEnum.课程)
+                    a.Course = db.SingleOrDefaultById<Course>(a.Rid);
+                if (a.OrderType == OrderTypeEnum.系统)
+                    a.CLSystem = db.SingleOrDefaultById<CLSystem>(a.Rid);
+            });
+
+            return InvokeResult.Success(list);
         }
 
         /// <summary>
@@ -97,11 +143,56 @@ namespace App.Services
                 OrderType = req.OrderType,
                 Phone = req.Phone,
                 Wechat = req.Wechat,
-                Quantity = req.Quantity
+                Quantity = req.Quantity,
+                Status = StatusEnum.待支付
             };
             await db.InsertAsync(model);
 
             return InvokeResult.Success("添加成功!");
+        }
+
+        /// <summary>
+        /// 支付订单
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> PayOrder(string orderid, string userId)
+        {
+            using var db = new NDatabase();
+            var order = await db.SingleOrDefaultByIdAsync<Order>(orderid);
+            if(userId != order.DIDUserId)
+                return InvokeResult.Fail("支付失败!");
+            if (order.Status != StatusEnum.待支付)
+                return InvokeResult.Fail("支付失败!");
+            order.Status = StatusEnum.已支付;
+            order.PaymentDate = DateTime.Now;
+            var list = await db.FetchAsync<Volunteer>("select * from App_Volunteer where IsDelete = 0");
+            if (list.Count > 0)
+            {
+                var random = new Random().Next(list.Count);
+                order.VolunteerId = list[random].VolunteerId;
+            }
+            await db.UpdateAsync(order);
+
+            return InvokeResult.Success("支付成功!");
+        }
+
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> CancelOrder(string orderid, string userId)
+        {
+            using var db = new NDatabase();
+            var order = await db.SingleOrDefaultByIdAsync<Order>(orderid);
+            if (userId != order.DIDUserId)
+                return InvokeResult.Fail("取消失败!");
+            if(order.Status != StatusEnum.待支付)
+                return InvokeResult.Fail("取消失败!");
+            order.CancelDate = DateTime.Now;
+            order.Status = StatusEnum.已取消;
+            await db.UpdateAsync(order);
+
+            return InvokeResult.Success("取消成功!");
         }
 
         /// <summary>

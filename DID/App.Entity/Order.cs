@@ -77,14 +77,14 @@ namespace App.Entity
         /// <summary>
         /// 支付时间
         /// </summary>
-        public DateTime PaymentDate
+        public DateTime? PaymentDate
         {
             get; set;
         }
         /// <summary>
         /// 取消时间
         /// </summary>
-        public DateTime CancelDate
+        public DateTime? CancelDate
         {
             get; set;
         }
@@ -105,7 +105,7 @@ namespace App.Entity
         /// <summary>
         /// 自愿者编号
         /// </summary>
-        public string VolunteerId
+        public string? VolunteerId
         {
             get; set;
         }

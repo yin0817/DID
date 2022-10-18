@@ -12,13 +12,6 @@ namespace App.Models.Request
             get; set;
         }
         /// <summary>
-        /// 用户编号
-        /// </summary>
-        public int DIDUserId
-        {
-            get; set;
-        }
-        /// <summary>
         /// 类型 0 课程 1 系统
         /// </summary>
         public OrderTypeEnum OrderType

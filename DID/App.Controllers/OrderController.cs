@@ -1,6 +1,7 @@
 ﻿
 using App.Entity;
 using App.Models.Request;
+using App.Models.Respon;
 using App.Services;
 using DID.Common;
 using DID.Models.Base;
@@ -50,9 +51,41 @@ namespace App.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("orderbyid")]
-        public async Task<Response<Order>> GetOrder(string id)
+        public async Task<Response<GetOrderRespon>> GetOrder(string id)
         {
             return await _service.GetOrder(id);
+        }
+
+        /// <summary>
+        /// 获取订单信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getorderbyuserid")]
+        public async Task<Response<List<GetOrderByUserIdRespon>>> GetOrderByUserId(StatusEnum? status)
+        {
+            return await _service.GetOrderByUserId(_currentUser.UserId, status);
+        }
+
+        /// <summary>
+        /// 支付订单
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("payorder")]
+        public async Task<Response> PayOrder(string orderid)
+        {
+            return await _service.PayOrder(orderid, _currentUser.UserId);
+        }
+        /// <summary>
+        /// 取消订单
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("cancelorder")]
+        public async Task<Response> CancelOrder(string orderid)
+        {
+            return await _service.CancelOrder(orderid, _currentUser.UserId);
         }
 
         /// <summary>

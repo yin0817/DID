@@ -2,6 +2,7 @@
 
 using App.Entity;
 using App.Models.Request;
+using App.Models.Respon;
 using DID.Common;
 using DID.Models.Base;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ namespace App.Services
         /// 获取课程信息
         /// </summary>
         /// <returns></returns>
-        Task<Response<Course>> GetCourse(string id);
+        Task<Response<GetCourseRespon>> GetCourse(string id);
         /// <summary>
         /// 添加课程信息
         /// </summary>
@@ -72,11 +73,21 @@ namespace App.Services
         /// 获取课程信息
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<Course>> GetCourse(string id)
+        public async Task<Response<GetCourseRespon>> GetCourse(string id)
         {
             using var db = new NDatabase();
-            var model = await db.SingleOrDefaultByIdAsync<Course>(id);
+            var model = await db.SingleOrDefaultAsync<GetCourseRespon>("select * from App_Course where CourseId = @0", id);
 
+            if (!string.IsNullOrEmpty(model.TeacherId))
+            {
+                var list = model.TeacherId.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var teachers = new List<Teacher>();
+                foreach (var i in list)
+                {
+                    teachers.Add(await db.SingleOrDefaultByIdAsync<Teacher>(i));
+                }
+                model.Teachers = teachers;
+            }
             return InvokeResult.Success(model);
         }
 
