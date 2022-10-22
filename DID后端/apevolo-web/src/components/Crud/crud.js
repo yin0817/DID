@@ -276,6 +276,7 @@ function CRUD(options) {
       }
       crud.status.edit = CRUD.STATUS.PROCESSING
       crud.crudMethod.edit(crud.form).then(() => {
+        console.log(2)
         crud.status.edit = CRUD.STATUS.NORMAL
         crud.getDataStatus(crud.getDataId(crud.form)).edit = CRUD.STATUS.NORMAL
         crud.editSuccessNotify()
@@ -283,6 +284,7 @@ function CRUD(options) {
         callVmHook(crud, CRUD.HOOK.afterSubmit)
         crud.refresh()
       }).catch(() => {
+        console.log(3)
         crud.status.edit = CRUD.STATUS.PREPARED
         callVmHook(crud, CRUD.HOOK.afterEditError)
       })

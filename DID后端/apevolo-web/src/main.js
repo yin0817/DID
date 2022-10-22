@@ -26,8 +26,8 @@ import 'highlight.js/styles/atom-one-dark.css'
 import App from './App'
 import store from './store'
 import router from './router/routers'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
+import dayjs from "dayjs"
+import utc from "dayjs/plugin/utc"
 
 dayjs.extend(utc)
 

@@ -45,6 +45,19 @@ export const constantRouterMap = [
     ]
   },
   {
+    path: '/notice',
+    component: Layout,
+    redirect: '/table',
+    children: [
+      {
+        path: 'notice/table',
+        component: (resolve) => require(['@/views/APP/notice/index'], resolve),
+        name: 'Notice',
+        meta: { title: '公告', icon: 'index', affix: true, noCache: true }
+      }
+    ]
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,

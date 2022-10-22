@@ -2,6 +2,8 @@
  * Created by PanJiaChen on 16/11/18.
  */
 
+import dayjs from 'dayjs'
+
 /**
  * Parse the time to string
  * @param {(Object|string|number)} time
@@ -386,8 +388,11 @@ export function downloadFile(obj, name, suffix) {
   link.click()
   document.body.removeChild(link)
 }
-// 日期格式转换
-export function transformUTCDate(str) {
-  const date = new Date(str)
-  return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()}:${date.getUTCSeconds()}`
+
+export function transformSrc(src) {
+  return `${process.env.VUE_APP_BASE_API2}/${src}`
+}
+
+export function transformDate(date) {
+  return dayjs(date).utc().format('YYYY-MM-DD HH:mm:ss')
 }
