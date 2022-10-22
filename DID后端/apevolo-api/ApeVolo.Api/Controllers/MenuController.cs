@@ -75,7 +75,7 @@ public class MenusController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateMenuDto);
         await _menuService.UpdateAsync(createUpdateMenuDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

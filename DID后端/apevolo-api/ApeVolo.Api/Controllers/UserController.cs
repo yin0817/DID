@@ -72,7 +72,7 @@ public class UserController : BaseApiController
     public async Task<ActionResult<object>> Update([FromBody] CreateUpdateUserDto createUpdateUserDto)
     {
         await _userService.UpdateAsync(createUpdateUserDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class UserController : BaseApiController
     {
         RequiredHelper.IsValid(updateUserCenterDto);
         await _userService.UpdateCenterAsync(updateUserCenterDto);
-        return NoContent();
+        return Success();
     }
 
     [HttpPost]

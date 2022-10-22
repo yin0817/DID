@@ -19,7 +19,7 @@ namespace App.Services
         /// 获取订单信息
         /// </summary>
         /// <returns></returns>
-        Task<Response<List<Order>>> GetOrder();
+        Task<Response<List<GetOrderRespon>>> GetOrder();
         /// <summary>
         /// 获取订单信息
         /// </summary>
@@ -51,6 +51,11 @@ namespace App.Services
         /// <returns></returns>
         Task<Response> UpdateOrder(Order req);
         /// <summary>
+        /// 更新订单用户信息
+        /// </summary>
+        /// <returns></returns>
+        Task<Response> UpdateOrderUser(UpdateOrderUserReq req);
+        /// <summary>
         /// 删除订单信息
         /// </summary>
         /// <returns></returns>
@@ -77,11 +82,17 @@ namespace App.Services
         /// 获取订单信息
         /// </summary>
         /// <returns></returns>
-        public async Task<Response<List<Order>>> GetOrder()
+        public async Task<Response<List<GetOrderRespon>>> GetOrder()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Order>("select * from App_Order where IsDelete = 0");
-
+            var list = await db.FetchAsync<GetOrderRespon>("select * from App_Order where IsDelete = 0");
+            list.ForEach(a => {
+                if (a.OrderType == OrderTypeEnum.课程)
+                    a.Course = db.SingleOrDefaultById<Course>(a.Rid);
+                if (a.OrderType == OrderTypeEnum.系统)
+                    a.CLSystem = db.SingleOrDefaultById<CLSystem>(a.Rid);
+                a.Volunteer = db.SingleOrDefaultById<Volunteer>(a.VolunteerId);
+            });
             return InvokeResult.Success(list);
         }
 
@@ -204,6 +215,25 @@ namespace App.Services
             using var db = new NDatabase();
             await db.UpdateAsync(req);
 
+            return InvokeResult.Success("更新成功!");
+        }
+
+        /// <summary>
+        /// 更新订单用户信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Response> UpdateOrderUser(UpdateOrderUserReq req)
+        {
+            using var db = new NDatabase();
+            var order = await db.SingleOrDefaultByIdAsync<Order>(req.OrderId);
+            if (null == order)
+                return InvokeResult.Fail("订单信息未找到!");
+            if(order.Status != StatusEnum.待支付)
+                return InvokeResult.Fail("订单不能修改!");
+            order.Name = req.Name;
+            order.Phone = req.Phone;
+            order.Wechat = req.Wechat;
+            await db.UpdateAsync(order);
             return InvokeResult.Success("更新成功!");
         }
         /// <summary>

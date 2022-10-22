@@ -36,6 +36,7 @@ namespace App.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("notice")]
+        [AllowAnonymous]
         public async Task<Response<List<Notice>>> GetNotice()
         {
             return await _service.GetNotice();
@@ -46,6 +47,7 @@ namespace App.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("noticebyid")]
+        [AllowAnonymous]
         public async Task<Response<Notice>> GetNotice(string id)
         {
             return await _service.GetNotice(id);

@@ -71,6 +71,13 @@ namespace DID.Services
         /// <param name="newPassWord"></param>
         /// <returns></returns>
         Task<Response> ChangePassword(string userId, string newPassWord);
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <returns></returns>
+        Task<Response> RetrievePassword(string mail, string newPassWord);
 
         /// <summary>
         /// 修改邮箱
@@ -537,6 +544,19 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             await db.ExecuteAsync("update DIDUser set PassWord = @0 where DIDUserId = @1", newPassWord, userId);
+            return InvokeResult.Success("修改成功!");
+        }
+
+        /// <summary>
+        /// 找回密码
+        /// </summary>
+        /// <param name="mail"></param>
+        /// <param name="newPassWord"></param>
+        /// <returns></returns>
+        public async Task<Response> RetrievePassword(string mail, string newPassWord)
+        {
+            using var db = new NDatabase();
+            await db.ExecuteAsync("update DIDUser set PassWord = @0 where DIDUserId = @1", newPassWord, mail);
             return InvokeResult.Success("修改成功!");
         }
 

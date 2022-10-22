@@ -64,7 +64,7 @@ public class DictDetailController : BaseApiController
         [FromBody] CreateUpdateDictDetailDto createUpdateDictDetailDto)
     {
         await _dictDetailService.UpdateAsync(createUpdateDictDetailDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

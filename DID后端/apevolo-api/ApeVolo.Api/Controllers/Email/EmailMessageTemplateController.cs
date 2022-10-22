@@ -67,7 +67,7 @@ public class EmailMessageTemplateController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateEmailMessageTemplateDto);
         await _emailMessageTemplateService.UpdateAsync(createUpdateEmailMessageTemplateDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

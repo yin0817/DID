@@ -69,7 +69,7 @@ public class JobController : BaseApiController
         [FromBody] CreateUpdateJobDto createUpdateJobDto)
     {
         await _jobService.UpdateAsync(createUpdateJobDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

@@ -67,7 +67,7 @@ public class DictController : BaseApiController
     public async Task<ActionResult<object>> Update([FromBody] CreateUpdateDictDto createUpdateDictDto)
     {
         await _dictService.UpdateAsync(createUpdateDictDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

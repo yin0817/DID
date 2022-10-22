@@ -57,6 +57,13 @@ namespace DID.Models.Response
             get; set;
         }
         /// <summary>
+        /// 推荐人编号 
+        /// </summary>
+        public string RefUserId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 推荐人姓名
         /// </summary>
         public string RefName

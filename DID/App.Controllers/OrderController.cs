@@ -41,7 +41,7 @@ namespace App.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("order")]
-        public async Task<Response<List<Order>>> GetOrder()
+        public async Task<Response<List<GetOrderRespon>>> GetOrder()
         {
             return await _service.GetOrder();
         }
@@ -107,6 +107,16 @@ namespace App.Controllers
         public async Task<Response> UpdateOrder(Order req)
         {
             return await _service.UpdateOrder(req);
+        }
+        /// <summary>
+        /// 更新订单用户信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("orderuser")]
+        public async Task<Response> UpdateOrderUser(UpdateOrderUserReq req)
+        {
+            return await _service.UpdateOrderUser(req);
         }
         /// <summary>
         /// 删除订单

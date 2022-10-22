@@ -59,7 +59,7 @@ public class QueuedEmailController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateQueuedEmailDto);
         await _queuedEmailService.UpdateAsync(createUpdateQueuedEmailDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

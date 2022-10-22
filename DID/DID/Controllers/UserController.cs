@@ -161,6 +161,23 @@ namespace DID.Controllers
         }
 
         /// <summary>
+        /// 找回密码 1 验证码错误!
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("retrievepassword")]
+        [AllowAnonymous]
+        public async Task<Response> RetrievePassword(ChangePasswordReq req)
+        {
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                //return InvokeResult.Fail<string>("1"); //验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
+            return await _service.RetrievePassword(req.Mail, req.NewPassWord);
+        }
+
+        /// <summary>
         /// 修改邮箱 1 钱包验证错误! 2 邮箱已注册! 3 验证码错误!
         /// </summary>
         /// <param name="req"></param>

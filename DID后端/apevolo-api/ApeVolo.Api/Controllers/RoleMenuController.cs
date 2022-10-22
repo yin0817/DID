@@ -44,7 +44,7 @@ public class RoleMenuController : BaseApiController
     public async Task<ActionResult<object>> UpdateRolesMenus(CreateUpdateRoleDto createUpdateRoleDto)
     {
         await _roleService.UpdateRolesMenusAsync(createUpdateRoleDto);
-        return NoContent();
+        return Success();
     }
 
     #endregion

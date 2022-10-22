@@ -72,7 +72,7 @@ public class RoleController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateRoleDto);
         await _roleService.UpdateAsync(createUpdateRoleDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

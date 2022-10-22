@@ -396,7 +396,7 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var authinfo = await db.SingleOrDefaultByIdAsync<Community>(communityId);
-            var auth = await db.SingleOrDefaultAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and AuditUserId = @1", communityId, userId);
+            var auth = await db.SingleOrDefaultAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and AuditUserId = @1 ", communityId, userId);
             if(null == authinfo || null == auth)
                 return InvokeResult.Fail("审核信息未找到!");
             //不会出现重复的记录 每个用户只审核一次
@@ -530,6 +530,7 @@ namespace DID.Services
                     CommunityId = community.CommunityId,
                     DIDUser = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.DIDUserId),
                     RefUId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", community.RefDIDUserId),
+                    RefUserId = community.RefDIDUserId,
                     RefName = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.RefDIDUserId),
                     Address = community.Address,
                     ComName = community.ComName,
@@ -543,13 +544,13 @@ namespace DID.Services
                     HasGroup = community.HasGroup,
                     HasOffice = community.HasOffice,
                     Image = community.Image,
-                    Mail = community.Mail,
+                    Mail = await db.SingleOrDefaultAsync<string>("select Mail from DIDUser where DIDUserId = @0", community.DIDUserId),
                     Phone = community.Phone,
                     QQ = community.QQ,
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = 10000//调接口查eotc总数
+                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -586,7 +587,7 @@ namespace DID.Services
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
-            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId)).Items;
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
@@ -595,6 +596,7 @@ namespace DID.Services
                     CommunityId = community.CommunityId,
                     DIDUser = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.DIDUserId),
                     RefUId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", community.RefDIDUserId),
+                    RefUserId = community.RefDIDUserId,
                     RefName = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.RefDIDUserId),
                     Address = community.Address,
                     ComName = community.ComName,
@@ -608,13 +610,13 @@ namespace DID.Services
                     HasGroup = community.HasGroup,
                     HasOffice = community.HasOffice,
                     Image = community.Image,
-                    Mail = community.Mail,
+                    Mail = await db.SingleOrDefaultAsync<string>("select Mail from DIDUser where DIDUserId = @0", community.DIDUserId),
                     Phone = community.Phone,
                     QQ = community.QQ,
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = 10000//调接口查eotc总数
+                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -660,6 +662,7 @@ namespace DID.Services
                     CommunityId = community.CommunityId,
                     DIDUser = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.DIDUserId),
                     RefUId = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", community.RefDIDUserId),
+                    RefUserId = community.RefDIDUserId,
                     RefName = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", community.RefDIDUserId),
                     Address = community.Address,
                     ComName = community.ComName,
@@ -673,13 +676,13 @@ namespace DID.Services
                     HasGroup = community.HasGroup,
                     HasOffice = community.HasOffice,
                     Image = community.Image,
-                    Mail = community.Mail,
+                    Mail = await db.SingleOrDefaultAsync<string>("select Mail from DIDUser where DIDUserId = @0", community.DIDUserId),
                     Phone = community.Phone,
                     QQ = community.QQ,
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = 10000//调接口查eotc总数
+                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);

@@ -78,7 +78,7 @@ public class DeptController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateDepartmentDto);
         await _departmentService.UpdateAsync(createUpdateDepartmentDto);
-        return NoContent();
+        return Success();
     }
 
 

@@ -106,7 +106,7 @@ public class QuartzNetController : BaseApiController
                 await _schedulerCenterService.StopScheduleJobAsync(quartzNet);
             }
 
-            return NoContent();
+            return Success();
         }
 
         return Error();
@@ -218,7 +218,7 @@ public class QuartzNetController : BaseApiController
             {
                 if (await _schedulerCenterService.AddScheduleJobAsync(quartzNet))
                 {
-                    return NoContent();
+                    return Success();
                 }
 
                 return Error(Localized.Get("{0}RetryFailure"));
@@ -254,7 +254,7 @@ public class QuartzNetController : BaseApiController
             var isTrue = await _schedulerCenterService.IsExistScheduleJobAsync(quartzNet);
             if (isTrue && await _schedulerCenterService.PauseJob(quartzNet))
             {
-                return NoContent();
+                return Success();
             }
         }
 
@@ -285,7 +285,7 @@ public class QuartzNetController : BaseApiController
             var isTrue = await _schedulerCenterService.IsExistScheduleJobAsync(quartzNet);
             if (isTrue && await _schedulerCenterService.ResumeJob(quartzNet))
             {
-                return NoContent();
+                return Success();
             }
         }
 

@@ -1,42 +1,40 @@
-﻿using App.Entity;
-using DID.Entitys;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace App.Models.Respon
+namespace App.Models.Request
 {
-    public class GetOrderRespon : Order
+    public class UpdateOrderUserReq
     {
         /// <summary>
-        /// 禅论系统信息
+        /// 编号
         /// </summary>
-        public CLSystem? CLSystem
+        public string OrderId
         {
             get; set;
         }
         /// <summary>
-        /// 课程信息
+        /// 姓名
         /// </summary>
-        public Course? Course
+        public string Name
         {
             get; set;
         }
         /// <summary>
-        /// 自愿者信息
+        /// 手机号码
         /// </summary>
-        public Volunteer? Volunteer
+        public string Phone
         {
             get; set;
         }
         /// <summary>
-        /// 创建用户信息
+        /// 微信号
         /// </summary>
-        //public DIDUser? DIDUser
-        //{
-        //    get; set;
-        //}
+        public string Wechat
+        {
+            get; set;
+        }
     }
 }

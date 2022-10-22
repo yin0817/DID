@@ -85,7 +85,7 @@ public class FileRecordController : BaseApiController
         [FromBody] CreateUpdateFileRecordDto createUpdateAppSecretDto)
     {
         await _fileRecordService.UpdateAsync(createUpdateAppSecretDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

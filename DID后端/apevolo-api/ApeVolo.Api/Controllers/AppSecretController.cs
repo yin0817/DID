@@ -68,7 +68,7 @@ public class AppSecretController : BaseApiController
         [FromBody] CreateUpdateAppSecretDto createUpdateAppSecretDto)
     {
         await _appSecretService.UpdateAsync(createUpdateAppSecretDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

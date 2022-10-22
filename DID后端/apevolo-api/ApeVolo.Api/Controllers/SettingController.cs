@@ -68,7 +68,7 @@ public class SettingController : BaseApiController
         [FromBody] CreateUpdateSettingDto createUpdateSettingDto)
     {
         await _settingService.UpdateAsync(createUpdateSettingDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>

@@ -62,7 +62,7 @@ public class EmailAccountController : BaseApiController
     {
         RequiredHelper.IsValid(createUpdateEmailAccountDto);
         await _emailAccountService.UpdateAsync(createUpdateEmailAccountDto);
-        return NoContent();
+        return Success();
     }
 
     /// <summary>
