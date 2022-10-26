@@ -57,9 +57,23 @@ namespace App.Entity
             get; set;
         }
         /// <summary>
+        /// 简介标题
+        /// </summary>
+        public string BlurbTitle
+        {
+            get; set;
+        }
+        /// <summary>
         /// 主讲内容
         /// </summary>
         public string Content
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 主讲内容标题
+        /// </summary>
+        public string ContentTitle
         {
             get; set;
         }

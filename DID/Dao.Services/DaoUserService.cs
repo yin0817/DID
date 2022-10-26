@@ -92,7 +92,8 @@ namespace Dao.Services
             }
             if(user.AuthType != AuthTypeEnum.审核成功)
                 return InvokeResult.Fail("用户未认证!");
-            if (user.EOTC < 5000)
+            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            if (eotc < 5000)
                 return InvokeResult.Fail("质押EOTC数量不足!");
             if (user.IsArbitrate == IsEnum.是)
                 return InvokeResult.Fail("请勿重复设置!");
@@ -140,7 +141,8 @@ namespace Dao.Services
             }
             if (user.AuthType != AuthTypeEnum.审核成功)
                 return InvokeResult.Fail("用户未认证!");
-            if (user.EOTC < 5000)
+            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            if (eotc < 5000)
                 return InvokeResult.Fail("质押EOTC数量不足!");
             if (user.IsExamine == IsEnum.是)
                 return InvokeResult.Fail("请勿重复设置!");

@@ -308,5 +308,21 @@ namespace DID.Controllers
         {
             return await _service.GetUserEOTC(_currentUser.UserId);
         }
+
+        /// <summary>
+        /// 设置App支付密码
+        /// </summary>
+        /// <param name="payPassWord"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("setpaypassword")]
+        public async Task<Response> SetPayPassWord(SetPayPassWordReq req)
+        {
+            var usercode = _cache.Get(req.Mail)?.ToString();
+            if (usercode != req.Code)
+                //return InvokeResult.Fail<string>("1"); //验证码错误!
+                return InvokeResult.Fail<string>("验证码错误!");
+            return await _service.SetPayPassWord(_currentUser.UserId, req.PayPassWord);
+        }
     }
 }

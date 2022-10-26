@@ -168,5 +168,12 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 是否有支付密码
+        /// </summary>
+        public bool HasPassWord
+        {
+            get; set;
+        }
     }
 }

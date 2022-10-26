@@ -64,7 +64,7 @@ namespace App.Services
         public async Task<Response<List<Course>>> GetCourse()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<Course>("select * from App_Course where IsDelete = 0");
+            var list = await db.FetchAsync<Course>("select * from App_Course where IsDelete = 0 order by Grade");
 
             return InvokeResult.Success(list);
         }
@@ -107,7 +107,9 @@ namespace App.Services
                 Grade = req.Grade,
                 Images = req.Images,
                 TeacherId =req.TeacherId,
-                CreateDate = DateTime.Now
+                CreateDate = DateTime.Now,
+                BlurbTitle = req.BlurbTitle,
+                ContentTitle = req.ContentTitle
             };
             await db.InsertAsync(model);
 

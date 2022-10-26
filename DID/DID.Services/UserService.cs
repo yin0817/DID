@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NPoco;
+using RestSharp;
 using System.Drawing.Imaging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -137,6 +138,14 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         IActionResult GetAuthImage(string path, string userId);
+
+        /// <summary>
+        /// 设置App支付密码
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="payPassWord"></param>
+        /// <returns></returns>
+        Task<Response> SetPayPassWord(string userId, string payPassWord);
     }
     /// <summary>
     /// 审核认证服务
@@ -202,6 +211,9 @@ namespace DID.Services
             if (!string.IsNullOrEmpty(user.UserLogoutId))
                 userRespon.HasLogout = true;
 
+            //支付密码
+            userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
+
             return InvokeResult.Success(userRespon);
         }
 
@@ -241,8 +253,8 @@ namespace DID.Services
             if (user.AuthType == AuthTypeEnum.审核成功)
             {
                 var authInfo = await db.SingleOrDefaultByIdAsync<UserAuthInfo>(user.UserAuthInfoId);
-                userRespon.Name = authInfo.Name;
-                userRespon.PhoneNum = authInfo.PhoneNum;
+                userRespon.Name = authInfo?.Name;
+                userRespon.PhoneNum = authInfo?.PhoneNum;
             }
             userRespon.UserNode = user.UserNode;
 
@@ -265,6 +277,9 @@ namespace DID.Services
 
             if (!string.IsNullOrEmpty(user.UserLogoutId))
                 userRespon.HasLogout = true;
+
+            //支付密码
+            userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
 
             return InvokeResult.Success(userRespon);
         }
@@ -385,6 +400,7 @@ namespace DID.Services
 
             //更新登录时间
             user.LoginDate = DateTime.Now;
+
             await db.UpdateAsync(user);
 
             //2.生成JWT
@@ -556,7 +572,7 @@ namespace DID.Services
         public async Task<Response> RetrievePassword(string mail, string newPassWord)
         {
             using var db = new NDatabase();
-            await db.ExecuteAsync("update DIDUser set PassWord = @0 where DIDUserId = @1", newPassWord, mail);
+            await db.ExecuteAsync("update DIDUser set PassWord = @0 where Mail = @1", newPassWord, mail);
             return InvokeResult.Success("修改成功!");
         }
 
@@ -580,8 +596,8 @@ namespace DID.Services
         }
 
         //48小时后注销
-        //private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
-        private readonly System.Timers.Timer t = new(5 * 60 * 1000);
+        private readonly System.Timers.Timer t = new(172800000);//实例化Timer类，设置间隔时间为10000毫秒；
+        //private readonly System.Timers.Timer t = new(5 * 60 * 1000);
         /// <summary>
         /// 用户注销
         /// </summary>
@@ -771,8 +787,8 @@ namespace DID.Services
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
             if (null == user)
                 return InvokeResult.Fail<double>("用户信息未找到!");
-
-            return InvokeResult.Success(user.EOTC);
+            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            return InvokeResult.Success(eotc);
         }
 
         /// <summary>
@@ -801,6 +817,27 @@ namespace DID.Services
             }
             return new FileContentResult(ms.ToArray(), "image/jpg");
         }
+
+        /// <summary>
+        /// 设置App支付密码
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="payPassWord"></param>
+        /// <returns></returns>
+        public async Task<Response> SetPayPassWord(string userId, string payPassWord)
+        {
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return InvokeResult.Fail<double>("用户信息未找到!");
+
+            user.PayPassWord = payPassWord;
+            await db.UpdateAsync(user);
+
+            return InvokeResult.Success("设置成功!");
+        }
+
+        
 
     }
 }

@@ -303,7 +303,8 @@ namespace DID.Services
 
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
             //质押5000EOTC
-            if(user.EOTC < 5000)
+            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            if (eotc < 5000)
                 return InvokeResult.Fail<string>("质押EOTC数量不足!");
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
@@ -776,7 +777,8 @@ namespace DID.Services
         public void ToDaoAuth(ComAuth item, string userId)
         {
             //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
+            //var t = new System.Timers.Timer(60000);//实例化Timer类，设置间隔时间为10000毫秒；
+            var t = new System.Timers.Timer(2 * 24 * 60 * 60 * 1000);
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 t.Stop(); //先关闭定时器

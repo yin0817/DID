@@ -247,5 +247,13 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 支付密码
+        /// </summary>
+        public string? PayPassWord
+        {
+            get; set;
+        }
     }
 }

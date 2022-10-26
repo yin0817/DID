@@ -483,8 +483,8 @@ namespace Dao.Services
             db.CompleteTransaction();
 
             //默认3天举证时间
-            //ToDelay(item.ArbitrateInfoId, 3 * 24 * 3600 * 1000);
-            ToDelay(item.ArbitrateInfoId, 10 * 60 * 1000);
+            ToDelay(item.ArbitrateInfoId, 3 * 24 * 3600 * 1000);
+            //ToDelay(item.ArbitrateInfoId, 10 * 60 * 1000);
 
             return InvokeResult.Success("提交成功!");
         }
@@ -700,8 +700,8 @@ namespace Dao.Services
         //3天默认时间
         private static System.Timers.Timer t = new();//实例化Timer类，设置间隔时间为10000毫秒；
         //3天仲裁时间
-        //private readonly System.Timers.Timer t1 = new(3 * 24 * 3600 * 1000);
-        private static System.Timers.Timer t1 = new(10 * 60 * 1000);
+        private readonly System.Timers.Timer t1 = new(3 * 24 * 3600 * 1000);
+        //private static System.Timers.Timer t1 = new(10 * 60 * 1000);
 
         /// <summary>
         /// 举证定时器 

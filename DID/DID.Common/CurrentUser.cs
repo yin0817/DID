@@ -2,7 +2,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using DID.Entitys;
+using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
+using RestSharp;
 
 namespace DID.Common;
 
@@ -78,5 +81,30 @@ public class CurrentUser : ICurrentUser
         }
 
         return new List<string>();
+    }
+
+    /// <summary>
+    /// 获取EOTC数量
+    /// </summary>
+    /// <returns></returns>
+    public static double GetEotc(string userId)
+    {
+        try
+        {
+            using var db = new NDatabase();
+            var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return 0;
+            var client = new RestClient();
+            var request = new RestRequest(string.Format("https://api.eotcyu.club/api/OTC/QueryPoints?uid={0}&pwd={1}", user.Uid, user.PassWord), Method.Post);
+            var response = client.Execute(request);
+            var model = JsonExtensions.DeserializeFromJson<EUModel>(response.Content);
+            Console.WriteLine(response.Content);
+            return model.EOTC;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 }

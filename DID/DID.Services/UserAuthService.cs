@@ -629,7 +629,7 @@ namespace DID.Services
             using var db = new NDatabase();
             var item = new AuthFailRespon();
             var authinfo = await db.SingleOrDefaultAsync<UserAuthInfo>("select b.* from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", userId);
-            if (authinfo == null) return InvokeResult.Fail<AuthFailRespon>("1");//认证信息未找到!
+            if (authinfo == null) return InvokeResult.Fail<AuthFailRespon>("认证信息未找到");//认证信息未找到!
             item.Name = authinfo!.Name;
             item.PhoneNum = authinfo.PhoneNum;
             item.IdCard = authinfo.IdCard;
@@ -637,7 +637,7 @@ namespace DID.Services
             item.PortraitImage = authinfo.PortraitImage;
             item.HandHeldImage = authinfo.HandHeldImage;
             var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep Desc", authinfo.UserAuthInfoId);
-            if (auths == null) InvokeResult.Success("1");//认证信息未找到!
+            if (auths.Count == 0) InvokeResult.Success("认证信息未找到");//认证信息未找到!
             item.Remark = auths[0].Remark;
             item.AuditType = auths[0].AuditType;
             return InvokeResult.Success(item);
@@ -651,7 +651,8 @@ namespace DID.Services
         public void ToDaoAuth(Auth item,string userId)
         {
             //两小时没人审核 自动到Dao审核
-            var t = new System.Timers.Timer(5 * 60 * 1000);//实例化Timer类，设置间隔时间为10000毫秒；
+            //var t = new System.Timers.Timer(5 * 60 * 1000);//实例化Timer类，设置间隔时间为10000毫秒；
+            var t = new System.Timers.Timer(2 * 24 * 60 * 60 * 1000);
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 

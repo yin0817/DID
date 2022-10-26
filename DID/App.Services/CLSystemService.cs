@@ -63,7 +63,7 @@ namespace App.Services
         public async Task<Response<List<CLSystem>>> GetCLSystem()
         {
             using var db = new NDatabase();
-            var list = await db.FetchAsync<CLSystem>("select * from App_CLSystem where IsDelete = 0");
+            var list = await db.FetchAsync<CLSystem>("select * from App_CLSystem where IsDelete = 0 order by Type");
 
             return InvokeResult.Success(list);
         }
