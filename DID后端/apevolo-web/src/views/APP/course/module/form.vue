@@ -2,9 +2,9 @@
   <el-dialog
     append-to-body
     :title="isEdit ? '编辑' : '添加'"
-    :visible.sync='show'
+    :visible.sync="show"
     :close-on-click-modal="false"
-    :before-close='reset'
+    :before-close="reset"
     width="800px"
   >
     <el-form
@@ -14,20 +14,20 @@
       size="small"
       label-width="80px"
     >
-      <el-row :gutter='15'>
-        <el-col :span='12'>
+      <el-row :gutter="15">
+        <el-col :span="12">
           <el-form-item
             label="课程名称"
             prop="name"
           >
             <el-input
               v-model="form.data.name"
-              placeholder='请输入课程名称'
+              placeholder="请输入课程名称"
               clearable
             />
           </el-form-item>
         </el-col>
-        <el-col :span='12'>
+        <el-col :span="12">
           <el-form-item
             label="课程价格"
             prop="price"
@@ -35,47 +35,71 @@
             <el-input
               v-model="form.data.price"
               clearable
-              placeholder='请输入课程价格'
+              placeholder="请输入课程价格"
             >
-              <template slot="prepend">￥</template>
+              <template slot="prepend">U</template>
             </el-input>
           </el-form-item>
         </el-col>
-        <el-col :span='12'>
+        <el-col :span="12">
           <el-form-item
             label="课程等级"
             prop="grade"
           >
-            <el-select style='width: 100%;' v-model='form.data.grade' filterable clearables>
-              <el-option label='初级' :value='0'>初级</el-option>
-              <el-option label='中级' :value='1'>中级</el-option>
-              <el-option label='高级' :value='2'>高级</el-option>
+            <el-select v-model="form.data.grade" style="width: 100%;" filterable clearables>
+              <el-option label="初级" :value="0">初级</el-option>
+              <el-option label="中级" :value="1">中级</el-option>
+              <el-option label="高级" :value="2">高级</el-option>
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span='12'>
+        <el-col :span="12">
           <el-form-item
             label="主讲讲师"
             prop="teacherId"
           >
             <el-select
-              v-model='form.data.teacherId'
+              v-model="form.data.teacherId"
               filterable
               clearables
-              style='width: 100%;'
+              style="width: 100%;"
             >
               <el-option
-                v-for='item in teacher'
-                :key='item.teacherId'
-                :label='item.name'
-                :value='item.teacherId'
+                v-for="item in teacher"
+                :key="item.teacherId"
+                :label="item.name"
+                :value="item.teacherId"
               >
-                {{item.name}}
+                {{ item.name }}
               </el-option>
             </el-select>
           </el-form-item>
         </el-col>
-        <el-col :span='12'>
+        <el-col :span="12">
+          <el-form-item
+            label="简介标题"
+            prop="blurbTitle"
+          >
+            <el-input
+              v-model="form.data.blurbTitle"
+              placeholder="请输入简介标题"
+              clearable
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item
+            label="内容标题"
+            prop="contentTitle"
+          >
+            <el-input
+              v-model="form.data.contentTitle"
+              placeholder="请输入内容标题"
+              clearable
+            />
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
           <el-form-item
             label="课程简介"
             prop="blurb"
@@ -83,14 +107,14 @@
             <el-input
               v-model="form.data.blurb"
               clearable
-              placeholder='请输入课程简介'
-              type='textarea'
-              resize='none'
-              :rows='6'
-            ></el-input>
+              placeholder="请输入课程简介"
+              type="textarea"
+              resize="none"
+              :rows="6"
+            />
           </el-form-item>
         </el-col>
-        <el-col :span='12'>
+        <el-col :span="12">
           <el-form-item
             label="主讲内容"
             prop="content"
@@ -98,48 +122,48 @@
             <el-input
               v-model="form.data.content"
               clearable
-              placeholder='请输入主讲内容'
-              type='textarea'
-              resize='none'
-              :rows='6'
-            ></el-input>
+              placeholder="请输入主讲内容"
+              type="textarea"
+              resize="none"
+              :rows="6"
+            />
           </el-form-item>
         </el-col>
-        <el-col :span='24'>
+        <el-col :span="24">
           <el-form-item
             label="课程图片"
             prop="images"
           >
             <el-row>
-              <el-col :span='6'>
+              <el-col :span="6">
                 <el-upload
                   multiple
                   action=""
                   list-type="picture-card"
-                  :show-file-list='false'
-                  :file-list='form.fileList'
-                  :before-upload='beforeUpload'
-                  :http-request='onUpload'
-                  :on-success='handleSuccess'
-                  :on-error='onErrorUpload'
+                  :show-file-list="false"
+                  :file-list="form.fileList"
+                  :before-upload="beforeUpload"
+                  :http-request="onUpload"
+                  :on-success="handleSuccess"
+                  :on-error="onErrorUpload"
                 >
-                  <i class="el-icon-plus"></i>
+                  <i class="el-icon-plus" />
                 </el-upload>
               </el-col>
-              <el-col :span='18'>
-                <div class='img__list'>
-                  <div class='item' v-for='item in form.data.images' :key='item'>
+              <el-col :span="18">
+                <div class="img__list">
+                  <div v-for="item in form.data.images" :key="item" class="item">
                     <img
                       class="img"
                       :src="transformSrc(item)"
                       alt=""
-                    />
+                    >
                     <div class="mask">
                       <span
                         class="icon delete"
                         @click="handleRemove(item)"
                       >
-                        <i class="el-icon-delete"></i>
+                        <i class="el-icon-delete" />
                       </span>
                     </div>
                   </div>
@@ -197,8 +221,10 @@ export default {
           name: '',
           grade: '',
           price: '',
+          blurbTitle: '',
           blurb: '',
           content: '',
+          contentTitle: '',
           images: [],
           teacherId: ''
         },
@@ -207,7 +233,9 @@ export default {
           price: [{ required: true, message: '请输入课程价格', trigger: 'blur' }],
           grade: [{ required: true, message: '请选择课程等级', trigger: 'blur' }],
           teacherId: [{ required: true, message: '请选择课程讲师', trigger: 'blur' }],
+          blurbTitle: [{ required: true, message: '请输入简介标题', trigger: 'blur' }],
           blurb: [{ required: true, message: '请输入课程简介', trigger: 'blur' }],
+          contentTitle: [{ required: true, message: '请输入内容标题', trigger: 'blur' }],
           content: [{ required: true, message: '请输入主讲内容', trigger: 'blur' }],
           images: [{ required: true, validator: validateUploadImage, message: '请上传课程相关图片', trigger: 'blur' }]
         }

@@ -1,28 +1,28 @@
 <template>
   <div class="app-container">
     <!--  工具  -->
-    <el-button size='small' type='primary' @click='edit(null)'>添加</el-button>
+    <el-button size="small" type="primary" @click="edit(null)">添加</el-button>
     <!--表格渲染-->
     <el-table
       ref="table"
       v-loading="table.loading"
       :data="table.data"
-      row-key='noticeId'
+      row-key="noticeId"
       style="width: 100%"
     >
       <el-table-column prop="name" label="教师名称">
-        <template slot-scope='scope'>
-          <el-avatar style='margin-right: 5px;' size="small" :src="transformSrc(scope.row.headImage)"></el-avatar>
-          {{scope.row.name}}
+        <template slot-scope="scope">
+          <el-avatar style="margin-right: 5px;" size="small" :src="transformSrc(scope.row.headImage)" />
+          {{ scope.row.name }}
         </template>
       </el-table-column>
       <el-table-column prop="blurb" label="教师简介">
-        <template slot-scope='scope'>
-          <span class='line1'>{{scope.row.blurb}}</span>
+        <template slot-scope="scope">
+          <span class="line1">{{ scope.row.blurb }}</span>
         </template>
       </el-table-column>
       <el-table-column prop="createDate" label="创建时间">
-        <template slot-scope='scope'>
+        <template slot-scope="scope">
           {{ transformDate(scope.row.createDate) }}
         </template>
       </el-table-column>
@@ -35,32 +35,32 @@
       >
         <template slot-scope="scope">
           <el-button
-            size='small'
-            type='warning'
-            @click='edit(scope.row)'
+            size="small"
+            type="warning"
+            @click="edit(scope.row)"
           >
             修改
           </el-button>
           <el-button
-            size='small'
-            type='danger'
-            :loading='scope.row.loading'
-            :disabled='scope.row.loading'
-            @click='remove(scope.row)'
+            size="small"
+            type="danger"
+            :loading="scope.row.loading"
+            :disabled="scope.row.loading"
+            @click="remove(scope.row)"
           >
             删除
           </el-button>
         </template>
       </el-table-column>
     </el-table>
-    <edit ref='edit' @refresh='getTable'></edit>
+    <edit ref="edit" @refresh="getTable" />
   </div>
 </template>
 
 <script>
 import Edit from './module/form'
 import { list, del } from '@/api/APP/teacher'
-import { transformSrc } from '@/utils'
+import { transformSrc, transformDate } from '@/utils'
 
 export default {
   name: 'Notice',
@@ -83,6 +83,7 @@ export default {
   },
   methods: {
     transformSrc,
+    transformDate,
     getTable() {
       this.table.loading = true
       list().then(res => {
