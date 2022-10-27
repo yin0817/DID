@@ -135,7 +135,8 @@ namespace Dao.Services
                 var str = "";
                 users.ForEach(a =>
                 {
-                    var Name = CommonHelp.GetName(db.SingleOrDefault<string>("select Name from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId!))??"未认证";
+                    var Name = CommonHelp.GetName(db.SingleOrDefault<string>("select b.Name from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
+                "where a.DIDUserId = @0 and a.AuthType = 2", a.DIDUserId))??"未认证";
                     str += "<tr>";
                     str += "<td>" + Name + "</td>";
                     str += "<td>" + a.Mail + "</td>";

@@ -162,5 +162,21 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 修改次数
+        /// </summary>
+        public int UpdateNum
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 修改时间
+        /// </summary>
+        public DateTime UpdateDate
+        {
+            get; set;
+        }
     }
 }

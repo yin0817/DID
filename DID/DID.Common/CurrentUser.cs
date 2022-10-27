@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using DID.Entitys;
+using DID.Models.Request;
 using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
 using RestSharp;
@@ -99,8 +100,54 @@ public class CurrentUser : ICurrentUser
             var request = new RestRequest(string.Format("https://api.eotcyu.club/api/OTC/QueryPoints?uid={0}&pwd={1}", user.Uid, user.PassWord), Method.Post);
             var response = client.Execute(request);
             var model = JsonExtensions.DeserializeFromJson<EUModel>(response.Content);
-            Console.WriteLine(response.Content);
             return model.EOTC;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 用户注册EOTC
+    /// </summary>
+    /// <returns></returns>
+    public static int RegisterEotc(string mail,string ads, string sign, string net, string uid, string pid)
+    {
+        try
+        {
+            using var db = new NDatabase();
+
+            var client = new RestClient();
+            var request = new RestRequest(string.Format("https://api.eotcyu.club/api/OTC/RegisterEotc?mail={0}&ads={1}&sign={2}&net={3}&uid={4}&pid={5}",
+                                        mail, ads, sign, net, uid, pid), Method.Post);
+            var response = client.Execute(request);
+            var model = JsonExtensions.DeserializeFromJson<CodeModel>(response.Content);
+            //Console.WriteLine(response.Content);
+            return model.Code;
+        }
+        catch
+        {
+            return -1;
+        }
+    }
+    /// <summary>
+    /// 获取空投
+    /// </summary>
+    /// <returns></returns>
+    public static double GetAirdrop(string userId)
+    {
+        try
+        {
+            using var db = new NDatabase();
+            var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return 0;
+            var client = new RestClient();
+            var request = new RestRequest(string.Format("https://api.eotcyu.club/api/OTC/QueryPoints?uid={0}&pwd={1}", user.Uid, user.PassWord), Method.Post);
+            var response = client.Execute(request);
+            var model = JsonExtensions.DeserializeFromJson<EUModel>(response.Content);
+            return model.Airdrop;
         }
         catch
         {

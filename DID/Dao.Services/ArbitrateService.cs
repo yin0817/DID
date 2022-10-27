@@ -183,15 +183,18 @@ namespace Dao.Services
 
         private readonly ICreditScoreService _csservice;
 
+        private readonly IRewardService _reservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="csservice"></param>
-        public ArbitrateService(ILogger<ArbitrateService> logger, ICreditScoreService csservice)
+        public ArbitrateService(ILogger<ArbitrateService> logger, ICreditScoreService csservice, IRewardService reservice)
         {
             _logger = logger;
             _csservice = csservice;
+            _reservice = reservice;
         }
         /// <summary>
         /// 添加支付信息
@@ -592,9 +595,12 @@ namespace Dao.Services
             model.IdCard = authinfo.IdCard;
 
             var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep Desc", authinfo.UserAuthInfoId);
-            model.PortraitImage = auths?[0].PortraitImage;
-            model.NationalImage = auths?[0].NationalImage;
-            model.HandHeldImage = auths?[0].HandHeldImage;
+            if (auths.Count > 0)
+            {
+                model.PortraitImage = auths?[0].PortraitImage;
+                model.NationalImage = auths?[0].NationalImage;
+                model.HandHeldImage = auths?[0].HandHeldImage;
+            }
 
             return InvokeResult.Success(model);
         }
@@ -665,16 +671,16 @@ namespace Dao.Services
                     if (a.VoteStatus == (arbitrate.Status == ArbitrateStatusEnum.原告胜 ? VoteStatusEnum.原告胜 : VoteStatusEnum.被告胜) )
                     {
                         var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
-                        
+                        var eotc = _reservice.GetRewardValue("Arbitration").Result.Items;//奖励eotc数量
                         model.VictoryNum += 1;
-                        model.EOTC += 20;
+                        model.EOTC += eotc;
                         db.Update(model);
                         //奖励EOTC
                         var detail = new IncomeDetails()
                         {
                             IncomeDetailsId = Guid.NewGuid().ToString(),
                             CreateDate = DateTime.Now,
-                            EOTC = 20,
+                            EOTC = eotc,
                             Remarks = "仲裁处理",
                             Type = IDTypeEnum.处理仲裁,
                             DIDUserId = a.VoteUserId
@@ -683,7 +689,7 @@ namespace Dao.Services
 
                         db.BeginTransaction();
                         db.Insert(detail);
-                        user.DaoEOTC += 20;
+                        user.DaoEOTC += eotc;
                         db.Update(user);
                         db.CompleteTransaction();
                     }    
@@ -783,9 +789,9 @@ namespace Dao.Services
                                 if (a.VoteStatus == (item.Status == ArbitrateStatusEnum.原告胜 ? VoteStatusEnum.原告胜 : VoteStatusEnum.被告胜))
                                 {
                                     var model = db.SingleOrDefault<UserArbitrate>("select * from UserArbitrate where DIDUserId = @0 and IsDelete = 0", a.VoteUserId);
-
+                                    var eotc = _reservice.GetRewardValue("Arbitration").Result.Items;//奖励eotc数量
                                     model.VictoryNum += 1;
-                                    model.EOTC += 20;
+                                    model.EOTC += eotc;
                                     db.Update(model);
 
                                     //奖励EOTC
@@ -793,7 +799,7 @@ namespace Dao.Services
                                     {
                                         IncomeDetailsId = Guid.NewGuid().ToString(),
                                         CreateDate = DateTime.Now,
-                                        EOTC = 20,
+                                        EOTC = eotc,
                                         Remarks = "仲裁处理",
                                         Type = IDTypeEnum.处理仲裁,
                                         DIDUserId = a.VoteUserId
@@ -802,7 +808,7 @@ namespace Dao.Services
 
                                     db.BeginTransaction();
                                     db.Insert(detail);
-                                    user.DaoEOTC += 20;
+                                    user.DaoEOTC += eotc;
                                     db.Update(user);
                                     db.CompleteTransaction();
                                 }

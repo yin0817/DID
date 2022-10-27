@@ -17,5 +17,19 @@ namespace DID.Models.Response
         {
             get; set;
         }
+
+        public double Airdrop
+        {
+            get; set;
+        }
+    }
+
+    public class CodeModel
+    {
+        public int Code
+        {
+            get; set;
+        }
+
     }
 }

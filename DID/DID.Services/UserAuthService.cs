@@ -91,14 +91,17 @@ namespace DID.Services
 
         private readonly ICreditScoreService _csservice;
 
+        private readonly IRewardService _reservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public UserAuthService(ILogger<UserAuthService> logger, ICreditScoreService csservice)
+        public UserAuthService(ILogger<UserAuthService> logger, ICreditScoreService csservice, IRewardService reservice)
         {
             _logger = logger;
             _csservice = csservice;
+            _reservice = reservice;
         }
 
         /// <summary>
@@ -259,12 +262,13 @@ namespace DID.Services
             //奖励EOTC 10
             if (isDao)
             {
+                var eotc = _reservice.GetRewardValue("IdentityAudit").Result.Items;//奖励eotc数量
                 var detail = new IncomeDetails()
                 {
                     IncomeDetailsId = Guid.NewGuid().ToString(),
                     CreateDate = DateTime.Now,
-                    EOTC = 10,
-                    Remarks = "处理审核",
+                    EOTC = eotc,
+                    Remarks = "处理身份认证审核",
                     Type = IDTypeEnum.处理审核,
                     DIDUserId = userId
                 };
@@ -272,10 +276,10 @@ namespace DID.Services
 
                 db.BeginTransaction();
                 db.Insert(detail);
-                user.DaoEOTC += 10;
+                user.DaoEOTC += eotc;
                 db.Update(user);
                 var userExamine = db.SingleOrDefault<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
-                userExamine.EOTC += 10;
+                userExamine.EOTC += eotc;
                 userExamine.ExamineNum += 1;
                 db.Update(userExamine);
                 db.CompleteTransaction();
@@ -637,9 +641,12 @@ namespace DID.Services
             item.PortraitImage = authinfo.PortraitImage;
             item.HandHeldImage = authinfo.HandHeldImage;
             var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep Desc", authinfo.UserAuthInfoId);
-            if (auths.Count == 0) InvokeResult.Success("认证信息未找到");//认证信息未找到!
-            item.Remark = auths[0].Remark;
-            item.AuditType = auths[0].AuditType;
+            //if (auths.Count == 0) return InvokeResult.Fail<AuthFailRespon>("认证信息未找到");//认证信息未找到!
+            if(auths.Count > 0)
+            {
+                item.Remark = auths[0].Remark;
+                item.AuditType = auths[0].AuditType;
+            }
             return InvokeResult.Success(item);
         }
 

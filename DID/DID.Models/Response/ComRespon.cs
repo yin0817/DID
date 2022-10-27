@@ -18,21 +18,21 @@ namespace DID.Models.Response
         /// <summary>
         /// 照片
         /// </summary>
-        public string Image
+        public string? Image
         {
             get; set;
         }
         /// <summary>
         /// 描述
         /// </summary>
-        public string Describe
+        public string? Describe
         {
             get; set;
         }
         /// <summary>
         /// 电报群
         /// </summary>
-        public string Telegram
+        public string? Telegram
         {
             get; set;
         }

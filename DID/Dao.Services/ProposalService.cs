@@ -6,6 +6,7 @@ using Dao.Models.Response;
 using DID.Common;
 using DID.Entitys;
 using DID.Models.Base;
+using DID.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Dao.Services
@@ -64,13 +65,16 @@ namespace Dao.Services
     {
         private readonly ILogger<ProposalService> _logger;
 
+        private readonly IRewardService _reservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public ProposalService(ILogger<ProposalService> logger)
+        public ProposalService(ILogger<ProposalService> logger, IRewardService reservice)
         {
             _logger = logger;
+            _reservice = reservice;
         }
 
         /// <summary>
@@ -255,14 +259,14 @@ namespace Dao.Services
             {
                 if (item.FavorVotes > item.OpposeVotes)
                     item.State = StateEnum.已通过;
-
+                var reotc = _reservice.GetRewardValue("Proposal").Result.Items;//奖励eotc数量
                 //奖励EOTC 创建提案100
                 var detail = new IncomeDetails()
                 {
                     IncomeDetailsId = Guid.NewGuid().ToString(),
                     CreateDate = DateTime.Now,
-                    EOTC = 100,
-                    Remarks = "创建提案",
+                    EOTC = reotc,
+                    Remarks = "创建提案(通过)",
                     Type = IDTypeEnum.创建提案,
                     DIDUserId = item.DIDUserId
                 };
@@ -270,7 +274,7 @@ namespace Dao.Services
 
                 db.BeginTransaction();
                 db.Insert(detail);
-                user.DaoEOTC += 20;
+                user.DaoEOTC += reotc;
                 db.Update(user1);
                 db.CompleteTransaction();
             }

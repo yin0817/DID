@@ -282,9 +282,12 @@ namespace Dao.Services
             model.IdCard = authinfo.IdCard;
 
             var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 order by AuditStep Desc", authinfo.UserAuthInfoId);
-            model.PortraitImage = auths?[0].PortraitImage;
-            model.NationalImage = auths?[0].NationalImage;
-            model.HandHeldImage = auths?[0].HandHeldImage;
+            if (auths.Count > 0)
+            {
+                model.PortraitImage = auths?[0].PortraitImage;
+                model.NationalImage = auths?[0].NationalImage;
+                model.HandHeldImage = auths?[0].HandHeldImage;
+            }
 
             model.Image = item.Images;
             return InvokeResult.Success(model);

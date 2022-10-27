@@ -156,15 +156,18 @@ namespace DID.Services
 
         private readonly IMemoryCache _cache;
 
+
+        private readonly IRewardService _reservice;
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="cache"></param>
-        public UserService(ILogger<UserService> logger, IMemoryCache cache)
+        public UserService(ILogger<UserService> logger, IMemoryCache cache, IRewardService reservice)
         {
             _logger = logger;
             _cache = cache;
+            _reservice = reservice;
         }
 
         /// <summary>
@@ -213,6 +216,9 @@ namespace DID.Services
 
             //支付密码
             userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
+
+            //空投
+            userRespon.AirdropEotc = CurrentUser.GetAirdrop(user.DIDUserId);
 
             return InvokeResult.Success(userRespon);
         }
@@ -281,57 +287,82 @@ namespace DID.Services
             //支付密码
             userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
 
+            //空投
+            userRespon.AirdropEotc = CurrentUser.GetAirdrop(userId);
+
             return InvokeResult.Success(userRespon);
         }
 
         /// <summary>
         /// 更新用户信息（邀请人 电报群 国家地区）
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="req"></param>
         /// <returns></returns>
-        public async Task<Response> SetUserInfo(UserInfoRespon user)
+        public async Task<Response> SetUserInfo(UserInfoRespon req)
         {
             using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", req.UserId);
+            if (null == user)
+                return InvokeResult.Fail<double>("用户信息未找到!");
             var sql = new Sql("update DIDUser set ");
-            if (!string.IsNullOrEmpty(user.RefUserId))
+            if (!string.IsNullOrEmpty(req.RefUserId) && string.IsNullOrEmpty(user.RefUserId))//邀请人不能修改
             {
-                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.RefUserId);
-                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
-                if (string.IsNullOrEmpty(refUserId) || user.UserId == refUserId || string.IsNullOrEmpty(communityId))//不能修改为自己 必须有社区
+                var refUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and IsLogout = 0", req.RefUserId);
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", req.RefUserId);
+                if (string.IsNullOrEmpty(refUserId) || req.UserId == refUserId || string.IsNullOrEmpty(communityId))//不能修改为自己 必须有社区
                     return InvokeResult.Fail("1"); //邀请码错误!
-                sql.Append("RefUserId = @0, ", user.RefUserId);
+                sql.Append("RefUserId = @0, ", req.RefUserId);
             }
-            if (!string.IsNullOrEmpty(user.Telegram))
-                sql.Append("Telegram = @0, ", user.Telegram);
-            if(!string.IsNullOrEmpty(user.Country))
-                sql.Append("Country = @0, ", user.Country);
-            if (!string.IsNullOrEmpty(user.Province))
-                sql.Append("Province = @0, ", user.Province);
-            if (!string.IsNullOrEmpty(user.City))
-                sql.Append("City = @0, ", user.City);
-            if (!string.IsNullOrEmpty(user.Area))
-                sql.Append("Area = @0, ", user.Area);
-            sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", user.UserId);
+            if (!string.IsNullOrEmpty(req.Telegram))
+                sql.Append("Telegram = @0, ", req.Telegram);
+            if(!string.IsNullOrEmpty(req.Country))
+                sql.Append("Country = @0, ", req.Country);
+            if (!string.IsNullOrEmpty(req.Province))
+                sql.Append("Province = @0, ", req.Province);
+            if (!string.IsNullOrEmpty(req.City))
+                sql.Append("City = @0, ", req.City);
+            if (!string.IsNullOrEmpty(req.Area))
+                sql.Append("Area = @0, ", req.Area);
+            sql.Append("DIDUserId = @0 where DIDUserId = @0 and IsLogout = 0", req.UserId);
 
             
             db.BeginTransaction();
             //加入推荐人社区
-            if (!string.IsNullOrEmpty(user.RefUserId))
+            if (!string.IsNullOrEmpty(req.RefUserId) && string.IsNullOrEmpty(user.RefUserId))
             {
-                if (user.RefUserId == user.UserId)
+                if (req.RefUserId == req.UserId)
                     return InvokeResult.Fail("邀请码错误!");
-                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
-                var userCommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.UserId);
+                var communityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", req.RefUserId);
+                var userCommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", req.UserId);
                 if (!string.IsNullOrEmpty(communityId) && string.IsNullOrEmpty(userCommunityId))
                 {
                     var userCom = new UserCommunity()
                     {
                         UserCommunityId = Guid.NewGuid().ToString(),
                         CreateDate = DateTime.Now,
-                        DIDUserId = user.UserId,
+                        DIDUserId = req.UserId,
                         CommunityId = communityId
                     };
                     await db.InsertAsync(userCom);
+                }
+
+                //发放邀请人空投
+                //if (!string.IsNullOrEmpty(req.RefUserId))
+                //{
+                //    var refUser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0 and IsLogout = 0", req.RefUserId);
+                //    var refeotc = _reservice.GetRewardValue("RefAirdrop").Result.Items;//奖励eotc数量
+                //    refUser.AirdropEotc += refeotc;
+                //    await db.UpdateAsync(refUser);
+                //}
+
+                //调用otc注册
+                if (!string.IsNullOrEmpty(req.RefUserId))
+                {
+                    var uid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.DIDUserId);
+                    var pid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.RefUserId);
+                    var code = CurrentUser.RegisterEotc(user.Mail, "''","''","''", uid, pid);
+                    if(code == -1)
+                        return InvokeResult.Fail("otc用户注册失败!");
                 }
             }
 
@@ -460,6 +491,9 @@ namespace DID.Services
             }
 
             db.BeginTransaction();
+
+            //var eotc = _reservice.GetRewardValue("UserAirdrop").Result.Items;//奖励eotc数量
+
             userId = Guid.NewGuid().ToString();
             var user = new DIDUser
             {
@@ -518,7 +552,28 @@ namespace DID.Services
                 PaymentId = Guid.NewGuid().ToString()
             };
             await db.InsertAsync(pay);
+
+            //发放邀请人空投
+            //if (!string.IsNullOrEmpty(login.RefUserId))
+            //{
+            //    var refUser = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0 and IsLogout = 0", login.RefUserId);
+            //    var refeotc = _reservice.GetRewardValue("RefAirdrop").Result.Items;//奖励eotc数量
+            //    refUser.AirdropEotc += refeotc;
+            //    await db.UpdateAsync(refUser);
+            //}
+
             db.CompleteTransaction();
+
+
+            //调用otc注册
+            if (!string.IsNullOrEmpty(login.RefUserId))
+            {
+                var uid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", userId);
+                var pid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", login.RefUserId);
+                var code =  CurrentUser.RegisterEotc(login.Mail!, login.WalletAddress??"''", login.Sign??"''", login.Otype??"''", uid, pid);
+                if(code == -1)
+                    return InvokeResult.Fail("otc用户注册失败!");
+            }
 
             return InvokeResult.Success("用户注册成功!");
         }
@@ -732,9 +787,11 @@ namespace DID.Services
                                 UserNode = a.UserNode,//todo:获取用户等级  0 交易用户 1 信用节点 2 实时节点 3 中级节点 4 高级节点
                                 UID = a.Uid,
                                 Mail = a.Mail,
-                                Phone = db.SingleOrDefault<string>("select PhoneNum from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId),
+                                Phone = db.SingleOrDefault<string>("select b.PhoneNum from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
+                                        "where a.DIDUserId = @0 and a.AuthType = 2", a.DIDUserId),
                                 RegDate = a.RegDate,
-                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select Name from UserAuthInfo where UserAuthInfoId = @0", a.UserAuthInfoId))
+                                Name = CommonHelp.GetName(db.SingleOrDefault<string>("select b.Name from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
+                                        "where a.DIDUserId = @0 and a.AuthType = 2", a.DIDUserId))
                             }).ToList();
             model.Users = users;
 

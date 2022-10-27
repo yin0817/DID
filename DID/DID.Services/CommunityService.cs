@@ -133,13 +133,16 @@ namespace DID.Services
     {
         private readonly ILogger<CommunityService> _logger;
 
+        private readonly IRewardService _reservice;
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public CommunityService(ILogger<CommunityService> logger)
+        public CommunityService(ILogger<CommunityService> logger, IRewardService reservice)
         {
             _logger = logger;
+            _reservice = reservice;
         }
 
         /// <summary>
@@ -283,7 +286,7 @@ namespace DID.Services
                 result.Add(new ComRespon()
                 {
                     Name = item.ComName,
-                    Describe = item.ComName,
+                    Describe = item.Describe,
                     Image = item.Image,
                     Telegram = item.Telegram
                 });
@@ -354,13 +357,26 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var model = await db.SingleOrDefaultByIdAsync<Community>(item.CommunityId);
-            if (null == model)
+            if(null == model)
                 return InvokeResult.Fail("社区未找到!");
+            //一年只能修改两次社区位置
+            if(!string.IsNullOrEmpty(item.AddressName) && model.UpdateNum == 2 && model.UpdateDate.Year == DateTime.Now.Year)
+                return InvokeResult.Fail("社区位置一年只能修改2次!");
             model.Image = item.Image;
             model.Describe = item.Describe;
             model.Telegram = item.Telegram;
             model.Discord = item.Discord;
             model.QQ = item.QQ;
+            if (!string.IsNullOrEmpty(item.AddressName))
+            {
+                model.Country = item.Country;
+                model.Province = item.Province;
+                model.City = item.City;
+                model.Area = item.Area;
+                model.AddressName = item.AddressName;
+                model.UpdateNum += 1;
+                model.UpdateDate = DateTime.Now;
+            }
             await db.UpdateAsync(model);
             return InvokeResult.Success("添加成功!");
         }
@@ -416,8 +432,20 @@ namespace DID.Services
             {
                 await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
 
-                //更改用户社区信息为自己的社区 加入时间
-                await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
+                //更改用户社区信息为自己的社区 (下级用户自动加入)
+                //await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
+
+                var list = await db.FetchAsync<Models.Models.UserCom>(";with temp as \n" +
+                      "(select DIDUserId,ApplyCommunityId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
+                      "union all \n" +
+                      "select a.DIDUserId,a.ApplyCommunityId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
+                      "select * from temp", authinfo.DIDUserId);
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(list[i].ApplyCommunityId)&& i > 0)//除自己到下个社区之间的用户
+                        break;
+                    await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUser, DateTime.Now);
+                }
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
@@ -484,12 +512,13 @@ namespace DID.Services
             //奖励EOTC 10
             if (isDao)
             {
+                var eotc = _reservice.GetRewardValue("ComAudit").Result.Items;//奖励eotc数量
                 var detail = new IncomeDetails()
                 {
                     IncomeDetailsId = Guid.NewGuid().ToString(),
                     CreateDate = DateTime.Now,
-                    EOTC = 10,
-                    Remarks = "处理审核",
+                    EOTC = eotc,
+                    Remarks = "处理社区审核",
                     Type = IDTypeEnum.处理审核,
                     DIDUserId = userId
                 };
@@ -497,10 +526,10 @@ namespace DID.Services
 
                 db.BeginTransaction();
                 db.Insert(detail);
-                user.DaoEOTC += 10;
+                user.DaoEOTC += eotc;
                 db.Update(user);
                 var userExamine = db.SingleOrDefault<UserExamine>("select * from UserExamine where DIDUserId = @0 and IsDelete = 0", userId);
-                userExamine.EOTC += 10;
+                userExamine.EOTC += eotc;
                 userExamine.ExamineNum += 1;
                 db.Update(userExamine);
                 db.CompleteTransaction();

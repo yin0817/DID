@@ -175,5 +175,12 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 空投
+        /// </summary>
+        public double AirdropEotc
+        {
+            get; set;
+        }
     }
 }

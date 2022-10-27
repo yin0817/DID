@@ -255,5 +255,13 @@ namespace DID.Entitys
         {
             get; set;
         }
+
+        /// <summary>
+        /// 空投
+        /// </summary>
+        public double AirdropEotc
+        {
+            get; set;
+        }
     }
 }
