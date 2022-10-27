@@ -312,7 +312,8 @@ namespace Dao.Services
                     AdduceDate = a.AdduceDate,
                     VoteDate = a.VoteDate,
                     PlaintiffId = a.Plaintiff,
-                    DefendantId = a.Defendant
+                    DefendantId = a.Defendant,
+                    OrderId = a.OrderId
                 };
             }).ToList();
 
@@ -347,7 +348,8 @@ namespace Dao.Services
                 DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", item.Defendant),
                 PlaintiffUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", item.Plaintiff),
                 IsCancel = item.IsCancel,
-                ArbitrateInType = item.ArbitrateInType
+                ArbitrateInType = item.ArbitrateInType,
+                OrderId = item.OrderId
             };
 
             var users = await db.FetchAsync<ArbitrateVote>("select * from ArbitrateVote where ArbitrateInfoId = @0 and VoteStatus > 0 and IsDelete = 0", item.ArbitrateInfoId);//已投票记录
@@ -523,7 +525,8 @@ namespace Dao.Services
                     DefendantId = a.Defendant,
                     DefendantUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", a.Defendant),
                     PlaintiffUId = db.SingleOrDefault<string>("select Uid from DIDUser where DIDUserId = @0", a.Plaintiff),
-                    HasDelay = db.SingleOrDefault<ArbitrateDelay>("select * from ArbitrateDelay where ArbitrateInfoId = @0 and DelayUserId = @1", a.ArbitrateInfoId, userId) == null ? IsEnum.否 : IsEnum.是
+                    HasDelay = db.SingleOrDefault<ArbitrateDelay>("select * from ArbitrateDelay where ArbitrateInfoId = @0 and DelayUserId = @1", a.ArbitrateInfoId, userId) == null ? IsEnum.否 : IsEnum.是,
+                    OrderId = a.OrderId
                 };
             }).ToList();
 
@@ -567,7 +570,8 @@ namespace Dao.Services
                         PlaintiffId = model.Plaintiff,
                         DefendantId = model.Defendant,
                         EOTC = 100,//EOTC数量
-                        HasDelay = delay == null ? IsEnum.否 : IsEnum.是
+                        HasDelay = delay == null ? IsEnum.否 : IsEnum.是,
+                        OrderId = model.OrderId
                     });
                 }
             });

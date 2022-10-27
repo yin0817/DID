@@ -570,7 +570,10 @@ namespace DID.Services
             {
                 var uid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", userId);
                 var pid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", login.RefUserId);
-                var code =  CurrentUser.RegisterEotc(login.Mail!, login.WalletAddress??"''", login.Sign??"''", login.Otype??"''", uid, pid);
+                var code = CurrentUser.RegisterEotc(login.Mail!, 
+                                                    string.IsNullOrEmpty(login.WalletAddress)?"''": login.WalletAddress,
+                                                    string.IsNullOrEmpty(login.Sign) ? "''" : login.Sign,
+                                                    string.IsNullOrEmpty(login.Otype) ? "''" : login.Otype, uid, pid);
                 if(code == -1)
                     return InvokeResult.Fail("otc用户注册失败!");
             }

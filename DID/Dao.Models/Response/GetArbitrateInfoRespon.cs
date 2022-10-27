@@ -52,6 +52,14 @@ namespace Dao.Models.Response
         }
 
         /// <summary>
+        /// 订单Id
+        /// </summary>
+        public string OrderId
+        {
+            get; set;
+        }
+
+        /// <summary>
         /// 被告编号
         /// </summary>
         public string DefendantId

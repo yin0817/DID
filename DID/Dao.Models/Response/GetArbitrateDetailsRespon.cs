@@ -184,6 +184,14 @@ namespace Dao.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// 订单编号
+        /// </summary>
+        public string OrderId
+        {
+            get; set;
+        }
     }
 
     public class Vote
