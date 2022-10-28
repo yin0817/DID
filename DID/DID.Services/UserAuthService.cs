@@ -705,7 +705,7 @@ namespace DID.Services
         {
             //两小时没人审核 自动到Dao审核
             //var t = new System.Timers.Timer(5 * 60 * 1000);//实例化Timer类，设置间隔时间为10000毫秒；
-            var t = new System.Timers.Timer(2 * 24 * 60 * 60 * 1000);
+            var t = new System.Timers.Timer(2 * 60 * 60 * 1000);
             t.Elapsed += new System.Timers.ElapsedEventHandler(async (object? source, System.Timers.ElapsedEventArgs e) =>
             {
                 

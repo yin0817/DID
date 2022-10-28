@@ -35,6 +35,15 @@ namespace DID.Services
         /// </summary>
         /// <returns></returns>
         Task<Response> UpdateReward(List<Reward> list);
+
+
+        /// <summary>
+        /// 获取仲裁扣费（0天1人）
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        Task<Response<double>> GetArbDayEotc(int num, int type);
     }
 
     /// <summary>
@@ -51,6 +60,24 @@ namespace DID.Services
         public RewardService(ILogger<RewardService> logger)
         {
             _logger = logger;
+        }
+
+        /// <summary>
+        /// 获取仲裁扣费（天）
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public async Task<Response<double>> GetArbDayEotc(int num, int type)
+        {
+            using var db = new NDatabase();
+            double value = 0;
+            if(type == 0)
+                value = await db.SingleOrDefaultAsync<double>("select RewardValue from Reward where RewardKey = 'ArbDay'");
+            else if(type == 1)
+                value = await db.SingleOrDefaultAsync<double>("select RewardValue from Reward where RewardKey = 'ArbPeople'");
+
+            return InvokeResult.Success(value * num);
         }
 
         /// <summary>

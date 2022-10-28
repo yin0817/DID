@@ -2,6 +2,7 @@
 using DID.Entitys;
 using DID.Models.Base;
 using DID.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DID.Controllers
@@ -61,6 +62,20 @@ namespace DID.Controllers
         public async Task<Response> UpdateReward(List<Reward> list)
         {
             return await _service.UpdateReward(list);
+        }
+
+        /// <summary>
+        /// 获取仲裁扣费（0天1人）
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("getarbdayeotc")]
+        [AllowAnonymous]
+        public async Task<Response<double>> GetArbDayEotc(int num, int type)
+        {
+            return await _service.GetArbDayEotc(num, type);
         }
     }
 }
