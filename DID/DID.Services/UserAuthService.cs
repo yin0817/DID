@@ -189,10 +189,28 @@ namespace DID.Services
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
                 var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
                 authUserIds.Add(authinfo.CreatorId!);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and DIDUserId not in (@1) and IsLogout = 0 ", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, authUserIds);
-                var random = new Random().Next(auths.Count);
-                var authUserId = auths[random].DIDUserId;
-                if(string.IsNullOrEmpty(authUserId))
+                //var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and DIDUserId not in (@1) and IsLogout = 0 ", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, authUserIds);
+                //var random = new Random().Next(auths.Count);
+                var authUserId = await db.SingleOrDefaultAsync<string>(
+                                                                        ";WITH temp AS (\n" +
+                                                        "	SELECT\n" +
+                                                        "		DIDUserId,RefUserId, UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser \n" +
+                                                        "	WHERE\n" +
+                                                        "		DIDUserId = @0\n" +
+                                                        "		AND IsLogout = 0 UNION ALL\n" +
+                                                        "	SELECT\n" +
+                                                        "		a.DIDUserId,a.RefUserId , a.UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser a\n" +
+                                                        "		INNER JOIN temp ON a.DIDUserId = temp.RefUserId\n" +
+                                                        "		AND a.IsLogout = 0 \n" +
+                                                        "	) SELECT top 1 * FROM temp where UserNode > 1 and DIDUserId not in (@1)\n" +
+                                                        "	", authinfo.CreatorId, authUserIds);
+
+
+                if (string.IsNullOrEmpty(authUserId))
                     return InvokeResult.Success("审核失败,未找到上级节点!");
 
                 var nextAuth = new Auth()
@@ -550,16 +568,44 @@ namespace DID.Services
             //if(!string.IsNullOrEmpty(list))
             //    return InvokeResult.Fail("请勿重复提交!");
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", info.CreatorId);
+            if(null == user)
+                return InvokeResult.Fail("用户信息未找到!");//请勿重复提交!
             if (user.AuthType != AuthTypeEnum.未审核 && user.AuthType != AuthTypeEnum.审核失败)
                 return InvokeResult.Fail("请勿重复提交!");//请勿重复提交!
             if(user.IsDisable == IsEnum.是)
                 return InvokeResult.Fail("用户已被禁用!");//请勿重复提交!
+            if(string.IsNullOrEmpty(user.RefUserId))
+                return InvokeResult.Fail("请先添加推荐人!");//请勿重复提交!
+
+            var authUserId = await db.SingleOrDefaultAsync<string>("select DIDUserId from DIDUser where DIDUserId = @0 and AuthType = 2", user.RefUserId);//审核人
+            if (string.IsNullOrEmpty(authUserId))
+            {
+                authUserId = await db.SingleOrDefaultAsync<string>(
+                                                                        ";WITH temp AS (\n" +
+                                                        "	SELECT\n" +
+                                                        "		DIDUserId,RefUserId, UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser \n" +
+                                                        "	WHERE\n" +
+                                                        "		DIDUserId = @0\n" +
+                                                        "		AND IsLogout = 0 UNION ALL\n" +
+                                                        "	SELECT\n" +
+                                                        "		a.DIDUserId,a.RefUserId , a.UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser a\n" +
+                                                        "		INNER JOIN temp ON a.DIDUserId = temp.RefUserId\n" +
+                                                        "		AND a.IsLogout = 0 \n" +
+                                                        "	) SELECT top 1 * FROM temp where UserNode > 1 \n" +
+                                                        "	", info.CreatorId);
+            }
+            if(string.IsNullOrEmpty(authUserId))
+                return InvokeResult.Fail("未找到审核人!");//请勿重复提交!
 
             var auth = new Auth
             {
                 AuthId = Guid.NewGuid().ToString(),
                 UserAuthInfoId = info.UserAuthInfoId,
-                AuditUserId = await db.SingleOrDefaultAsync<string>("select RefUserId from DIDUser where DIDUserId = @0", info.CreatorId),//推荐人审核
+                AuditUserId = authUserId,//推荐人审核
                 //HandHeldImage = "Images/AuthImges/" + info.CreatorId + "/" + info.HandHeldImage,
                 CreateDate = DateTime.Now,
                 AuditType = AuditTypeEnum.未审核,

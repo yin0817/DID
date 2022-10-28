@@ -461,9 +461,26 @@ namespace DID.Services
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
                 var auditUserIds = await db.FetchAsync<string>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
                 auditUserIds.Add(authinfo.DIDUserId!);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and IsLogout = 0 and DIDUserId not in (@1)", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, auditUserIds);
-                var random = new Random().Next(auths.Count);
-                var authUserId = auths[random].DIDUserId;
+                //var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where UserNode = @0 and IsLogout = 0 and DIDUserId not in (@1)", user.UserNode == UserNodeEnum.高级节点 ? UserNodeEnum.高级节点 : ++user.UserNode, auditUserIds);
+                //var random = new Random().Next(auths.Count);
+                //var authUserId = auths[random].DIDUserId;
+                var authUserId = await db.SingleOrDefaultAsync<string>(
+                                                                        ";WITH temp AS (\n" +
+                                                        "	SELECT\n" +
+                                                        "		DIDUserId,RefUserId, UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser \n" +
+                                                        "	WHERE\n" +
+                                                        "		DIDUserId = @0\n" +
+                                                        "		AND IsLogout = 0 UNION ALL\n" +
+                                                        "	SELECT\n" +
+                                                        "		a.DIDUserId,a.RefUserId , a.UserNode\n" +
+                                                        "	FROM\n" +
+                                                        "		DIDUser a\n" +
+                                                        "		INNER JOIN temp ON a.DIDUserId = temp.RefUserId\n" +
+                                                        "		AND a.IsLogout = 0 \n" +
+                                                        "	) SELECT top 1 * FROM temp where UserNode > 1 and DIDUserId not in (@1)\n" +
+                                                        "	", authinfo.DIDUserId, auditUserIds);
                 if (string.IsNullOrEmpty(authUserId))
                     return InvokeResult.Success("审核失败,未找到上级节点!");
 

@@ -6,6 +6,7 @@ using DID.Entitys;
 using DID.Models.Request;
 using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using RestSharp;
 
 namespace DID.Common;
@@ -14,9 +15,12 @@ public class CurrentUser : ICurrentUser
 {
     private readonly HttpContext _httpContext;
 
-    public CurrentUser(IHttpContextAccessor httpContextAccessor)
+    private static ILogger<CurrentUser> _logger;
+
+    public CurrentUser(IHttpContextAccessor httpContextAccessor, ILogger<CurrentUser> logger)
     {
         _httpContext = httpContextAccessor.HttpContext;
+        _logger = logger;
     }
 
     /// <summary>
@@ -124,6 +128,7 @@ public class CurrentUser : ICurrentUser
             var response = client.Execute(request);
             var model = JsonExtensions.DeserializeFromJson<CodeModel>(response.Content);
             //Console.WriteLine(response.Content);
+            _logger.LogDebug(response.Content);
             return model.Code;
         }
         catch
