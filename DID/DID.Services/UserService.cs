@@ -218,7 +218,12 @@ namespace DID.Services
             userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
 
             //空投
-            userRespon.AirdropEotc = CurrentUser.GetAirdrop(user.DIDUserId);
+            var model = CurrentUser.GetEUModel(user.DIDUserId);
+            userRespon.AirdropEotc = model?.Airdrop??0;
+
+            userRespon.EOTC = model?.EOTC ?? 0;
+
+            userRespon.USDT = model?.USDT ?? 0;
 
             return InvokeResult.Success(userRespon);
         }
@@ -288,7 +293,12 @@ namespace DID.Services
             userRespon.HasPassWord = !string.IsNullOrEmpty(user.PayPassWord);
 
             //空投
-            userRespon.AirdropEotc = CurrentUser.GetAirdrop(userId);
+            var model = CurrentUser.GetEUModel(user.DIDUserId);
+            userRespon.AirdropEotc = model?.Airdrop ?? 0;
+
+            userRespon.EOTC = model?.EOTC ?? 0;
+
+            userRespon.USDT = model?.USDT ?? 0;
 
             return InvokeResult.Success(userRespon);
         }
@@ -361,7 +371,7 @@ namespace DID.Services
                     var uid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.DIDUserId);
                     var pid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.RefUserId);
                     var code = CurrentUser.RegisterEotc(user.Mail, "''","''","''", uid, pid);
-                    if(code == -1)
+                    if(code <= 0)
                         return InvokeResult.Fail("otc用户注册失败!");
                 }
             }
@@ -574,7 +584,7 @@ namespace DID.Services
                                                     string.IsNullOrEmpty(login.WalletAddress)?"''": login.WalletAddress,
                                                     string.IsNullOrEmpty(login.Sign) ? "''" : login.Sign,
                                                     string.IsNullOrEmpty(login.Otype) ? "''" : login.Otype, uid, pid);
-                if(code == -1)
+                if(code <= 0)
                     return InvokeResult.Fail("otc用户注册失败!");
             }
 
@@ -847,7 +857,7 @@ namespace DID.Services
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
             if (null == user)
                 return InvokeResult.Fail<double>("用户信息未找到!");
-            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            var eotc = CurrentUser.GetEUModel(user.DIDUserId)?.StakeEotc ?? 0;
             return InvokeResult.Success(eotc);
         }
 

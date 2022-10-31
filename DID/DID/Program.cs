@@ -225,7 +225,7 @@ app.UseExceptionHandler(builder =>
         if (exception != null)
         {
             app.Logger.LogError(exception.Error.Message);
-            var error = new Response { Code = 1, Message = "服务器错误!" };
+            var error = new { code = 1, message = "服务器错误!" };
             var errObj = JsonConvert.SerializeObject(error);
             await context.Response.WriteAsync(errObj).ConfigureAwait(false);
         }

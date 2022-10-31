@@ -228,10 +228,10 @@ namespace DID.Services
         public async Task<Response<ComAddrRespon>> GetComAddr()
         {
             using var db = new NDatabase();
-            var country_list = await db.FetchAsync<Area>("select Distinct a.Country code, b.Name from Community a left join Area b on a.Country = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
-            var province_list = await db.FetchAsync<Area>("select Distinct a.Province code, b.Name from Community a left join Area b on a.Province = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
-            var city_list = await db.FetchAsync<Area>("select Distinct a.City code, b.Name from Community a left join Area b on a.City = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
-            var county_list = await db.FetchAsync<Area>("select Distinct a.Area code, b.Name from Community a left join Area b on a.Area = b.Code where AuthType = @0", AuthTypeEnum.审核成功);
+            var country_list = await db.FetchAsync<Area>("select Distinct a.Country code, b.Name from Community a left join Area b on a.Country = b.Code where a.AuthType = 2 and a.Country is not null");
+            var province_list = await db.FetchAsync<Area>("select Distinct a.Province code, b.Name from Community a left join Area b on a.Province = b.Code where a.AuthType = 2 and a.Province is not null");
+            var city_list = await db.FetchAsync<Area>("select Distinct a.City code, b.Name from Community a left join Area b on a.City = b.Code where a.AuthType = 2 and a.City is not null");
+            var county_list = await db.FetchAsync<Area>("select Distinct a.Area code, b.Name from Community a left join Area b on a.Area = b.Code where a.AuthType = 2 and a.Area is not null");
 
             var country = new Dictionary<string, string>();
             country_list.ForEach(a => country.Add(a.code, a.name));
@@ -306,7 +306,7 @@ namespace DID.Services
 
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
             //质押5000EOTC
-            var eotc = CurrentUser.GetEotc(user.DIDUserId);
+            var eotc = CurrentUser.GetEUModel(user.DIDUserId)?.StakeEotc??0;
             if (eotc < 5000)
                 return InvokeResult.Fail<string>("质押EOTC数量不足!");
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))

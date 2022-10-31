@@ -134,6 +134,12 @@ namespace DID.Services
             if (auth.AuditStep == AuditStepEnum.抽审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核成功);
+
+                //eotc认证
+                var code = CurrentUser.Authentication(userId, authinfo);
+                if (code <= 0)
+                    return InvokeResult.Fail("otc用户认证失败!");
+
                 //加信用分 用户+8 邀请人+1 节点+1
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
                 _csservice.CreditScore(new CreditScoreReq { Fraction = 8, Remarks ="完成强关系链认证", Type= TypeEnum.加分, Uid =  user.Uid});
