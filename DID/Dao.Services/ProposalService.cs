@@ -259,7 +259,7 @@ namespace Dao.Services
             {
                 if (item.FavorVotes > item.OpposeVotes)
                     item.State = StateEnum.已通过;
-                var reotc = _reservice.GetRewardValue("Proposal").Result.Items;//奖励eotc数量
+                var reotc = Convert.ToDouble(_reservice.GetRewardValue("Proposal").Result.Items);//奖励eotc数量
                 //奖励EOTC 创建提案100
                 var detail = new IncomeDetails()
                 {

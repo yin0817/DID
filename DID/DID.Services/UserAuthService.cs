@@ -242,7 +242,20 @@ namespace DID.Services
                 await db.InsertAsync(nextAuth);
 
                 //去Dao审核
-                ToDaoAuth(nextAuth, authinfo.CreatorId!);
+                //ToDaoAuth(nextAuth, authinfo.CreatorId!);
+
+                //默认2小时去Dao
+                var hours = Convert.ToInt32(_reservice.GetRewardValue("AuthHours").Result.Items);
+                var timer = new Timers { 
+                    TimersId = Guid.NewGuid().ToString(),
+                    Rid = nextAuth.AuthId,
+                    CreateDate = DateTime.Now,
+                    StartTime = DateTime.Now, 
+                    EndTime = DateTime.Now.AddHours(hours),
+                    TimerType = TimerTypeEnum.身份审核
+                };
+                await db.InsertAsync(timer);
+                TimersHelp.AuthTimer(timer);
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
@@ -286,7 +299,7 @@ namespace DID.Services
             //奖励EOTC 10
             if (isDao)
             {
-                var eotc = _reservice.GetRewardValue("IdentityAudit").Result.Items;//奖励eotc数量
+                var eotc = Convert.ToDouble(_reservice.GetRewardValue("IdentityAudit").Result.Items);//奖励eotc数量
                 var detail = new IncomeDetails()
                 {
                     IncomeDetailsId = Guid.NewGuid().ToString(),
@@ -634,8 +647,21 @@ namespace DID.Services
             await db.ExecuteAsync("update DIDUser set UserAuthInfoId = @0,AuthType = @2 where DIDUserId = @1", info.UserAuthInfoId, info.CreatorId, AuthTypeEnum.审核中);//更新用户当前认证编号 审核中
             db.CompleteTransaction();
 
-            //去Dao审核
-            ToDaoAuth(auth, info.CreatorId!);
+            ////去Dao审核
+            //ToDaoAuth(auth, info.CreatorId!);
+
+            //默认2小时去Dao
+            var hours = Convert.ToInt32(_reservice.GetRewardValue("AuthHours").Result.Items);
+            var timer = new Timers { 
+                TimersId = Guid.NewGuid().ToString(), 
+                Rid = auth.AuthId, 
+                CreateDate = DateTime.Now, 
+                StartTime = DateTime.Now,
+                EndTime = DateTime.Now.AddHours(hours), 
+                TimerType = TimerTypeEnum.身份审核 
+            };
+            await db.InsertAsync(timer);
+            TimersHelp.AuthTimer(timer);
 
             return InvokeResult.Success("提交成功!");
         }

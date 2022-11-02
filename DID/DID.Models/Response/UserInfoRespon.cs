@@ -196,5 +196,12 @@ namespace DID.Models.Response
         {
             get; set;
         }
+        /// <summary>
+        /// 质押数量
+        /// </summary>
+        public double StakeEotc
+        {
+            get; set;
+        }
     }
 }
