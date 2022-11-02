@@ -374,7 +374,7 @@ namespace DID.Services
                 {
                     var uid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", user.DIDUserId);
                     var pid = await db.SingleOrDefaultAsync<string>("select UId from DIDUser where DIDUserId = @0 and IsLogout = 0", req.RefUserId);
-                    var code = CurrentUser.RegisterEotc(user.Mail, "''","''","''", uid, pid);
+                    var code = CurrentUser.RegisterEotc(user.Mail, "''","''","''", uid, pid, user.PassWord);
                     if(code <= 0)
                         return InvokeResult.Fail("otc用户注册失败!");
                 }
@@ -575,6 +575,8 @@ namespace DID.Services
             //    refUser.AirdropEotc += refeotc;
             //    await db.UpdateAsync(refUser);
             //}
+            db.CompleteTransaction();
+
             //调用otc注册
             if (!string.IsNullOrEmpty(login.RefUserId))
             {
@@ -583,11 +585,11 @@ namespace DID.Services
                 var code = CurrentUser.RegisterEotc(login.Mail!,
                                                     string.IsNullOrEmpty(login.WalletAddress) ? "''" : login.WalletAddress,
                                                     string.IsNullOrEmpty(login.Sign) ? "''" : login.Sign,
-                                                    string.IsNullOrEmpty(login.Otype) ? "''" : login.Otype, uid, pid);
+                                                    string.IsNullOrEmpty(login.Otype) ? "''" : login.Otype, uid, pid, login.Password!);
                 if (code <= 0)
                     return InvokeResult.Fail("otc用户注册失败!");
             }
-            db.CompleteTransaction();
+            
 
             return InvokeResult.Success("用户注册成功!");
         }

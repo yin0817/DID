@@ -115,15 +115,15 @@ public class CurrentUser : ICurrentUser
     /// 用户注册EOTC
     /// </summary>
     /// <returns></returns>
-    public static int RegisterEotc(string mail,string ads, string sign, string net, string uid, string pid)
+    public static int RegisterEotc(string mail,string ads, string sign, string net, string uid, string pid, string pwd)
     {
         try
         {
             using var db = new NDatabase();
 
             var client = new RestClient();
-            var request = new RestRequest(string.Format("https://api.eotcyu.club/api/DID/RegisterEotc?mail={0}&ads={1}&sign={2}&net={3}&uid={4}&pid={5}",
-                                        mail, ads, sign, net, uid, pid), Method.Post);
+            var request = new RestRequest(string.Format("https://api.eotcyu.club/api/DID/RegisterEotc?mail={0}&ads={1}&sign={2}&net={3}&uid={4}&pid={5}&pwd={6}",
+                                        mail, ads, sign, net, uid, pid, pwd), Method.Post);
             var response = client.Execute(request);
             var model = JsonExtensions.DeserializeFromJson<CodeModel>(response.Content);
             //Console.WriteLine(response.Content);
