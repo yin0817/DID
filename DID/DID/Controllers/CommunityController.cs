@@ -224,5 +224,16 @@ namespace DID.Controllers
         {
             return await _service.GetComAuthFail(communityId);
         }
+
+        /// <summary>
+        /// 社区名是否重复
+        /// </summary>
+        /// <returns> </returns>
+        [HttpGet]
+        [Route("hascomname")]
+        public async Task<Response<bool>> HasComName(string comName)
+        {
+            return await _service.HasComName(comName);
+        }
     }
 }

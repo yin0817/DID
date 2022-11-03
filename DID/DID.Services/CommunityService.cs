@@ -125,6 +125,12 @@ namespace DID.Services
         /// <returns> </returns>
         Task<Response<Community>> GetCommunityInfoById(string communityId);
 
+        /// <summary>
+        /// 社区名是否重复
+        /// </summary>
+        /// <returns> </returns>
+        Task<Response<bool>> HasComName(string comName);
+
     }
     /// <summary>
     /// 社区服务
@@ -365,6 +371,23 @@ namespace DID.Services
         }
 
         /// <summary>
+        /// 社区名是否重复
+        /// </summary>
+        /// <returns> </returns>
+        public async Task<Response<bool>> HasComName(string comName)
+        {
+            using var db = new NDatabase();
+            var id = await db.SingleOrDefaultAsync<string>("select CommunityId from Community where ComName = @0", comName);
+            if (string.IsNullOrEmpty(id))
+            {
+                return InvokeResult.Success(false);
+            }
+            else
+                return InvokeResult.Success(true);
+        }
+
+
+        /// <summary>
         /// 添加社区信息
         /// </summary>
         /// <returns> </returns>
@@ -373,25 +396,47 @@ namespace DID.Services
             using var db = new NDatabase();
             var model = await db.SingleOrDefaultByIdAsync<Community>(item.CommunityId);
             if(null == model)
-                return InvokeResult.Fail("社区未找到!");
+                return InvokeResult.Fail("社区信息未找到!");
+            if(item.DIDUserId != model.DIDUserId)
+                return InvokeResult.Fail("社区信息修改错误!");
+
+            //社区名不能重复
+            var id = await db.SingleOrDefaultAsync<string>("select CommunityId from Community where ComName = @0", item.ComName);
+            if (model.ComName != item.ComName && string.IsNullOrEmpty(id) && model.IsUpdateComName == IsEnum.否)
+            {
+                model.ComName = item.ComName;
+                model.IsUpdateComName = IsEnum.是;
+            }
+            //else
+            //    return InvokeResult.Fail("社区名称重复或已修改!");
+
             //一年只能修改两次社区位置
-            if(!string.IsNullOrEmpty(item.AddressName) && model.UpdateNum == 2 && null != model.UpdateDate && model.UpdateDate?.Year == DateTime.Now.Year)
+            if (!string.IsNullOrEmpty(item.AddressName) &&item.AddressName != model.AddressName  && model.UpdateNum == 2 && model.UpdateAddressDate?.Year == DateTime.Now.Year)
                 return InvokeResult.Fail("社区位置一年只能修改2次!");
             model.Image = item.Image;
             model.Describe = item.Describe;
             model.Telegram = item.Telegram;
             model.Discord = item.Discord;
             model.QQ = item.QQ;
+            
             if (!string.IsNullOrEmpty(item.AddressName))
             {
                 model.Country = item.Country;
                 model.Province = item.Province;
                 model.City = item.City;
                 model.Area = item.Area;
-                model.AddressName = item.AddressName;
-                model.UpdateNum += 1;
                 model.UpdateDate = DateTime.Now;
             }
+            if (item.AddressName != model.AddressName)
+            {
+                model.AddressName = item.AddressName;
+                if ( null != model.UpdateAddressDate && DateTime.Now.Year -  model.UpdateAddressDate?.Year > 0)
+                    model.UpdateNum = 1;
+                else
+                    model.UpdateNum += 1;
+                model.UpdateAddressDate = DateTime.Now;
+            }
+
             await db.UpdateAsync(model);
             return InvokeResult.Success("添加成功!");
         }
