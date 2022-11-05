@@ -94,7 +94,7 @@ namespace DID.Services
         /// 查询社区信息
         /// </summary>
         /// <returns> </returns>
-        Task<Response<Community>> GetCommunityInfo(string userId);
+        Task<Response<GetCommunityInfoRespon>> GetCommunityInfo(string userId);
 
         /// <summary>
         /// 添加社区信息
@@ -445,11 +445,15 @@ namespace DID.Services
         /// 查询社区信息
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response<Community>> GetCommunityInfo(string userId)
+        public async Task<Response<GetCommunityInfoRespon>> GetCommunityInfo(string userId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultAsync<Community>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
-            
+            var item = await db.SingleOrDefaultAsync<GetCommunityInfoRespon>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
+
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+
+            item.RefComName = await db.SingleOrDefaultAsync<string>("select ComName from Community where CommunityId = (select CommunityId from UserCommunity where DIDUserId = @0)", user.RefUserId);
+
             return InvokeResult.Success(item);
         }
 
@@ -490,22 +494,22 @@ namespace DID.Services
             //修改审核状态
             if (auth.AuditStep == AuditStepEnum.抽审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
-                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
+                //await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
 
-                //更改用户社区信息为自己的社区 (下级用户自动加入)
-                //await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
+                ////更改用户社区信息为自己的社区 (下级用户自动加入)
+                ////await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
 
-                var list = await db.FetchAsync<Models.Models.UserCom>(";with temp as \n" +
-                      "(select DIDUserId,ApplyCommunityId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
-                      "union all \n" +
-                      "select a.DIDUserId,a.ApplyCommunityId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
-                      "select * from temp", authinfo.DIDUserId);
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(list[i].ApplyCommunityId)&& i > 0)//除自己到下个社区之间的用户
-                        break;
-                    await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUserId, DateTime.Now);
-                }
+                //var list = await db.FetchAsync<Models.Models.UserCom>(";with temp as \n" +
+                //      "(select DIDUserId,ApplyCommunityId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
+                //      "union all \n" +
+                //      "select a.DIDUserId,a.ApplyCommunityId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
+                //      "select * from temp", authinfo.DIDUserId);
+                //for (var i = 0; i < list.Count; i++)
+                //{
+                //    if (!string.IsNullOrEmpty(list[i].ApplyCommunityId)&& i > 0)//除自己到下个社区之间的用户
+                //        break;
+                //    await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUserId, DateTime.Now);
+                //}
             }
             else if (auth.AuditType != AuditTypeEnum.审核通过)
             {
@@ -573,27 +577,48 @@ namespace DID.Services
             }
             else if (auth.AuditStep == AuditStepEnum.二审 && auth.AuditType == AuditTypeEnum.审核通过)
             {
+                await db.ExecuteAsync("update Community set AuthType = @1 where CommunityId = @0", communityId, AuthTypeEnum.审核成功);
+
+                //更改用户社区信息为自己的社区 (下级用户自动加入)
+                //await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, authinfo.DIDUserId, DateTime.Now);
+
+                var list = await db.FetchAsync<Models.Models.UserCom>(";with temp as \n" +
+                      "(select DIDUserId,ApplyCommunityId from DIDUser where DIDUserId = @0 and IsLogout = 0\n" +
+                      "union all \n" +
+                      "select a.DIDUserId,a.ApplyCommunityId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
+                      "select * from temp", authinfo.DIDUserId);
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(list[i].ApplyCommunityId) && i > 0)//除自己到下个社区之间的用户
+                        break;
+                    await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUserId, DateTime.Now);
+                }
+
+
                 //中高级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
                 var auditUserIds = await db.FetchAsync<string>("select AuditUserId from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
                 auditUserIds.Add(authinfo.DIDUserId!);
                 var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 4 or UserNode = 5)  and IsLogout = 0 and DIDUserId not in (@0)", auditUserIds);
-                var random = new Random().Next(auths.Count);
-                var authUserId = auths[random].DIDUserId;
-                if (string.IsNullOrEmpty(authUserId))
-                    return InvokeResult.Success("审核失败,未找到中高级节点!");
-
-                var nextAuth = new ComAuth()
+                if (auths.Count <= 0)
+                    _logger.LogInformation("社区审核失败,未找到中高级节点!");
+                else
                 {
-                    ComAuthId = Guid.NewGuid().ToString(),
-                    CommunityId = communityId,
-                    AuditUserId = authUserId,
-                    CreateDate = DateTime.Now,
-                    AuditType = AuditTypeEnum.未审核,
-                    AuditStep = AuditStepEnum.抽审
-                };
+                    var random = new Random().Next(auths.Count);
+                    var authUserId = auths[random].DIDUserId;
 
-                await db.InsertAsync(nextAuth);
+                    var nextAuth = new ComAuth()
+                    {
+                        ComAuthId = Guid.NewGuid().ToString(),
+                        CommunityId = communityId,
+                        AuditUserId = authUserId,
+                        CreateDate = DateTime.Now,
+                        AuditType = AuditTypeEnum.未审核,
+                        AuditStep = AuditStepEnum.抽审
+                    };
+
+                    await db.InsertAsync(nextAuth);
+                }
             }
 
             db.CompleteTransaction();
