@@ -168,7 +168,7 @@ namespace DID.Controllers
         /// <returns> </returns>
         [HttpGet]
         [Route("getcommunityinfobyid")]
-        public async Task<Response<Community>> GetCommunityInfoById(string communityId)
+        public async Task<Response<GetCommunityInfoRespon>> GetCommunityInfoById(string communityId)
         {
             return await _service.GetCommunityInfoById(communityId);
         }

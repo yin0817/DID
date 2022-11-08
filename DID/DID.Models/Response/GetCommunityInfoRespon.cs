@@ -16,5 +16,21 @@ namespace DID.Models.Response
         {
             get; set;
         }
+
+        /// <summary>
+        /// 上级社区Id
+        /// </summary>
+        public string RefCommunityId
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 创建人姓名
+        /// </summary>
+        public string CreateName
+        {
+            get; set;
+        }
+
     }
 }

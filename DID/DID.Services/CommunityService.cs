@@ -6,6 +6,7 @@ using DID.Models.Request;
 using DID.Models.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using NPoco;
 
 namespace DID.Services
 {
@@ -123,7 +124,7 @@ namespace DID.Services
         /// 查询社区信息
         /// </summary>
         /// <returns> </returns>
-        Task<Response<Community>> GetCommunityInfoById(string communityId);
+        Task<Response<GetCommunityInfoRespon>> GetCommunityInfoById(string communityId);
 
         /// <summary>
         /// 社区名是否重复
@@ -449,10 +450,17 @@ namespace DID.Services
         {
             using var db = new NDatabase();
             var item = await db.SingleOrDefaultAsync<GetCommunityInfoRespon>("select * from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", userId);
+            if (null == item)
+                return InvokeResult.Fail<GetCommunityInfoRespon>("社区信息未找到!");
 
             var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
 
+            item.CreateName = db.SingleOrDefault<string>("select b.Name from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
+                                                    "where a.DIDUserId = @0 and a.AuthType = 2", item.DIDUserId!);
+
             item.RefComName = await db.SingleOrDefaultAsync<string>("select ComName from Community where CommunityId = (select CommunityId from UserCommunity where DIDUserId = @0)", user.RefUserId);
+
+            item.RefCommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
 
             return InvokeResult.Success(item);
         }
@@ -461,10 +469,21 @@ namespace DID.Services
         /// 查询社区信息
         /// </summary>
         /// <returns> </returns>
-        public async Task<Response<Community>> GetCommunityInfoById(string communityId)
+        public async Task<Response<GetCommunityInfoRespon>> GetCommunityInfoById(string communityId)
         {
             using var db = new NDatabase();
-            var item = await db.SingleOrDefaultByIdAsync<Community>(communityId);
+            var item = await db.SingleOrDefaultAsync<GetCommunityInfoRespon>("select * from Community where CommunityId = @0", communityId);
+            if (null == item)
+                return InvokeResult.Fail<GetCommunityInfoRespon>("社区信息未找到!");
+
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", item.DIDUserId);
+
+            item.CreateName = db.SingleOrDefault<string>("select b.Name from UserAuthInfo b left join DIDUser a  on a.UserAuthInfoId = b.UserAuthInfoId " +
+                                                   "where a.DIDUserId = @0 and a.AuthType = 2", item.DIDUserId!);
+
+            item.RefComName = await db.SingleOrDefaultAsync<string>("select ComName from Community where CommunityId = (select CommunityId from UserCommunity where DIDUserId = @0)", user.RefUserId);
+
+            item.RefCommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.RefUserId);
 
             return InvokeResult.Success(item);
         }
@@ -546,7 +565,7 @@ namespace DID.Services
                                                         "	) SELECT top 1 * FROM temp where UserNode > 1 and DIDUserId not in (@1)\n" +
                                                         "	", authinfo.DIDUserId, auditUserIds);
                 if (string.IsNullOrEmpty(authUserId))
-                    return InvokeResult.Success("审核失败,未找到上级节点!");
+                    return InvokeResult.Fail("审核失败,未找到上级节点!");
 
                 var nextAuth = new ComAuth()
                 {
@@ -587,13 +606,30 @@ namespace DID.Services
                       "union all \n" +
                       "select a.DIDUserId,a.ApplyCommunityId from DIDUser a inner join temp on a.RefUserId = temp.DIDUserId and a.IsLogout = 0) \n" +
                       "select * from temp", authinfo.DIDUserId);
+                var users = new List<string>();
                 for (var i = 0; i < list.Count; i++)
                 {
                     if (!string.IsNullOrEmpty(list[i].ApplyCommunityId) && i > 0)//除自己到下个社区之间的用户
                         break;
-                    await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUserId, DateTime.Now);
-                }
+                    users.Add(list[i].DIDUserId);
 
+
+                    //await db.ExecuteAsync("update UserCommunity set CommunityId = @0, CreateDate = @2  where DIDUserId = @1", communityId, list[i].DIDUserId, DateTime.Now);
+                }
+                var usercom = db.FetchAsync<UserCommunity>("select * from UserCommunity where DIDUserId in (@0)", users);
+
+                var updates = new List<UpdateBatch<UserCommunity>>();
+                foreach (var item in usercom.Result)
+                {
+                    var data = new UpdateBatch<UserCommunity>();
+                    data.Poco = item;
+                    data.Snapshot = db.StartSnapshot(item);
+                    item.CommunityId = communityId;
+                    item.CreateDate = DateTime.Now;
+                    updates.Add(data);
+                }
+                
+                await db.UpdateBatchAsync(updates);
 
                 //中高级节点审核
                 var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.DIDUserId);
@@ -694,7 +730,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -760,7 +796,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -826,7 +862,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = await db.SingleOrDefaultAsync<double>("select EOTC from DIDUser where DIDUserId = @0", community.DIDUserId)//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -895,7 +931,7 @@ namespace DID.Services
         public async Task<Response<List<AuthInfo>>> GetComAuthFail(string communityId)
         {
             using var db = new NDatabase();
-            var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 order by AuditStep", communityId);
+            var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", communityId);
             var list = new List<AuthInfo>();
             foreach (var auth in auths)
             {

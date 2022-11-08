@@ -264,7 +264,7 @@ namespace DID.Services
                 await db.ExecuteAsync("update DIDUser set AuthType = @1 where DIDUserId = @0", authinfo.CreatorId, AuthTypeEnum.审核成功);
 
                 //eotc认证
-                var code = CurrentUser.Authentication(userId, authinfo);
+                var code = CurrentUser.Authentication(authinfo.CreatorId!, authinfo);
                 if (code <= 0)
                     return InvokeResult.Fail("otc用户认证失败!");
 
