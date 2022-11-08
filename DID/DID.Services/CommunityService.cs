@@ -315,7 +315,7 @@ namespace DID.Services
             if(null == user)
                 return InvokeResult.Fail<string>("用户信息未找到!");
             //质押5000EOTC
-            var eotc = CurrentUser.GetEUModel(user.DIDUserId)?.StakeEotc??0;
+            var eotc = CurrentUser.GetEUModel(user)?.StakeEotc??0;
             if (eotc < 5000)
                 return InvokeResult.Fail<string>("质押EOTC数量不足!");
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
@@ -705,6 +705,7 @@ namespace DID.Services
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
+                var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", community.DIDUserId);
                 var authinfo = new ComAuthRespon()
                 {
                     CommunityId = community.CommunityId,
@@ -730,7 +731,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -771,6 +772,7 @@ namespace DID.Services
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
+                var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", community.DIDUserId);
                 var authinfo = new ComAuthRespon()
                 {
                     CommunityId = community.CommunityId,
@@ -796,7 +798,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
@@ -837,6 +839,7 @@ namespace DID.Services
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
+                var user = db.SingleOrDefault<DIDUser>("select * from DIDUser where DIDUserId = @0", community.DIDUserId);
                 var authinfo = new ComAuthRespon()
                 {
                     CommunityId = community.CommunityId,
@@ -862,7 +865,7 @@ namespace DID.Services
                     AddressName = community.AddressName,
                     RefCommunityName = await db.SingleOrDefaultAsync<string>("select a.ComName from Community a left join UserCommunity b on a.CommunityId = b.CommunityId where b.DIDUserId = @0", community.RefDIDUserId),
                     Telegram = community.Telegram,
-                    Eotc = CurrentUser.GetEUModel(community.DIDUserId)?.StakeEotc ?? 0//调接口查eotc总数
+                    Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
                 var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 order by AuditStep", item.CommunityId);
