@@ -299,9 +299,9 @@ namespace DID.Controllers
         /// </summary>
         [HttpGet]
         [Route("getauthimage")]
-        public IActionResult GetAuthImage(string path)
+        public async Task<IActionResult> GetAuthImage(string path)
         {
-            return _service.GetAuthImage(path, _currentUser.UserId);
+            return await _service.GetAuthImage(path, _currentUser.UserId);
         }
 
         /// <summary>

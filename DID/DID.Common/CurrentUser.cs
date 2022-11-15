@@ -282,4 +282,14 @@ public class CurrentUser : ICurrentUser
             return -1;
         }
     }
+
+    /// <summary>
+    /// 是否为管理员
+    /// </summary>
+    /// <returns></returns>
+    public static bool IsAdmin(string uId)
+    {
+        var uIds = AppSettings.GetValue("AdminUserId").Split(';');
+        return uIds.Contains(uId);
+    }
 }

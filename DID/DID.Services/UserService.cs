@@ -137,7 +137,7 @@ namespace DID.Services
         /// <param name="path"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        IActionResult GetAuthImage(string path, string userId);
+        Task<IActionResult> GetAuthImage(string path, string userId);
 
         /// <summary>
         /// 设置App支付密码
@@ -921,7 +921,7 @@ namespace DID.Services
         /// <param name="path"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public IActionResult GetAuthImage(string path, string userId)
+        public async Task<IActionResult> GetAuthImage(string path, string userId)
         {
             path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
             using var db = new NDatabase();
