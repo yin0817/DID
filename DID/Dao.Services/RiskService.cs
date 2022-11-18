@@ -230,10 +230,12 @@ namespace Dao.Services
         public async Task<Response> RemoveRisk(RemoveRiskReq req)
         {
             using var db = new NDatabase();
+            
             var item = await db.SingleOrDefaultByIdAsync<UserRisk>(req.UserRiskId);
             var userId = WalletHelp.GetUserId(req);
             if (item.AuthStatus == RiskStatusEnum.核对成功 && item.AuditUserId == userId)
             {
+                db.BeginTransaction();
                 item.IsRemoveRisk = IsEnum.是;
                 //item.Images = req.Images;
                 await db.UpdateAsync(item);
@@ -253,7 +255,13 @@ namespace Dao.Services
                         a.IsDelete = IsEnum.是;
                         db.Update(a);
                     });
+
+                    //otc 解除风控
+                    var code = CurrentUser.RelieveRisk(user);
+                    if (code <= 0)
+                        return InvokeResult.Fail("otc解除风控失败!");
                 }
+                db.CompleteTransaction();
                 return InvokeResult.Success("解除成功!");
             }
             else

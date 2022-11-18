@@ -38,7 +38,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage, string? key);
 
         /// <summary>
         /// 获取已审核审核信息
@@ -48,7 +48,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao, long page, long itemsPerPage, string? key);
 
         /// <summary>
         /// 获取打回信息
@@ -58,7 +58,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao, long page, long itemsPerPage);
+        Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao, long page, long itemsPerPage, string? key);
 
         /// <summary>
         /// 审核
@@ -388,12 +388,13 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType != 0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType != 0 and IsDelete = 0 and IsDao = @1 order by CreateDate Desc", userId, isDao)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select a.* from Auth a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId where a.AuditUserId = @0 and a.AuditType != 0 and a.IsDelete = 0 and a.IsDao = @1 " +
+                " and (b.Name like '%" + key + "%' or b.PhoneNum like '%" + key + "%' or b.IdCard like '%" + key + "%') order by b.CreateDate Desc ", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0",item.UserAuthInfoId);
@@ -451,17 +452,19 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0 and AuditType = 0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select a.* from Auth a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId where a.AuditUserId = @0 and a.AuditType = 0 and a.IsDelete = 0 and a.IsDao = @1" +
+                " and (b.Name like '%" + key + "%' or b.PhoneNum like '%" + key + "%' or b.IdCard like '%" + key + "%') order by b.CreateDate Desc ", userId, isDao)).Items;
 
             //是否为管理员
             if (CurrentUser.IsAdmin(userId))
             {
-                items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditType = 0 and IsDelete = 0 ")).Items;
+                items = (await db.PageAsync<Auth>(page, itemsPerPage, "select a.* from Auth a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId where a.AuditType = 0 and a.IsDelete = 0 " +
+                    "and (b.Name like '%" + key + "%' or b.PhoneNum like '%" + key + "%' or b.IdCard like '%" + key + "%') order by b.CreateDate Desc ")).Items;
             }
 
             foreach (var item in items)
@@ -522,12 +525,13 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao,long page, long itemsPerPage)
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<Auth>("select * from Auth where AuditUserId = @0", userId);
-            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select * from Auth where AuditUserId = @0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<Auth>(page, itemsPerPage, "select a.* from Auth a left join UserAuthInfo b on a.UserAuthInfoId = b.UserAuthInfoId where a.AuditUserId = @0 and a.IsDelete = 0 and a.IsDao = @1 " +
+                " and (b.Name like '%" + key + "%' or b.PhoneNum like '%" + key + "%' or b.IdCard like '%" + key + "%') order by b.CreateDate Desc ", userId, isDao, key)).Items;
             foreach (var item in items)
             {
                 var authinfo = await db.SingleOrDefaultAsync<UserAuthRespon>("select * from UserAuthInfo where UserAuthInfoId = @0", item.UserAuthInfoId);

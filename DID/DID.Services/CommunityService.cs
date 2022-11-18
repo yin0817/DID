@@ -802,12 +802,12 @@ namespace DID.Services
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0 and AuditType = 0", userId);
-            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and AuditType = 0 and IsDelete = 0 and IsDao = @1 order by CreateDate Desc", userId, isDao)).Items;
 
             //是否为管理员
             if (CurrentUser.IsAdmin(userId))
             {
-                items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditType = 0 and IsDelete = 0", userId)).Items;
+                items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditType = 0 and IsDelete = 0 order by CreateDate Desc", userId)).Items;
             }
             foreach (var item in items)
             {
@@ -875,7 +875,7 @@ namespace DID.Services
             var result = new List<ComAuthRespon>();
             using var db = new NDatabase();
             //var items = await db.FetchAsync<ComAuth>("select * from ComAuth where AuditUserId = @0", userId);
-            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and IsDelete = 0 and IsDao = @1", userId, isDao)).Items;
+            var items = (await db.PageAsync<ComAuth>(page, itemsPerPage, "select * from ComAuth where AuditUserId = @0 and IsDelete = 0 and IsDao = @1 order by CreateDate Desc", userId, isDao)).Items;
             foreach (var item in items)
             {
                 var community = await db.SingleOrDefaultAsync<Community>("select * from Community where CommunityId = @0", item.CommunityId);
