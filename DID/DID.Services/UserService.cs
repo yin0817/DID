@@ -589,7 +589,6 @@ namespace DID.Services
             //    refUser.AirdropEotc += refeotc;
             //    await db.UpdateAsync(refUser);
             //}
-            db.CompleteTransaction();
 
             //调用otc注册
             if (!string.IsNullOrEmpty(login.RefUserId))
@@ -603,7 +602,7 @@ namespace DID.Services
                 if (code <= 0)
                     return InvokeResult.Fail("otc用户注册失败!");
             }
-            
+            db.CompleteTransaction();
 
             return InvokeResult.Success("用户注册成功!");
         }
