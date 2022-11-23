@@ -433,7 +433,7 @@ namespace DID.Services
                     if (authinfo.IdCard.Length > 7)
                         authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1", item.UserAuthInfoId, item.AuditStep);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.UserAuthInfoId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -505,7 +505,7 @@ namespace DID.Services
                     if (authinfo.IdCard.Length > 7)
                         authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1", item.UserAuthInfoId, item.AuditStep);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.UserAuthInfoId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -570,7 +570,7 @@ namespace DID.Services
                     if (authinfo.IdCard.Length > 7)
                         authinfo.IdCard = authinfo.IdCard.Remove(authinfo.IdCard.Length - 4, 4).Insert(authinfo.IdCard.Length - 4, "****");
                 }
-                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1", item.UserAuthInfoId, item.AuditStep);
+                var auths = await db.FetchAsync<Auth>("select * from Auth where UserAuthInfoId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.UserAuthInfoId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {

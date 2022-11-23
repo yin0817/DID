@@ -775,7 +775,7 @@ namespace DID.Services
                     Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1", item.CommunityId, item.AuditStep);
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.CommunityId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -848,7 +848,7 @@ namespace DID.Services
                     Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1", item.CommunityId, item.AuditStep);
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.CommunityId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {
@@ -915,7 +915,7 @@ namespace DID.Services
                     Eotc = CurrentUser.GetEUModel(user)?.StakeEotc ?? 0//调接口查eotc总数
                 };
 
-                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1", item.CommunityId, item.AuditStep);
+                var auths = await db.FetchAsync<ComAuth>("select * from ComAuth where CommunityId = @0 and IsDelete = 0 and AuditStep <= @1 order by CreateDate", item.CommunityId, item.AuditStep);
                 var list = new List<AuthInfo>();
                 foreach (var auth in auths)
                 {

@@ -217,7 +217,10 @@ namespace DID.Services
 
             //用户社区信息
             if (!string.IsNullOrEmpty(user.RefUserId))
+            {
                 userRespon.CommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", user.DIDUserId);
+                userRespon.ComName = (await db.SingleOrDefaultByIdAsync<Community>(userRespon.CommunityId))?.ComName;
+            }
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
@@ -287,7 +290,10 @@ namespace DID.Services
 
             //用户社区信息
             if (!string.IsNullOrEmpty(user.RefUserId))
-                userRespon.CommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0",userId);
+            {
+                userRespon.CommunityId = await db.SingleOrDefaultAsync<string>("select CommunityId from UserCommunity where DIDUserId = @0", userId);
+                userRespon.ComName = (await db.SingleOrDefaultByIdAsync<Community>(userRespon.CommunityId))?.ComName;
+            }
             if (!string.IsNullOrEmpty(user.ApplyCommunityId))
             {
                 userRespon.ApplyCommunityId = user.ApplyCommunityId;
