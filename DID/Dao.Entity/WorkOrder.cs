@@ -91,6 +91,13 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
+        /// 处理人编号
+        /// </summary>
+        public string HandleUserId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 处理记录
         /// </summary>
         public string? Record

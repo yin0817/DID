@@ -45,9 +45,23 @@ namespace Dao.Models.Response
             get; set;
         }
         /// <summary>
+        /// 处理人
+        /// </summary>
+        public string Handle
+        {
+            get; set;
+        }
+        /// <summary>
         /// 描述
         /// </summary>
         public string Describe
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 处理记录
+        /// </summary>
+        public string? Record
         {
             get; set;
         }

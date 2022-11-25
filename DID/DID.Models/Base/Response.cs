@@ -40,9 +40,9 @@ namespace DID.Models.Base
         /// <summary>
         /// 数据总条数
         /// </summary>
-        //[JsonProperty("total")]
-        //[DataMember]
-        //public long Total { get; set; }
+        [JsonProperty("total")]
+        [DataMember]
+        public long Total { get; set; }
     }
     /// <summary>
     /// 调用接口结果帮助类
@@ -121,9 +121,9 @@ namespace DID.Models.Base
         /// <param name="message">失败原因</param>
         /// <param name="total"></param>
         /// <returns></returns>
-        public static Response<T> Success<T>(T data/*, long total = 0*/, string message = "SUCCESS")
+        public static Response<T> Success<T>(T data, long total = 0, string message = "SUCCESS")
         {
-            return Create(SUCCESS, message, data/*, total*/);
+            return Create(SUCCESS, message, data, total);
         }
 
         /// <summary>
@@ -146,9 +146,9 @@ namespace DID.Models.Base
         /// <param name="data">The data.</param>
         /// <param name="total"></param>
         /// <returns>Response&lt;T&gt;.</returns>
-        private static Response<T> Create<T>(int code, string message, T data = default/*, long total = 0*/)
+        private static Response<T> Create<T>(int code, string message, T data = default, long total = 0)
         {
-            return new Response<T> { Code = code, Message = message, Items = data/*, Total = total*/ };
+            return new Response<T> { Code = code, Message = message, Items = data, Total = total };
         }
     }
 }

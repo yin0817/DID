@@ -102,5 +102,17 @@ namespace Dao.Controllers
         {
             return await _service.WorkOrderStatus(req);
         }
+
+        /// <summary>
+        /// 获取工单列表(管理员)
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getadminworkorderlist")]
+        public async Task<Response<List<GetWorkOrderListRespon>>> GetAdminWorkOrderList(GetWorkOrderListReq req)
+        {
+            return await _service.GetAdminWorkOrderList(req);
+        }
     }
 }

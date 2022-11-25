@@ -7,6 +7,7 @@ using DID.Common;
 using DID.Models.Base;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using NPoco;
 
 namespace Dao.Services
 {
@@ -43,6 +44,13 @@ namespace Dao.Services
         Task<Response<GetWorkOrderRespon>> GetWorkOrder(string workOrderId);
 
         /// <summary>
+        /// 获取工单列表(管理员)
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        Task<Response<List<GetWorkOrderListRespon>>> GetAdminWorkOrderList(GetWorkOrderListReq req);
+
+        /// <summary>
         /// 修改工单状态
         /// </summary>
         /// <param name="req"></param>
@@ -75,7 +83,7 @@ namespace Dao.Services
         public async Task<Response> AddWorkOrder(AddWorkOrderReq req)
         {
             var walletId = WalletHelp.GetWalletId(req);
-
+            var userId = WalletHelp.GetUserId(req);
             using var db = new NDatabase();
             var model = new WorkOrder()
             {
@@ -86,7 +94,8 @@ namespace Dao.Services
                 Images = req.Images,
                 Phone = req.Phone,
                 WorkOrderStatus = WorkOrderStatusEnum.待处理,
-                WalletId = walletId
+                WalletId = walletId,
+                DIDUserId = userId
             };
             await db.InsertAsync(model);
             return InvokeResult.Success("提交成功!");
@@ -158,13 +167,45 @@ namespace Dao.Services
                 Describe = x.Describe,
                 Status = x.WorkOrderStatus,
                 Submitter = WalletHelp.GetSubmitter(x.WalletId),
+                Handle = WalletHelp.GetSubmitter(x.HandleWalletId),
                 Type = x.WorkOrderType
             }).ToList();
 
             return InvokeResult.Success(list);
         }
 
-        
+        /// <summary>
+        /// 获取工单列表(管理员)
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        public async Task<Response<List<GetWorkOrderListRespon>>> GetAdminWorkOrderList(GetWorkOrderListReq req)
+        {
+            using var db = new NDatabase();
+            var models = new Page<WorkOrder>();
+            var sql = new Sql("select * from WorkOrder where 1=1");
+            if (null != req.WorkOrderType)
+                sql.Append(" and WorkOrderType = @0", req.WorkOrderType);
+            if (null != req.WorkOrderStatus)
+                sql.Append(" and WorkOrderStatus = @0", req.WorkOrderStatus);
+            sql.Append(" order by CreateDate desc");
+
+            models = await db.PageAsync<WorkOrder>(req.Page, req.ItemsPerPage, sql);
+
+            var list = models.Items.Select(x => new GetWorkOrderListRespon()
+            {
+                WorkOrderId = x.WorkOrderId,
+                CreateDate = x.CreateDate,
+                Describe = x.Describe,
+                Status = x.WorkOrderStatus,
+                //Submitter = WalletHelp.GetSubmitter(x.WalletId),
+                //Handle = WalletHelp.GetSubmitter(x.HandleWalletId),
+                Type = x.WorkOrderType,
+                Record = x.Record
+            }).ToList();
+
+            return InvokeResult.Success(list, models.TotalItems);
+        }
 
         /// <summary>
         /// 获取工单详情
@@ -179,6 +220,7 @@ namespace Dao.Services
 
             var respon = new GetWorkOrderRespon()
             {
+                WorkOrderId = workOrderId,
                 CreateDate = model.CreateDate,
                 Describe = model.Describe,
                 Images = model.Images,
@@ -202,9 +244,9 @@ namespace Dao.Services
             using var db = new NDatabase();
             if (req.WorkOrderStatus == WorkOrderStatusEnum.处理中)
             {
-                var walletId = WalletHelp.GetWalletId(req);
                 var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
-                model.HandleWalletId = walletId;
+                model.HandleWalletId = WalletHelp.GetWalletId(req);
+                model.DIDUserId = WalletHelp.GetUserId(req);
                 model.WorkOrderStatus = req.WorkOrderStatus;
                 model.Record = req.Record;
                 await db.UpdateAsync(model);
@@ -221,6 +263,7 @@ namespace Dao.Services
                 var model = await db.SingleOrDefaultByIdAsync<WorkOrder>(req.WorkOrderId);
                 model.WorkOrderStatus = req.WorkOrderStatus;
                 model.HandleWalletId = "";
+                model.HandleUserId = "";
                 model.Record = req.Record;
                 await db.UpdateAsync(model);
             }

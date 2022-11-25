@@ -13,7 +13,7 @@ namespace Dao.Models.Request
         /// <summary>
         /// 工单状态
         /// </summary>
-        public WorkOrderStatusEnum WorkOrderStatus
+        public WorkOrderStatusEnum? WorkOrderStatus
         {
             get; set;
         }

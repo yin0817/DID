@@ -59,12 +59,14 @@ namespace Dao.Common
         public static string GetSubmitter(string walletId)
         {
             using var db = new NDatabase();
+            if (string.IsNullOrEmpty(walletId))
+                return "";
             var uid = db.SingleOrDefault<string>("select b.Uid from Wallet a left join DIDUser b on a.DIDUserId = b.DIDUserId " +
             "where a.WalletId = @0 and a.IsLogout = 0 and a.IsDelete = 0", walletId);
             var name = db.SingleOrDefault<string>("select c.Name from DIDUser a left join Wallet b on a.DIDUserId = b.DIDUserId left join UserAuthInfo c on a.UserAuthInfoId = c.UserAuthInfoId " +
                 "where b.WalletId = @0 and b.IsLogout = 0 and b.IsDelete = 0", walletId);
 
-            return name + "(" + uid + ")";
+            return (name ?? "未认证") + "(" + uid + ")";
         }
 
         /// <summary>

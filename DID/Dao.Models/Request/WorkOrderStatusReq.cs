@@ -31,5 +31,13 @@ namespace Dao.Models.Request
         {
             get; set;
         }
+        ///// <summary>
+        ///// 管理员
+        ///// </summary>
+        //public bool IsAdmin
+        //{
+        //    get; set;
+        //}
+
     }
 }

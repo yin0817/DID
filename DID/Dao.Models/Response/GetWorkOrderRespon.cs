@@ -10,6 +10,13 @@ namespace Dao.Models.Response
     public class GetWorkOrderRespon
     {
         /// <summary>
+        /// 编号
+        /// </summary>
+        public string WorkOrderId
+        {
+            get; set;
+        }
+        /// <summary>
         /// 创建日期 默认为当前时间
         /// </summary>
         public DateTime CreateDate
