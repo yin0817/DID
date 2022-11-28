@@ -284,7 +284,7 @@ public class CurrentUser : ICurrentUser
     }
 
     /// <summary>
-    /// 更新邀请人
+    /// 解除风控
     /// </summary>
     /// <returns></returns>
     public static int RelieveRisk(DIDUser user)

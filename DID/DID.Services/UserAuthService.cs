@@ -338,19 +338,34 @@ namespace DID.Services
                         AuditType = AuditTypeEnum.未审核,
                         AuditStep = AuditStepEnum.抽审
                     };
+                    ////人像照处理
+                    //var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
+                    //img = CommonHelp.MaSaiKeGraphics(img, 8);//随机30%马赛克
+                    //nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                    //img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
+                    ////国徽面处理
+                    //var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
+                    //img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
+                    //nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                    //img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
+                    ////手持处理
+                    //var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
+                    //img2 = CommonHelp.MaSaiKeGraphics(img2, 8);//随机30%马赛克
+                    //nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                    //img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
                     //人像照处理
                     var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
-                    img = CommonHelp.MaSaiKeGraphics(img, 8);//随机30%马赛克
+                    img = CommonHelp.WhiteGraphics(img, new Rectangle((int)(img.Width * 0.6), 0, (int)(img.Width * 0.4), img.Height));//遮住右边40%
                     nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                     img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
                     //国徽面处理
                     var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
-                    img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
+                    img1 = CommonHelp.WhiteGraphics(img1, new Rectangle((int)(img1.Width * 0.6), 0, (int)(img1.Width * 0.4), img1.Height));//遮住右边40%
                     nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                     img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
                     //手持处理
                     var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
-                    img2 = CommonHelp.MaSaiKeGraphics(img2, 8);//随机30%马赛克
+                    img2 = CommonHelp.WhiteGraphics(img2, new Rectangle((int)(img2.Width * 0.5), 0, (int)(img2.Width * 0.5), img2.Height));//遮住右边40%
                     nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
                     img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
 

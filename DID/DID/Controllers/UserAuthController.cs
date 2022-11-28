@@ -45,6 +45,8 @@ namespace DID.Controllers
             var files = Request.Form.Files;
             if (files.Count == 0) return InvokeResult.Fail("请上传文件!");//请上传文件!
             if (!CommonHelp.IsPicture(files[0])) return InvokeResult.Fail("文件类型错误!");//文件类型错误!
+            if (files[0].Length > 2097152)
+                return InvokeResult.Fail("图片大小不能超过2M!");
             return await _service.UploadImage(files[0], _currentUser.UserId);
         }
 

@@ -261,7 +261,7 @@ namespace Dao.Services
                 await db.UpdateAsync(item);
 
                 var list = await db.FetchAsync<UserRisk>("select * from UserRisk where DIDUserId = @0 and IsDelete = 0", item.DIDUserId);
-                var num = list.Sum(a => a.IsRemoveRisk == IsEnum.是 ? 1 : 0);
+                var num = list.Sum(a => a.IsRemoveRisk == IsEnum.是 ? 1 : 0) + 1;
 
                
 
