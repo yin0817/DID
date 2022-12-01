@@ -1,4 +1,5 @@
-﻿using DID.Entitys;
+﻿using DID.Entity;
+using DID.Entitys;
 
 namespace DID.Models.Response
 {
@@ -68,6 +69,35 @@ namespace DID.Models.Response
         /// 审批记录
         /// </summary>
         public List<AuthInfo>? Auths
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 申述记录
+        /// </summary>
+        public Appeal? appeal
+        {
+            get; set;
+        }
+    }
+
+    /// <summary>
+    /// 申述记录
+    /// </summary>
+    public class Appeal : AuthAppeal
+    { 
+        /// <summary>
+        /// 审核人
+        /// </summary>
+        public string Name
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 审核人UId
+        /// </summary>
+        public int Uid
         {
             get; set;
         }

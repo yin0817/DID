@@ -1,4 +1,5 @@
-﻿using DID.Entitys;
+﻿using Dao.Entity;
+using DID.Entitys;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,6 +86,39 @@ namespace Dao.Models.Response
         /// 用户节点
         /// </summary>
         public UserNodeEnum UserNode
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 仲裁员信息编号
+        /// </summary>
+        public string? UserArbitrateId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 审核员信息编号
+        /// </summary>
+        public string? UserExamineId
+        {
+            get; set;
+        }
+
+
+        /// <summary>
+        /// 审核员信息状态
+        /// </summary>
+        public AuditStatusEnum? UserExamineStatus
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// 仲裁员信息状态
+        /// </summary>
+        public AuditStatusEnum? UserArbitrateStatus
         {
             get; set;
         }

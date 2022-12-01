@@ -8,6 +8,8 @@ using Dao.Services;
 using DID.Common;
 using DID.Entitys;
 using DID.Models.Base;
+using DID.Models.Request;
+using DID.Models.Response;
 using DID.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,26 +49,28 @@ namespace Dao.Controllers
         /// 成为仲裁员
         /// </summary>
         /// <param name="req"></param>
+        /// <param name="score">考试分数</param>
         /// <returns></returns>
         [HttpPost]
         [Route("toarbitrator")]
-        public async Task<Response> ToArbitrator(DaoBaseReq req)
+        public async Task<Response<string>> ToArbitrator(ToArbitratorReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _service.ToArbitrator(userId);
+            return await _service.ToArbitrator(userId, req.Score);
         }
 
         /// <summary>
         /// 成为审核员
         /// </summary>
         /// <param name="req"></param>
+        /// <param name="score">考试分数</param>
         /// <returns></returns>
         [HttpPost]
         [Route("toauditor")]
-        public async Task<Response> ToAuditor(DaoBaseReq req)
+        public async Task<Response<string>> ToAuditor(ToArbitratorReq req)
         {
             var userId = WalletHelp.GetUserId(req);
-            return await _service.ToAuditor(userId);
+            return await _service.ToAuditor(userId, req.Score);
         }
 
         /// <summary>
@@ -141,5 +145,211 @@ namespace Dao.Controllers
             var userId = WalletHelp.GetUserId(req);
             return await _service.SetDaoEnable(userId, req.IsEnable);
         }
+
+        /// <summary>
+        /// 获取已审核审核员申请
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getauditorlist")]
+        public async Task<Response<List<GetAuditorListRespon>>> GetAuditorList(DaoBasePageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetAuditorList(req.Page, req.ItemsPerPage, userId, true, req.Key);
+        }
+
+        /// <summary>
+        /// 获取未审核审核员申请
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getunauditorlist")]
+        public async Task<Response<List<GetAuditorListRespon>>> GetUnAuditorList(DaoBasePageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetAuditorList(req.Page, req.ItemsPerPage, userId, false, req.Key);
+        }
+
+        /// <summary>
+        /// 获取已审核仲裁员申请
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getarbitratorslist")]
+        public async Task<Response<List<GetArbitratorsListRespon>>> GetArbitratorsList(DaoBasePageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetArbitratorsList(req.Page, req.ItemsPerPage, userId, true, req.Key);
+        }
+
+        /// <summary>
+        /// 获取未审核仲裁员申请
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getunarbitratorslist")]
+        public async Task<Response<List<GetArbitratorsListRespon>>> GetUnArbitratorsList(DaoBasePageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetArbitratorsList(req.Page, req.ItemsPerPage, userId, false, req.Key);
+        }
+
+        /// <summary>
+        /// 获取审核员申请信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getauditorinfo")]
+        public async Task<Response<GetAuditorInfoRespon>> GetAuditorInfo(DaoBaseByIdReq req)
+        {
+            return await _service.GetAuditorInfo(req.Id);
+        }
+
+
+        /// <summary>
+        /// 获取仲裁员申请信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getarbitratorsinfo")]
+        public async Task<Response<GetArbitratorsInfoRespon>> GetArbitratorsInfo(DaoBaseByIdReq req)
+        {
+            return await _service.GetArbitratorsInfo(req.Id);
+        }
+
+        /// <summary>
+        /// 审核员审核
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("auditauditor")]
+        public async Task<Response> AuditAuditor(AuditAuditorReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.AuditAuditor(userId, req.Id, 1, req.State, req.Reason);
+        }
+
+        /// <summary>
+        /// 仲裁员审核
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("auditarbitrators")]
+        public async Task<Response> AuditArbitrators(AuditAuditorReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.AuditAuditor(userId, req.Id, 0, req.State, req.Reason);
+        }
+
+        /// <summary>
+        /// 获取抽审用户信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getspotcheck")]
+        public async  Task<Response<List<UserAuthRespon>>> GetSpotCheck(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetSpotCheck(userId);
+        }
+
+        /// <summary>
+        /// 高级节点身份信息打回
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("auditinfo")]
+        public async Task<Response> AuditInfo(DaoAuditInfoReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.AuditInfo(req.UserAuthInfoId, userId, req.AuditType, req.Remark);
+        }
+
+        /// <summary>
+        /// 获取抽审打回信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getbackinfo")]
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(DaoBasePageReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetBackInfo(userId, req.Page, req.ItemsPerPage, req.Key);
+        }
+
+        /// <summary>
+        /// 获取身份认证申述列表
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getauthappeal")]
+        public async Task<Response<List<GetAuthAppealRespon>>> GetAuthAppeal(GetAuthAppealReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetAuthAppeal(userId, req.Page, req.ItemsPerPage, req.Type);
+        }
+        /// <summary>
+        /// 获取用户信息
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getuserinfo")]
+        public async Task<Response<UserInfoRespon>> GetUserInfo(DaoBaseByIdReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _userservice.GetUserInfo(req.Id);
+        }
+
+        /// <summary>
+        /// 获取身份认证申述详情
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("getauthappealdetails")]
+        public async Task<Response<GetAuthAppealDetailsRespon>> GetAuthAppealDetails(DaoBaseByIdReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetAuthAppealDetails(req.Id);
+        }
+
+        /// <summary>
+        /// 认证申述审核
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("authappeal")]
+        public async Task<Response> AuthAppeal(AuthReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.AuthAppeal(userId, req.Id, req.Type, req.Reason);
+        }
+
+        /// <summary>
+        /// 获取是否有高级节点审核信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("gethasauth")]
+        public async Task<Response<object>> GetHasAuth(DaoBaseReq req)
+        {
+            var userId = WalletHelp.GetUserId(req);
+            return await _service.GetHasAuth(userId);
+        }
+
     }
 }

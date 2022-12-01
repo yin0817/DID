@@ -70,7 +70,7 @@ namespace DID.Models.Response
         /// <summary>
         /// 创建时间
         /// </summary>
-        public DateTime CreateDate
+        public DateTime? CreateDate
         {
             get; set;
         }

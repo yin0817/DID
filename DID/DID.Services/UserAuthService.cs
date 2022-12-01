@@ -1,5 +1,6 @@
 ﻿using Dao.Entity;
 using DID.Common;
+using DID.Entity;
 using DID.Entitys;
 using DID.Models;
 using DID.Models.Base;
@@ -81,6 +82,17 @@ namespace DID.Services
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<Response<AuthFailRespon>> GetAuthFail(string userId);
+
+        /// <summary>
+        /// 认证申述
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="userAuthInfoId"></param>
+        /// <param name="phone"></param>
+        /// <param name="describe"></param>
+        /// <param name="images"></param>
+        /// <returns></returns>
+        Task<Response> AuthAppeal(string userId, string userAuthInfoId, string? phone, string? describe, string? images);
     }
     /// <summary>
     /// 审核认证服务
@@ -317,60 +329,60 @@ namespace DID.Services
                 }
                 //中高级节点审核
                 //var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", authinfo.CreatorId);
-                var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
-                authUserIds.Add(authinfo.CreatorId!);
-                var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 4 or UserNode = 5) and IsLogout = 0 and DIDUserId not in (@0)", authUserIds);
-                if (auths.Count <= 0)
-                    _logger.LogInformation("抽审失败,未找到中高级节点!");
-                else
-                {
-                    var random = new Random().Next(auths.Count);
-                    var authUserId = auths[random].DIDUserId;
-                    if (string.IsNullOrEmpty(authUserId))
-                        return InvokeResult.Success("审核失败,未找到中高级节点!");
+                //var authUserIds = await db.FetchAsync<string>("select AuditUserId from Auth where UserAuthInfoId = @0 and IsDelete = 0 order by AuditStep", userAuthInfoId);
+                //authUserIds.Add(authinfo.CreatorId!);
+                //var auths = await db.FetchAsync<DIDUser>("select * from DIDUser where (UserNode = 4 or UserNode = 5) and IsLogout = 0 and DIDUserId not in (@0)", authUserIds);
+                //if (auths.Count <= 0)
+                //    _logger.LogInformation("抽审失败,未找到中高级节点!");
+                //else
+                //{
+                //    var random = new Random().Next(auths.Count);
+                //    var authUserId = auths[random].DIDUserId;
+                //    if (string.IsNullOrEmpty(authUserId))
+                //        return InvokeResult.Success("审核失败,未找到中高级节点!");
 
-                    var nextAuth = new Auth()
-                    {
-                        AuthId = Guid.NewGuid().ToString(),
-                        UserAuthInfoId = userAuthInfoId,
-                        AuditUserId = authUserId,//推荐人审核                                                                              
-                        CreateDate = DateTime.Now,
-                        AuditType = AuditTypeEnum.未审核,
-                        AuditStep = AuditStepEnum.抽审
-                    };
-                    ////人像照处理
-                    //var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
-                    //img = CommonHelp.MaSaiKeGraphics(img, 8);//随机30%马赛克
-                    //nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    //img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
-                    ////国徽面处理
-                    //var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
-                    //img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
-                    //nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    //img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
-                    ////手持处理
-                    //var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
-                    //img2 = CommonHelp.MaSaiKeGraphics(img2, 8);//随机30%马赛克
-                    //nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    //img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
-                    //人像照处理
-                    var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
-                    img = CommonHelp.WhiteGraphics(img, new Rectangle((int)(img.Width * 0.6), 0, (int)(img.Width * 0.4), img.Height));//遮住右边40%
-                    nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
-                    //国徽面处理
-                    var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
-                    img1 = CommonHelp.WhiteGraphics(img1, new Rectangle((int)(img1.Width * 0.6), 0, (int)(img1.Width * 0.4), img1.Height));//遮住右边40%
-                    nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
-                    //手持处理
-                    var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
-                    img2 = CommonHelp.WhiteGraphics(img2, new Rectangle((int)(img2.Width * 0.5), 0, (int)(img2.Width * 0.5), img2.Height));//遮住右边40%
-                    nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
-                    img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
+                //    var nextAuth = new Auth()
+                //    {
+                //        AuthId = Guid.NewGuid().ToString(),
+                //        UserAuthInfoId = userAuthInfoId,
+                //        AuditUserId = authUserId,//推荐人审核                                                                              
+                //        CreateDate = DateTime.Now,
+                //        AuditType = AuditTypeEnum.未审核,
+                //        AuditStep = AuditStepEnum.抽审
+                //    };
+                //    ////人像照处理
+                //    //var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
+                //    //img = CommonHelp.MaSaiKeGraphics(img, 8);//随机30%马赛克
+                //    //nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    //img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
+                //    ////国徽面处理
+                //    //var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
+                //    //img1 = CommonHelp.MaSaiKeGraphics(img1, 8);//随机30%马赛克
+                //    //nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    //img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
+                //    ////手持处理
+                //    //var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
+                //    //img2 = CommonHelp.MaSaiKeGraphics(img2, 8);//随机30%马赛克
+                //    //nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    //img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
+                //    //人像照处理
+                //    var img = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.PortraitImage));
+                //    img = CommonHelp.WhiteGraphics(img, new Rectangle((int)(img.Width * 0.6), 0, (int)(img.Width * 0.4), img.Height));//遮住右边40%
+                //    nextAuth.PortraitImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    img.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.PortraitImage));
+                //    //国徽面处理
+                //    var img1 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.NationalImage));
+                //    img1 = CommonHelp.WhiteGraphics(img1, new Rectangle((int)(img1.Width * 0.6), 0, (int)(img1.Width * 0.4), img1.Height));//遮住右边40%
+                //    nextAuth.NationalImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    img1.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.NationalImage));
+                //    //手持处理
+                //    var img2 = Image.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, authinfo.HandHeldImage));
+                //    img2 = CommonHelp.WhiteGraphics(img2, new Rectangle((int)(img2.Width * 0.5), 0, (int)(img2.Width * 0.5), img2.Height));//遮住右边40%
+                //    nextAuth.HandHeldImage = "Auth/AuthImges/" + authinfo.CreatorId + "/" + Guid.NewGuid().ToString() + ".jpg";
+                //    img2.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nextAuth.HandHeldImage));
 
-                    await db.InsertAsync(nextAuth);
-                }
+                //    await db.InsertAsync(nextAuth);
+                //}
                 //去Dao审核
                 //ToDaoAuth(nextAuth.AuthId);
             }
@@ -413,7 +425,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
+        public async Task<Response<List<UserAuthRespon>>> GetAuditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string? key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
@@ -477,7 +489,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
+        public async Task<Response<List<UserAuthRespon>>> GetUnauditedInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string? key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
@@ -550,7 +562,7 @@ namespace DID.Services
         /// <param name="page">页数</param>
         /// <param name="itemsPerPage">每页数量</param>
         /// <returns></returns>
-        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string key)
+        public async Task<Response<List<UserAuthRespon>>> GetBackInfo(string userId, IsEnum isDao,long page, long itemsPerPage, string? key)
         {
             var result = new List<UserAuthRespon>();
             using var db = new NDatabase();
@@ -837,6 +849,16 @@ namespace DID.Services
                 });
             }
             item.Auths = list;
+
+            //申述记录
+            var model = await db.SingleOrDefaultAsync<Appeal>("select * from AuthAppeal where UserAuthInfoId = @0", authinfo.UserAuthInfoId);
+            if (null != model)
+            {
+                model.Name = await db.SingleOrDefaultAsync<string>("select b.Name from DIDUser a left join UserAuthInfo b on  a.UserAuthInfoId = b.UserAuthInfoId where a.DIDUserId = @0", model.AuditUserId);
+                model.Uid = await db.SingleOrDefaultAsync<int>("select Uid from DIDUser where DIDUserId = @0", model.AuditUserId);
+                item.appeal = model;
+            }
+
             return InvokeResult.Success(item);
         }
 
@@ -882,6 +904,47 @@ namespace DID.Services
             t.Enabled = true;//是否执行System.Timers.Timer.Elapsed事件；
             t.Start(); //启动定时器
 
+        }
+
+        /// <summary>
+        /// 认证申述
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="userAuthInfoId"></param>
+        /// <param name="phone"></param>
+        /// <param name="describe"></param>
+        /// <param name="images"></param>
+        /// <returns></returns>
+        public async Task<Response> AuthAppeal(string userId, string userAuthInfoId, string? phone, string? describe, string? images)
+        { 
+            using var db = new NDatabase();
+            var user = await db.SingleOrDefaultAsync<DIDUser>("select * from DIDUser where DIDUserId = @0", userId);
+            if (null == user)
+                return InvokeResult.Fail("用户信息未找到!");
+            if( user.AuthType != AuthTypeEnum.审核失败)
+                return InvokeResult.Fail("申诉失败!");
+
+            db.BeginTransaction();
+
+            user.AuthType = AuthTypeEnum.申诉中;
+            await db.UpdateAsync(user);
+
+            var model = new AuthAppeal
+            {
+                AuthAppealId = Guid.NewGuid().ToString(),
+                Describe = describe,
+                Phone = phone,
+                Images = images,
+                UserAuthInfoId = userAuthInfoId,
+                CreateDate = DateTime.Now,
+                AuditType = AuthAppealEnum.未审核
+            };
+
+            await db.InsertAsync(model);
+
+            db.CompleteTransaction();
+
+            return InvokeResult.Success("申诉成功!");
         }
     }
 }

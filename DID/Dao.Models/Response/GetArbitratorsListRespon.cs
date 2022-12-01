@@ -1,21 +1,24 @@
-﻿using DID.Entitys;
-using NPoco;
+﻿using Dao.Entity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Dao.Entity
+namespace Dao.Models.Response
 {
-    /// <summary>
-    /// 审核员信息表
-    /// </summary>
-    [PrimaryKey("UserExamineId", AutoIncrement = false)]
-    public class UserExamine
+    public class GetArbitratorsListRespon
     {
+
+
         /// <summary>
         /// 编号
         /// </summary>
-        public string UserExamineId
+        public string UserArbitrateId
         {
             get; set;
         }
+
         /// <summary>
         /// 用户编号
         /// </summary>
@@ -23,47 +26,38 @@ namespace Dao.Entity
         {
             get; set;
         }
-
         /// <summary>
-        /// 审核员编号
+        /// Uid
         /// </summary>
-        public string Number
+        public int Uid
         {
             get; set;
         }
         /// <summary>
-        /// 创建日期 默认为当前时间
+        /// 姓名
         /// </summary>
-        public DateTime CreateDate
+        public string Name
         {
             get; set;
         }
-        /// <summary>
-        /// 是否删除 0 否 1 是
-        /// </summary>
-        public IsEnum IsDelete
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 审核收益
-        /// </summary>
-        public double EOTC
-        {
-            get; set;
-        }
-        /// <summary>
-        /// 审核次数
-        /// </summary>
-        public int ExamineNum
-        {
-            get; set;
-        }
-
         /// <summary>
         /// 考试分数
         /// </summary>
         public double TestScore
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public string CreateDate
+        {
+            get; set;
+        }
+        /// <summary>
+        /// 质押数量
+        /// </summary>
+        public double StakeEotc
         {
             get; set;
         }
@@ -89,15 +83,11 @@ namespace Dao.Entity
             get; set;
         }
         /// <summary>
-        /// 审核用户编号
+        /// 信用分
         /// </summary>
-        public string? AuditUserId
+        public int CreditScore
         {
             get; set;
         }
     }
-    /// <summary>
-    /// 0 审核中, 1 审核成功, 2 审核失败
-    /// </summary>
-    public enum AuditStatusEnum { 审核中, 审核成功, 审核失败 }
 }

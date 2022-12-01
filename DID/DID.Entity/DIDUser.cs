@@ -5,7 +5,7 @@ namespace DID.Entitys
     /// <summary>
     /// 身份认证状态 0 未审核 1 审核中 2 审核成功 3 审核失败
     /// </summary>
-    public enum AuthTypeEnum { 未审核, 审核中, 审核成功, 审核失败 }
+    public enum AuthTypeEnum { 未审核, 审核中, 审核成功, 审核失败, 申诉中 }
     /// <summary>
     /// 风险等级 0 低风险 1 中风险 2 高风险
     /// </summary>s

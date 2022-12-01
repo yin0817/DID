@@ -147,5 +147,17 @@ namespace DID.Controllers
         {
             return await _service.GetAuthSuccess(_currentUser.UserId);
         }
+
+        /// <summary>
+        /// 认证申述
+        /// </summary>
+        /// <param name="req"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("authappeal")]
+        public async Task<Response> AuthAppeal(AuthAppealReq req)
+        {
+            return await _service.AuthAppeal(_currentUser.UserId, req.UserAuthInfoId, req.Phone, req.Describe, req.Images);
+        }
     }
 }
